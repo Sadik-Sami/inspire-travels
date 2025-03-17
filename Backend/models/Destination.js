@@ -21,7 +21,6 @@ const location = new mongoose.Schema({
   to: { type: String, required: [true, "Please add a from description."] },
   detailedAddress: String,
   googleMapsLink: String,
-  categories: [String],
 });
 
 const duration = new mongoose.Schema({
@@ -30,6 +29,7 @@ const duration = new mongoose.Schema({
     required: [true, "Please Enter Days."],
   },
   nights: Number,
+  flexibleDuration: Boolean,
 });
 
 const transportation = new mongoose.Schema({
