@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { sign } from "jsonwebtoken";
-import User, { findOne } from "../models/User.js";
-import { verifyUser } from "../middlewares/authMiddleware.js";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import auth from "../middlewares/authMiddleware.js";
 
+const { findOne } = User;
+const { sign } = jwt;
+const { verifyUser } = auth;
 const router = Router();
 
 // @route POST /api/users/register

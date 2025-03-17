@@ -1,5 +1,7 @@
-import { verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+
+const { verify } = jwt;
 
 // Middleware to protect routes
 const verifyUser = async (req, res, next) => {
