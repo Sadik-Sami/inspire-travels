@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
+const destinationRoutes = require('./routes/destinationRoutes');
+
+const path = require('path');
+const multer = require('multer');
 
 const app = express();
 app.use(express.json());
@@ -19,6 +23,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRoutes);
+app.use('/api/destinations', destinationRoutes);
+
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 });

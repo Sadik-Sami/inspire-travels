@@ -113,7 +113,6 @@ const Navbar = () => {
 		{ name: 'Contact', path: '/contact' },
 		(isAdmin || isEmployee || isModerator) && { name: 'Dashboard', path: '/admin' },
 	].filter(Boolean);
-	console.log(navLinks);
 	const isActive = (path) => location.pathname === path;
 
 	const handleLogout = () => {

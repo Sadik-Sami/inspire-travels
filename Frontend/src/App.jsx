@@ -15,12 +15,13 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminDestinations from './pages/admin/AdminDestinations';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AddDestination from './pages/admin/AddDestination';
+import EditDestination from './pages/EditDestination';
 
 const App = () => {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
-				staleTime: 1000 * 60 * 5, // 5 minutes
+				staleTime: 1000 * 60 * 5,
 				retry: 1,
 			},
 		},
@@ -45,6 +46,7 @@ const App = () => {
 								<Route path='users' element={<AdminUsers />} />
 								<Route path='destinations' element={<AdminDestinations />} />
 								<Route path='destinations/new' element={<AddDestination />} />
+								<Route path="destinations/edit/:id" element={<EditDestination />} />
 							</Route>
 						</Routes>
 					</AuthProvider>

@@ -1,9 +1,7 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Upload, X, Star, Plus, Trash2, Utensils, Wifi, Car, Calendar } from 'lucide-react';
+import { Upload, X, Star, Plus, Trash2, Utensils, Wifi, Car, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,21 +10,33 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useCreateDestination } from '@/hooks/useDestinationMutation';
+import { useDestinationDetail, useDestinationCategories } from '@/hooks/useDestinationQuery';
+import { useUpdateDestination, useDeleteDestinationImage } from '@/hooks/useDestinationMutation';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
-import { toast } from 'sonner';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 
-const AddDestination = () => {
+const EditDestination = () => {
+	const { id } = useParams();
 	const navigate = useNavigate();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [imageToDelete, setImageToDelete] = useState(null);
 	const axiosSecure = useAxiosSecure();
-	const [formData, setFormData] = useState({
+
+	// Default form state
+	const defaultFormData = {
 		title: '',
 		summary: '',
 		description: '',
@@ -40,7 +50,7 @@ const AddDestination = () => {
 			basePrice: '',
 			discountedPrice: '',
 			currency: 'USD',
-			priceType: 'perPerson', // perPerson, perCouple, perGroup
+			priceType: 'perPerson',
 		},
 		duration: {
 			days: 1,
@@ -55,11 +65,11 @@ const AddDestination = () => {
 		},
 		transportation: {
 			included: true,
-			type: 'flight', // flight, train, bus, cruise, self
+			type: 'flight',
 			details: '',
 		},
 		accommodation: {
-			type: 'hotel', // hotel, resort, villa, apartment, hostel
+			type: 'hotel',
 			rating: 3,
 			details: '',
 		},
@@ -91,28 +101,75 @@ const AddDestination = () => {
 		categories: [],
 		isFeatured: false,
 		isPopular: false,
-		status: 'draft', // draft, active, inactive
+		status: 'draft',
 		images: [],
-	});
+	};
 
-	const [newAvailableDate, setNewAvailableDate] = useState(null);
-	const { mutateAsync: createDestination, isPending } = useCreateDestination(axiosSecure);
+	const [formData, setFormData] = useState(defaultFormData);
+
+	// Fetch destination data
+	const { data: destination, isLoading, isError, error } = useDestinationDetail(id);
+
+	// Fetch categories
+	const { data: categoriesData } = useDestinationCategories();
+
+	// Update mutation
+	const updateMutation = useUpdateDestination(axiosSecure);
+
+	// Delete image mutation
+	const deleteImageMutation = useDeleteDestinationImage(axiosSecure);
 
 	// Available categories
-	const categories = [
-		{ id: 'beach', label: 'Beach' },
-		{ id: 'mountain', label: 'Mountain' },
-		{ id: 'city', label: 'City' },
-		{ id: 'cultural', label: 'Cultural' },
-		{ id: 'adventure', label: 'Adventure' },
-		{ id: 'romantic', label: 'Romantic' },
-		{ id: 'family-friendly', label: 'Family-friendly' },
-		{ id: 'luxury', label: 'Luxury' },
-		{ id: 'budget', label: 'Budget' },
-		{ id: 'wildlife', label: 'Wildlife' },
-		{ id: 'historical', label: 'Historical' },
-		{ id: 'foodie', label: 'Food & Wine' },
+	const categories = categoriesData || [
+		{ id: 'beach', name: 'Beach' },
+		{ id: 'mountain', name: 'Mountain' },
+		{ id: 'city', name: 'City' },
+		{ id: 'cultural', name: 'Cultural' },
+		{ id: 'adventure', name: 'Adventure' },
+		{ id: 'romantic', name: 'Romantic' },
+		{ id: 'family-friendly', name: 'Family-friendly' },
+		{ id: 'luxury', name: 'Luxury' },
+		{ id: 'budget', name: 'Budget' },
+		{ id: 'wildlife', name: 'Wildlife' },
+		{ id: 'historical', name: 'Historical' },
+		{ id: 'foodie', name: 'Food & Wine' },
 	];
+
+	// Populate form with destination data when it loads
+	useEffect(() => {
+		if (destination) {
+			// Format dates for input fields
+			const formatDateForInput = (dateString) => {
+				if (!dateString) return '';
+				const date = new Date(dateString);
+				return date.toISOString().split('T')[0];
+			};
+
+			// Prepare form data from destination
+			const preparedData = {
+				...destination,
+				dates: {
+					...destination.dates,
+					startDate: formatDateForInput(destination.dates?.startDate),
+					endDate: formatDateForInput(destination.dates?.endDate),
+					bookingDeadline: formatDateForInput(destination.dates?.bookingDeadline),
+				},
+			};
+
+			// Ensure arrays have at least one empty item
+			if (!preparedData.activities || preparedData.activities.length === 0) {
+				preparedData.activities = [''];
+			}
+			if (!preparedData.advantages || preparedData.advantages.length === 0) {
+				preparedData.advantages = [''];
+			}
+			if (!preparedData.features || preparedData.features.length === 0) {
+				preparedData.features = [''];
+			}
+
+			setFormData(preparedData);
+		}
+	}, [destination]);
 
 	// Handle form input changes
 	const handleChange = (e) => {
@@ -134,83 +191,6 @@ const AddDestination = () => {
 				[name]: value,
 			}));
 		}
-	};
-
-	// Fix the date picker timezone issue by ensuring we preserve the local date
-	// Update the handleDateChange function to fix the date selection issue
-	const handleDateChange = (date, field) => {
-		if (!date) {
-			if (field.includes('.')) {
-				const [parent, child] = field.split('.');
-				setFormData((prev) => ({
-					...prev,
-					[parent]: {
-						...prev[parent],
-						[child]: '',
-					},
-				}));
-			} else {
-				setFormData((prev) => ({
-					...prev,
-					[field]: '',
-				}));
-			}
-			return;
-		}
-
-		// Format the date as YYYY-MM-DD to avoid timezone issues
-		const formattedDate = format(date, 'yyyy-MM-dd');
-
-		if (field.includes('.')) {
-			const [parent, child] = field.split('.');
-			setFormData((prev) => ({
-				...prev,
-				[parent]: {
-					...prev[parent],
-					[child]: formattedDate,
-				},
-			}));
-		} else {
-			setFormData((prev) => ({
-				...prev,
-				[field]: formattedDate,
-			}));
-		}
-	};
-
-	// Fix the handleAddAvailableDate function to use the formatted date
-	const handleAddAvailableDate = () => {
-		if (!newAvailableDate) return;
-
-		// Format the date as YYYY-MM-DD to avoid timezone issues
-		const dateString = format(newAvailableDate, 'yyyy-MM-dd');
-
-		// Check if date already exists
-		if (formData.dates.availableDates.includes(dateString)) {
-			toast.error('This date is already added');
-			return;
-		}
-
-		setFormData((prev) => ({
-			...prev,
-			dates: {
-				...prev.dates,
-				availableDates: [...prev.dates.availableDates, dateString].sort(),
-			},
-		}));
-
-		setNewAvailableDate(null);
-	};
-
-	// Fix the handleRemoveAvailableDate function to ensure it works properly
-	const handleRemoveAvailableDate = (dateToRemove) => {
-		setFormData((prev) => ({
-			...prev,
-			dates: {
-				...prev.dates,
-				availableDates: prev.dates.availableDates.filter((date) => date !== dateToRemove),
-			},
-		}));
 	};
 
 	// Handle number input changes
@@ -356,10 +336,21 @@ const AddDestination = () => {
 
 	// Remove image
 	const handleRemoveImage = (index) => {
+		const image = formData.images[index];
+
+		// If it's an existing image (has public_id), confirm deletion
+		if (image.public_id) {
+			setImageToDelete({ index, id: image._id });
+			return;
+		}
+
+		// Otherwise just remove from state
 		setFormData((prev) => {
 			const newImages = [...prev.images];
 			// Revoke the object URL to avoid memory leaks
-			URL.revokeObjectURL(newImages[index].preview);
+			if (image.preview) {
+				URL.revokeObjectURL(image.preview);
+			}
 			newImages.splice(index, 1);
 			return {
 				...prev,
@@ -368,10 +359,37 @@ const AddDestination = () => {
 		});
 	};
 
+	// Delete image from server
+	const handleDeleteImage = async () => {
+		if (!imageToDelete) return;
+
+		try {
+			await deleteImageMutation.mutateAsync({
+				destinationId: id,
+				imageId: imageToDelete.id,
+			});
+
+			// Remove from local state
+			setFormData((prev) => {
+				const newImages = [...prev.images];
+				newImages.splice(imageToDelete.index, 1);
+				return {
+					...prev,
+					images: newImages,
+				};
+			});
+
+			toast.success('Image deleted successfully');
+		} catch (error) {
+			toast.error('Failed to delete image: ' + (error.message || 'Unknown error'));
+		} finally {
+			setImageToDelete(null);
+		}
+	};
+
 	// Form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
 		// Validate form
 		if (!formData.title || !formData.summary || !formData.description) {
 			toast.error('Please fill in all required fields.');
@@ -403,21 +421,32 @@ const AddDestination = () => {
 			return;
 		}
 
-		// Clean up the form data before submission
-		const cleanedFormData = {
-			...formData,
-			advantages: filteredAdvantages,
-			features: filteredFeatures,
-			activities: filteredActivities,
-		};
+		setIsSubmitting(true);
 
 		try {
-			await createDestination(cleanedFormData);
-			toast.success(`${formData.title} has been added to your destinations.`);
+			// Prepare data for submission
+			const submissionData = {
+				...formData,
+				advantages: filteredAdvantages,
+				features: filteredFeatures,
+				activities: filteredActivities,
+			};
+			console.log('submissionData:', submissionData);
+
+			await updateMutation.mutateAsync({
+				id,
+				formData: submissionData,
+			});
+
+			toast.success(`${formData.title} has been updated successfully.`);
+
+			// Navigate back to destinations list
 			navigate('/admin/destinations');
 		} catch (error) {
-			console.error('Error submitting form:', error);
-			toast.error('There was an error adding the destination. Please try again.');
+			console.error('Error updating destination:', error);
+			toast.error('There was an error updating the destination. Please try again.');
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -430,16 +459,31 @@ const AddDestination = () => {
 				}
 			});
 		};
-	}, [formData.images]);
+	}, []);
+
+	if (isLoading) {
+		return (
+			<div className='flex flex-col items-center justify-center min-h-[400px]'>
+				<Loader2 className='h-8 w-8 animate-spin text-primary mb-4' />
+				<p className='text-muted-foreground'>Loading destination data...</p>
+			</div>
+		);
+	}
+
+	if (isError) {
+		return (
+			<div className='flex flex-col items-center justify-center min-h-[400px]'>
+				<h2 className='text-2xl font-bold mb-4'>Error Loading Destination</h2>
+				<p className='text-muted-foreground mb-6'>{error?.message || 'Failed to load destination data'}</p>
+				<Button onClick={() => navigate('/admin/destinations')}>Return to Destinations</Button>
+			</div>
+		);
+	}
 
 	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={{ duration: 0.3 }}
-			className='px-2 sm:px-4 md:px-6'>
-			<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
-				<h1 className='text-2xl sm:text-3xl font-bold'>Add New Destination</h1>
+		<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+			<div className='flex items-center justify-between mb-6'>
+				<h1 className='text-3xl font-bold'>Edit Destination</h1>
 				<Button variant='outline' onClick={() => navigate('/admin/destinations')}>
 					Cancel
 				</Button>
@@ -447,31 +491,19 @@ const AddDestination = () => {
 
 			<form onSubmit={handleSubmit}>
 				<Tabs defaultValue='basic' className='mb-6'>
-					<TabsList className='w-full overflow-x-auto flex flex-nowrap sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-4 no-scrollbar'>
-						<TabsTrigger value='basic' className='whitespace-nowrap'>
-							Basic Info
-						</TabsTrigger>
-						<TabsTrigger value='details' className='whitespace-nowrap'>
-							Details
-						</TabsTrigger>
-						<TabsTrigger value='pricing' className='whitespace-nowrap'>
-							Pricing & Dates
-						</TabsTrigger>
-						<TabsTrigger value='amenities' className='whitespace-nowrap'>
-							Amenities
-						</TabsTrigger>
-						<TabsTrigger value='media' className='whitespace-nowrap'>
-							Media
-						</TabsTrigger>
-						<TabsTrigger value='seo' className='whitespace-nowrap'>
-							Visibility
-						</TabsTrigger>
+					<TabsList className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 mb-4'>
+						<TabsTrigger value='basic'>Basic Info</TabsTrigger>
+						<TabsTrigger value='details'>Details</TabsTrigger>
+						<TabsTrigger value='pricing'>Pricing & Dates</TabsTrigger>
+						<TabsTrigger value='amenities'>Amenities</TabsTrigger>
+						<TabsTrigger value='media'>Media</TabsTrigger>
+						<TabsTrigger value='seo'>SEO & Visibility</TabsTrigger>
 					</TabsList>
 
 					{/* Basic Info Tab */}
 					<TabsContent value='basic' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Destination Details</CardTitle>
 								<CardDescription>Enter the basic information about this travel destination.</CardDescription>
 							</CardHeader>
@@ -517,19 +549,19 @@ const AddDestination = () => {
 										value={formData.description}
 										onChange={handleChange}
 										required
-										className='min-h-[150px] sm:min-h-[200px]'
+										className='min-h-[200px]'
 									/>
 								</div>
 							</CardContent>
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Location</CardTitle>
 								<CardDescription>Specify the origin and destination locations</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='location.from'>
 											From <span className='text-red-500'>*</span>
@@ -584,23 +616,23 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Categories</CardTitle>
 								<CardDescription>Select categories that best describe this destination</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
+								<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
 									{categories.map((category) => (
-										<div key={category.id} className='flex items-center space-x-2'>
+										<div key={category} className='flex items-center space-x-2'>
 											<Checkbox
-												id={`category-${category.id}`}
-												checked={formData.categories.includes(category.id)}
-												onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
+												id={`category-${category}`}
+												checked={formData.categories.includes(category)}
+												onCheckedChange={(checked) => handleCategoryChange(category, checked)}
 											/>
 											<label
-												htmlFor={`category-${category.id}`}
+												htmlFor={`category-${category}`}
 												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-												{category.label}
+												{category}
 											</label>
 										</div>
 									))}
@@ -612,12 +644,12 @@ const AddDestination = () => {
 					{/* Details Tab */}
 					<TabsContent value='details' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Duration</CardTitle>
 								<CardDescription>Specify the duration of the trip</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='duration.days'>
 											Days <span className='text-red-500'>*</span>
@@ -660,7 +692,7 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Transportation</CardTitle>
 								<CardDescription>Specify transportation details</CardDescription>
 							</CardHeader>
@@ -712,7 +744,7 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Accommodation</CardTitle>
 								<CardDescription>Specify accommodation details</CardDescription>
 							</CardHeader>
@@ -747,7 +779,7 @@ const AddDestination = () => {
 												className={`p-1 rounded-full ${
 													formData.accommodation.rating >= rating ? 'text-yellow-400' : 'text-gray-300'
 												}`}>
-												<Star className='h-5 w-5 sm:h-6 sm:w-6 fill-current' />
+												<Star className='h-6 w-6 fill-current' />
 											</button>
 										))}
 										<span className='ml-2 text-sm'>{formData.accommodation.rating} Star</span>
@@ -769,7 +801,7 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Meals</CardTitle>
 								<CardDescription>Specify meal inclusions</CardDescription>
 							</CardHeader>
@@ -800,12 +832,12 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Group Size</CardTitle>
 								<CardDescription>Specify group size limitations</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='groupSize.min'>Minimum Group Size</Label>
 										<Input
@@ -848,12 +880,12 @@ const AddDestination = () => {
 					{/* Pricing & Dates Tab */}
 					<TabsContent value='pricing' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Pricing</CardTitle>
 								<CardDescription>Set pricing details for this destination</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='pricing.basePrice'>
 											Base Price <span className='text-red-500'>*</span>
@@ -941,134 +973,45 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Dates</CardTitle>
 								<CardDescription>Set available dates for this destination</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='dates.startDate'>Start Date</Label>
-										<Popover>
-											<PopoverTrigger asChild>
-												<Button variant='outline' className='w-full justify-start text-left font-normal'>
-													<Calendar className='mr-2 h-4 w-4' />
-													{formData.dates.startDate ? (
-														format(new Date(formData.dates.startDate), 'PPP')
-													) : (
-														<span>Pick a date</span>
-													)}
-												</Button>
-											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
-												<CalendarComponent
-													mode='single'
-													selected={formData.dates.startDate ? new Date(formData.dates.startDate) : undefined}
-													onSelect={(date) => handleDateChange(date, 'dates.startDate')}
-													initialFocus
-												/>
-											</PopoverContent>
-										</Popover>
+										<Input
+											id='dates.startDate'
+											name='dates.startDate'
+											type='date'
+											value={formData.dates.startDate}
+											onChange={handleChange}
+										/>
 									</div>
 
 									<div className='space-y-2'>
 										<Label htmlFor='dates.endDate'>End Date</Label>
-										<Popover>
-											<PopoverTrigger asChild>
-												<Button variant='outline' className='w-full justify-start text-left font-normal'>
-													<Calendar className='mr-2 h-4 w-4' />
-													{formData.dates.endDate ? (
-														format(new Date(formData.dates.endDate), 'PPP')
-													) : (
-														<span>Pick a date</span>
-													)}
-												</Button>
-											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
-												<CalendarComponent
-													mode='single'
-													selected={formData.dates.endDate ? new Date(formData.dates.endDate) : undefined}
-													onSelect={(date) => handleDateChange(date, 'dates.endDate')}
-													initialFocus
-												/>
-											</PopoverContent>
-										</Popover>
+										<Input
+											id='dates.endDate'
+											name='dates.endDate'
+											type='date'
+											value={formData.dates.endDate}
+											onChange={handleChange}
+										/>
 									</div>
 								</div>
 
 								<div className='space-y-2'>
 									<Label htmlFor='dates.bookingDeadline'>Booking Deadline</Label>
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button variant='outline' className='w-full justify-start text-left font-normal'>
-												<Calendar className='mr-2 h-4 w-4' />
-												{formData.dates.bookingDeadline ? (
-													format(new Date(formData.dates.bookingDeadline), 'PPP')
-												) : (
-													<span>Pick a date</span>
-												)}
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className='w-auto p-0'>
-											<CalendarComponent
-												mode='single'
-												selected={formData.dates.bookingDeadline ? new Date(formData.dates.bookingDeadline) : undefined}
-												onSelect={(date) => handleDateChange(date, 'dates.bookingDeadline')}
-												initialFocus
-											/>
-										</PopoverContent>
-									</Popover>
+									<Input
+										id='dates.bookingDeadline'
+										name='dates.bookingDeadline'
+										type='date'
+										value={formData.dates.bookingDeadline}
+										onChange={handleChange}
+									/>
 									<p className='text-xs text-muted-foreground'>Last date when customers can book this trip</p>
-								</div>
-
-								<div className='space-y-2 mt-4'>
-									<Label>Available Dates</Label>
-									<div className='flex flex-wrap gap-2 mb-2'>
-										{/* Update the Badge component to ensure the onClick handler works properly */}
-										{/* Replace the Badge component in the Available Dates section with this: */}
-										{formData.dates.availableDates.map((date) => (
-											<Badge key={date} variant='secondary' className='flex items-center gap-1'>
-												{format(new Date(date), 'MMM d, yyyy')}
-												<button
-													type='button'
-													onClick={(e) => {
-														e.preventDefault();
-														handleRemoveAvailableDate(date);
-													}}
-													className='ml-1 h-3 w-3 rounded-full inline-flex items-center justify-center hover:bg-muted'>
-													<X className='h-3 w-3' />
-												</button>
-											</Badge>
-										))}
-										{formData.dates.availableDates.length === 0 && (
-											<p className='text-sm text-muted-foreground'>No available dates added yet</p>
-										)}
-									</div>
-
-									<div className='flex gap-2'>
-										<Popover>
-											<PopoverTrigger asChild>
-												<Button variant='outline' className='flex-1 justify-start text-left font-normal'>
-													<Calendar className='mr-2 h-4 w-4' />
-													{newAvailableDate ? format(newAvailableDate, 'PPP') : <span>Select date to add</span>}
-												</Button>
-											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
-												<CalendarComponent
-													mode='single'
-													selected={newAvailableDate}
-													onSelect={setNewAvailableDate}
-													initialFocus
-												/>
-											</PopoverContent>
-										</Popover>
-										<Button type='button' onClick={handleAddAvailableDate} disabled={!newAvailableDate}>
-											Add Date
-										</Button>
-									</div>
-									<p className='text-xs text-muted-foreground'>
-										Add specific dates when this trip is available for booking
-									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -1077,7 +1020,7 @@ const AddDestination = () => {
 					{/* Amenities Tab */}
 					<TabsContent value='amenities' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Advantages & Features</CardTitle>
 								<CardDescription>What makes this destination special?</CardDescription>
 							</CardHeader>
@@ -1180,12 +1123,12 @@ const AddDestination = () => {
 						</Card>
 
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Amenities</CardTitle>
 								<CardDescription>Select amenities available at this destination</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4'>
+								<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 									<div className='flex items-center space-x-2'>
 										<Checkbox
 											id='amenities-wifi'
@@ -1323,18 +1266,18 @@ const AddDestination = () => {
 					{/* Media Tab */}
 					<TabsContent value='media' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Images</CardTitle>
 								<CardDescription>Upload up to 4 high-quality images</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4'>
+								<div className='grid grid-cols-2 gap-4 mb-4'>
 									{formData.images.map((image, index) => (
 										<div
 											key={`image-${index}`}
 											className='relative aspect-video bg-muted rounded-md overflow-hidden group'>
 											<img
-												src={image.preview || '/placeholder.svg'}
+												src={image.url || image.preview || '/placeholder.svg'}
 												alt={`Preview ${index + 1}`}
 												className='w-full h-full object-cover'
 											/>
@@ -1389,7 +1332,7 @@ const AddDestination = () => {
 					{/* SEO & Visibility Tab */}
 					<TabsContent value='seo' className='space-y-6'>
 						<Card>
-							<CardHeader className='pb-3'>
+							<CardHeader>
 								<CardTitle>Visibility Settings</CardTitle>
 								<CardDescription>Control how this destination appears on the website</CardDescription>
 							</CardHeader>
@@ -1447,28 +1390,42 @@ const AddDestination = () => {
 					</TabsContent>
 				</Tabs>
 
-				<div className='mt-6 flex flex-col sm:flex-row justify-end gap-4'>
-					<Button
-						type='button'
-						variant='outline'
-						onClick={() => navigate('/admin/destinations')}
-						className='w-full sm:w-auto'>
+				<div className='mt-6 flex justify-end gap-4'>
+					<Button type='button' variant='outline' onClick={() => navigate('/admin/destinations')}>
 						Cancel
 					</Button>
-					<Button type='submit' disabled={isPending} className='w-full sm:w-auto min-w-[120px]'>
-						{isPending ? (
-							<div className='flex items-center justify-center'>
+					<Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
+						{isSubmitting ? (
+							<div className='flex items-center'>
 								<div className='animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full'></div>
 								<span>Saving...</span>
 							</div>
 						) : (
-							<span>Save Destination</span>
+							<span>Update Destination</span>
 						)}
 					</Button>
 				</div>
 			</form>
+
+			{/* Delete Image Confirmation Dialog */}
+			<AlertDialog open={!!imageToDelete} onOpenChange={(open) => !open && setImageToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Image</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete this image? This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDeleteImage} className='bg-red-500 hover:bg-red-600'>
+							{deleteImageMutation.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</motion.div>
 	);
 };
 
-export default AddDestination;
+export default EditDestination;

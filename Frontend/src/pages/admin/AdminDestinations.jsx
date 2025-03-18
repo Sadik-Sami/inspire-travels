@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Edit, MapPin, Plus, Search, Trash2 } from 'lucide-react';
-import AdminLayout from '../../components/admin/AdminLayout';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent } from '../../components/ui/card';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, MoreHorizontal, Edit, Trash, Eye, Star, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import useAxiosSecure from '@/hooks/use-AxiosSecure';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import DestinationFilters from '@/components/Destination/DestinationFilters';
+import PaginationControls from '@/components/Destination/PaginationControls';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -14,311 +25,352 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
-} from '../../components/ui/alert-dialog';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '../../components/ui/dropdown-menu';
-import { toast } from 'sonner';
+} from '@/components/ui/alert-dialog';
 
 const AdminDestinations = () => {
-	const [isLoading, setIsLoading] = useState(true);
-	const [destinations, setDestinations] = useState([]);
+	const navigate = useNavigate();
+	const axiosSecure = useAxiosSecure();
+	const queryClient = useQueryClient();
+
+	// State for pagination, filtering, and sorting
+	const [page, setPage] = useState(1);
+	const [filters, setFilters] = useState({
+		priceRange: [0, 5000],
+		duration: 'any',
+		categories: [],
+		status: 'all',
+	});
 	const [searchQuery, setSearchQuery] = useState('');
+	const [activeSort, setActiveSort] = useState('newest');
 	const [destinationToDelete, setDestinationToDelete] = useState(null);
 
-	useEffect(() => {
-		const fetchDestinations = async () => {
-			try {
-				// In a real app, this would be an actual API call
-				// const response = await axios.get('/api/destinations');
-				// setDestinations(response.data);
+	// Sort options
+	const sortOptions = [
+		{ value: 'newest', label: 'Newest First' },
+		{ value: 'price-asc', label: 'Price: Low to High' },
+		{ value: 'price-desc', label: 'Price: High to Low' },
+		{ value: 'title-asc', label: 'Title: A-Z' },
+		{ value: 'title-desc', label: 'Title: Z-A' },
+	];
 
-				// Simulate API response
-				const mockDestinations = [
-					{
-						_id: '1',
-						name: 'Bali',
-						location: 'Indonesia',
-						description:
-							'Beautiful beaches, vibrant culture, and stunning landscapes make Bali a perfect tropical getaway.',
-						price: 1299,
-						featured: true,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-					{
-						_id: '2',
-						name: 'Paris',
-						location: 'France',
-						description: 'The City of Light offers iconic landmarks, world-class cuisine, and romantic ambiance.',
-						price: 1599,
-						featured: true,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-					{
-						_id: '3',
-						name: 'Tokyo',
-						location: 'Japan',
-						description:
-							"A fascinating blend of traditional culture and cutting-edge technology in Japan's bustling capital.",
-						price: 1899,
-						featured: true,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-					{
-						_id: '4',
-						name: 'New York',
-						location: 'USA',
-						description:
-							'The Big Apple features iconic skyscrapers, diverse neighborhoods, and world-famous attractions.',
-						price: 1199,
-						featured: false,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-					{
-						_id: '5',
-						name: 'Rome',
-						location: 'Italy',
-						description:
-							'The Eternal City is home to ancient ruins, artistic masterpieces, and delicious Italian cuisine.',
-						price: 1499,
-						featured: false,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-					{
-						_id: '6',
-						name: 'Sydney',
-						location: 'Australia',
-						description:
-							'Stunning harbor, iconic Opera House, and beautiful beaches make Sydney a must-visit destination.',
-						price: 1799,
-						featured: false,
-						imageUrl: '/placeholder.svg?height=300&width=400',
-					},
-				];
+	// Convert filters to API parameters
+	const getApiFilters = () => {
+		const apiFilters = {};
 
-				setDestinations(mockDestinations);
-			} catch (error) {
-				console.error('Error fetching destinations:', error);
-				toast({
-					title: 'Error loading destinations',
-					description: 'There was a problem loading your destinations.',
-					variant: 'destructive',
-				});
-			} finally {
-				setIsLoading(false);
+		// Price range
+		if (filters.priceRange) {
+			if (filters.priceRange[0] > 0) apiFilters.minPrice = filters.priceRange[0];
+			if (filters.priceRange[1] < 5000) apiFilters.maxPrice = filters.priceRange[1];
+		}
+
+		// Duration
+		if (filters.duration && filters.duration !== 'any') {
+			const [min, max] = filters.duration.split('-').map(Number);
+			if (max) {
+				apiFilters.minDuration = min;
+				apiFilters.maxDuration = max;
+			} else {
+				apiFilters.minDuration = min;
 			}
-		};
+		}
 
-		fetchDestinations();
-	}, [toast]);
+		// Categories
+		if (filters.categories && filters.categories.length > 0) {
+			apiFilters.categories = filters.categories;
+		}
 
-	const filteredDestinations = destinations.filter(
-		(destination) =>
-			destination.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			destination.location.toLowerCase().includes(searchQuery.toLowerCase())
-	);
+		// Status
+		if (filters.status && filters.status !== 'all') {
+			apiFilters.status = filters.status;
+		}
 
-	const confirmDeleteDestination = (destination) => {
-		setDestinationToDelete(destination);
+		return apiFilters;
 	};
 
-	const handleDeleteDestination = async () => {
-		if (!destinationToDelete) return;
+	// Convert sort option to API parameter
+	const getSortParam = () => {
+		switch (activeSort) {
+			case 'price-asc':
+				return 'pricing.basePrice-asc';
+			case 'price-desc':
+				return 'pricing.basePrice-desc';
+			case 'title-asc':
+				return 'title-asc';
+			case 'title-desc':
+				return 'title-desc';
+			case 'newest':
+			default:
+				return 'createdAt-desc';
+		}
+	};
 
-		setIsLoading(true);
-
-		try {
-			// In a real app, this would be an actual API call
-			// await axios.delete(`/api/destinations/${destinationToDelete._id}`);
-
-			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			setDestinations((prev) => prev.filter((dest) => dest._id !== destinationToDelete._id));
-
-			toast({
-				title: 'Destination deleted',
-				description: `${destinationToDelete.name} has been removed.`,
+	// Fetch destinations with TanStack Query
+	const { data, isLoading, isError } = useQuery({
+		queryKey: ['destinations', page, searchQuery, activeSort, filters],
+		queryFn: async () => {
+			const params = new URLSearchParams({
+				page: page.toString(),
+				limit: '10',
+				sortBy: getSortParam(),
 			});
-		} catch (error) {
-			console.error('Error deleting destination:', error);
-			toast({
-				title: 'Error deleting destination',
-				description: 'There was a problem deleting the destination.',
-				variant: 'destructive',
+
+			if (searchQuery) {
+				params.append('search', searchQuery);
+			}
+
+			const apiFilters = getApiFilters();
+			Object.entries(apiFilters).forEach(([key, value]) => {
+				if (Array.isArray(value)) {
+					value.forEach((v) => params.append(key, v));
+				} else {
+					params.append(key, value);
+				}
 			});
-		} finally {
-			setIsLoading(false);
+
+			const response = await axiosSecure.get(`/api/destinations?${params.toString()}`);
+			return response.data;
+		},
+		staleTime: 60000,
+		refetchOnWindowFocus: false,
+	});
+
+	// Delete destination mutation
+	const deleteMutation = useMutation({
+		mutationFn: async (id) => {
+			const response = await axiosSecure.delete(`/api/destinations/${id}`);
+			return response.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['destinations'] });
+			toast.success('Destination deleted successfully');
 			setDestinationToDelete(null);
-		}
+		},
+		onError: (error) => {
+			toast.error(`Failed to delete destination: ${error.message || 'Unknown error'}`);
+		},
+	});
+
+	// Handle search
+	const handleSearch = (query) => {
+		setSearchQuery(query);
+		setPage(1); // Reset to first page on new search
 	};
 
-	const toggleFeatured = async (destination) => {
-		try {
-			// In a real app, this would be an actual API call
-			// await axios.patch(`/api/destinations/${destination._id}/featured`, {
-			//   featured: !destination.featured
-			// });
-
-			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 500));
-
-			setDestinations((prev) =>
-				prev.map((dest) => (dest._id === destination._id ? { ...dest, featured: !dest.featured } : dest))
-			);
-
-			toast({
-				title: destination.featured ? 'Removed from featured' : 'Added to featured',
-				description: `${destination.name} has been ${
-					destination.featured ? 'removed from' : 'added to'
-				} featured destinations.`,
-			});
-		} catch (error) {
-			console.error('Error updating featured status:', error);
-			toast({
-				title: 'Error updating destination',
-				description: 'There was a problem updating the featured status.',
-				variant: 'destructive',
-			});
-		}
+	// Handle page change
+	const handlePageChange = (newPage) => {
+		setPage(newPage);
 	};
+
+	// Handle add new destination
+	const handleAddDestination = () => {
+		navigate('/admin/destinations/new');
+	};
+
+	// Handle edit destination
+	const handleEditDestination = (id) => {
+		navigate(`/admin/destinations/edit/${id}`);
+	};
+
+	// Handle view destination
+	const handleViewDestination = (id) => {
+		navigate(`/destinations/${id}`);
+	};
+
+	// Handle delete destination
+	const handleDeleteDestination = () => {
+		if (!destinationToDelete) return;
+		deleteMutation.mutate(destinationToDelete);
+	};
+
+	// Format date
+	const formatDate = (dateString) => {
+		const date = new Date(dateString);
+		return new Intl.DateTimeFormat('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		}).format(date);
+	};
+
+	// Format price
+	const formatPrice = (price) => {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+		}).format(price);
+	};
+
+	// Extract destinations array safely
+	const destinations = data?.destinations || [];
+	const pagination = data?.pagination || { totalPages: 1 };
 
 	return (
-		<div className='p-6'>
+		<div>
 			<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4'>
 				<h1 className='text-3xl font-bold'>Destinations</h1>
 
-				<div className='flex flex-col sm:flex-row gap-4'>
-					<div className='relative'>
-						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-						<Input
-							type='search'
-							placeholder='Search destinations...'
-							className='pl-8 w-full sm:w-[250px]'
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
-					</div>
-
-					<Button asChild>
-						<Link to='/admin/destinations/new'>
-							<Plus className='mr-2 h-4 w-4' />
-							Add Destination
-						</Link>
-					</Button>
-				</div>
+				<Button className='flex items-center gap-2' onClick={handleAddDestination}>
+					<Plus className='h-4 w-4' />
+					Add Destination
+				</Button>
 			</div>
 
-			{isLoading ? (
-				<div className='text-center py-8'>Loading destinations...</div>
-			) : filteredDestinations.length === 0 ? (
-				<Card>
-					<CardContent className='text-center py-8'>
-						{searchQuery ? (
-							<p className='text-muted-foreground'>No destinations match your search.</p>
-						) : (
-							<div className='space-y-4'>
-								<p className='text-muted-foreground'>
-									No destinations found. Add your first destination to get started.
-								</p>
-								<Button asChild>
-									<Link to='/admin/destinations/new'>
-										<Plus className='mr-2 h-4 w-4' />
-										Add Destination
-									</Link>
-								</Button>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			) : (
-				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-					{filteredDestinations.map((destination) => (
-						<Card key={destination._id} className='overflow-hidden'>
-							<div className='relative h-48'>
-								<img
-									src={destination.imageUrl || '/placeholder.svg'}
-									alt={destination.name}
-									className='w-full h-full object-cover'
-								/>
-								<div className='absolute top-2 right-2'>
-									<DropdownMenu>
-										<DropdownMenuTrigger asChild>
-											<Button variant='secondary' size='sm' className='h-8 w-8 p-0'>
-												<span className='sr-only'>Open menu</span>
-												<Edit className='h-4 w-4' />
-											</Button>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align='end'>
-											<DropdownMenuItem asChild>
-												<Link to={`/admin/destinations/${destination._id}`}>Edit Details</Link>
-											</DropdownMenuItem>
-											<DropdownMenuItem onClick={() => toggleFeatured(destination)}>
-												{destination.featured ? 'Remove from Featured' : 'Add to Featured'}
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												className='text-destructive focus:text-destructive'
-												onClick={() => confirmDeleteDestination(destination)}>
-												Delete
-											</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
-								</div>
-								{destination.featured && (
-									<div className='absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs font-medium rounded'>
-										Featured
-									</div>
-								)}
-							</div>
-							<CardContent className='p-4'>
-								<h2 className='text-xl font-bold mb-1'>{destination.name}</h2>
-								<div className='flex items-center text-muted-foreground mb-2'>
-									<MapPin size={14} className='mr-1' />
-									<span className='text-sm'>{destination.location}</span>
-								</div>
-								<p className='text-muted-foreground mb-4 line-clamp-2'>{destination.description}</p>
-								<div className='flex justify-between items-center'>
-									<span className='font-bold'>${destination.price}</span>
-									<AlertDialog>
-										<AlertDialogTrigger asChild>
-											<Button
-												variant='outline'
-												size='sm'
-												className='text-destructive border-destructive hover:bg-destructive/10'>
-												<Trash2 className='h-4 w-4 mr-1' />
-												Delete
-											</Button>
-										</AlertDialogTrigger>
-										<AlertDialogContent>
-											<AlertDialogHeader>
-												<AlertDialogTitle>Are you sure?</AlertDialogTitle>
-												<AlertDialogDescription>
-													This will permanently delete {destination.name} from your destinations. This action cannot be
-													undone.
-												</AlertDialogDescription>
-											</AlertDialogHeader>
-											<AlertDialogFooter>
-												<AlertDialogCancel>Cancel</AlertDialogCancel>
-												<AlertDialogAction
-													onClick={() => {
-														setDestinationToDelete(destination);
-														handleDeleteDestination();
-													}}>
-													Delete
-												</AlertDialogAction>
-											</AlertDialogFooter>
-										</AlertDialogContent>
-									</AlertDialog>
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-			)}
+			{/* Filters Section */}
+			<DestinationFilters
+				filters={filters}
+				setFilters={setFilters}
+				sortOptions={sortOptions}
+				activeSort={activeSort}
+				setActiveSort={setActiveSort}
+				onSearch={handleSearch}
+				isAdmin={true}
+			/>
+
+			<Card>
+				<CardHeader className='pb-2'>
+					<CardTitle>Destinations</CardTitle>
+					<CardDescription>Manage your travel destinations and packages.</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{isLoading ? (
+						<div className='flex justify-center items-center h-40'>
+							<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary'></div>
+						</div>
+					) : isError ? (
+						<div className='text-center py-10'>
+							<h3 className='text-lg font-medium text-red-500'>Error loading destinations</h3>
+							<p className='mt-2 text-sm text-gray-400'>Please try again later</p>
+						</div>
+					) : destinations.length > 0 ? (
+						// Destinations table
+						<div className='overflow-x-auto'>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Destination</TableHead>
+										<TableHead>Price</TableHead>
+										<TableHead>Duration</TableHead>
+										<TableHead>Status</TableHead>
+										<TableHead>Created</TableHead>
+										<TableHead className='text-right'>Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{destinations.map((destination) => (
+										<TableRow key={destination._id}>
+											<TableCell>
+												<div className='flex items-center gap-3'>
+													<div className='h-10 w-10 rounded-md overflow-hidden bg-muted'>
+														<img
+															src={destination.images?.[0]?.url || '/placeholder.svg?height=40&width=40'}
+															alt={destination.title}
+															className='h-full w-full object-cover'
+														/>
+													</div>
+													<div>
+														<div className='font-medium'>{destination.title}</div>
+														<div className='text-sm text-muted-foreground truncate max-w-[300px]'>
+															{destination.summary}
+														</div>
+														<div className='flex items-center gap-1 mt-1'>
+															{destination.isFeatured && (
+																<Badge variant='secondary' className='text-xs'>
+																	<Star className='h-3 w-3 mr-1' />
+																	Featured
+																</Badge>
+															)}
+															{destination.isPopular && (
+																<Badge variant='outline' className='text-xs'>
+																	<TrendingUp className='h-3 w-3 mr-1' />
+																	Popular
+																</Badge>
+															)}
+														</div>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>{formatPrice(destination.pricing?.basePrice || 0)}</TableCell>
+											<TableCell>{destination.duration?.days} days</TableCell>
+											<TableCell>
+												<Badge
+													variant={destination.status === 'active' ? 'default' : 'secondary'}
+													className='capitalize'>
+													{destination.status}
+												</Badge>
+											</TableCell>
+											<TableCell>{formatDate(destination.createdAt)}</TableCell>
+											<TableCell className='text-right'>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant='ghost' size='icon'>
+															<MoreHorizontal className='h-4 w-4' />
+															<span className='sr-only'>Actions</span>
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align='end'>
+														<DropdownMenuItem
+															className='flex items-center gap-2'
+															onClick={() => handleViewDestination(destination._id)}>
+															<Eye className='h-4 w-4' />
+															View
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															className='flex items-center gap-2'
+															onClick={() => handleEditDestination(destination._id)}>
+															<Edit className='h-4 w-4' />
+															Edit
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															className='flex items-center gap-2 text-red-500 focus:text-red-500'
+															onClick={() => setDestinationToDelete(destination._id)}>
+															<Trash className='h-4 w-4' />
+															Delete
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					) : (
+						<div className='text-center py-10'>
+							<h3 className='text-lg font-medium text-gray-500'>No destinations found</h3>
+							<p className='mt-2 text-sm text-gray-400'>Add your first destination to get started</p>
+						</div>
+					)}
+
+					{/* Pagination */}
+					{!isLoading && destinations.length > 0 && (
+						<div className='mt-4'>
+							<PaginationControls
+								currentPage={page}
+								totalPages={pagination.totalPages}
+								onPageChange={handlePageChange}
+							/>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={!!destinationToDelete} onOpenChange={(open) => !open && setDestinationToDelete(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently delete the destination and all associated data.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDeleteDestination} className='bg-red-500 hover:bg-red-600'>
+							{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 };
