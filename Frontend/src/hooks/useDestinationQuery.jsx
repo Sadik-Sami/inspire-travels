@@ -21,8 +21,6 @@ export const useDestinationQuery = ({
 	filters = {},
 	enabled = true,
 }) => {
-	//! const [sortField, sortDirection] = sortBy.split('-');
-	//! const sortParam = sortDirection === 'desc' ? `-${sortField}` : sortField;
 	const axiosPublic = useAxiosPublic();
 	return useQuery({
 		queryKey: ['destinations', page, limit, search, sortBy, filters],
@@ -33,7 +31,6 @@ export const useDestinationQuery = ({
 			params.append('limit', limit);
 
 			if (search) params.append('search', search);
-			//! if (sortBy) params.append('sort', sortParam);
 			if (sortBy) {
 				const [field, direction] = sortBy.split('-');
 				params.append('sort', field);

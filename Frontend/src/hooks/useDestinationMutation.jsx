@@ -96,7 +96,7 @@ export const useUpdateDestination = (axiosSecure) => {
 						value.forEach((image) => {
 							if (image.file) {
 								data.append('images', image.file);
-							} else if (image.public_id && image.url) {
+							} else if (image._id && image.url) {
 								// Existing images - add to formData as JSON
 								data.append('existingImages', JSON.stringify(image));
 							}

@@ -357,6 +357,74 @@ router.post('/', verifyUser, verifyRole('admin'), upload.array('images', 5), asy
 // @route PUT /api/destinations/:id
 // @desc Update a destination
 // @access Private (Admin only)
+// router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), async (req, res) => {
+// 	try {
+// 		const destination = await Destination.findById(req.params.id);
+
+// 		if (!destination) {
+// 			return res.status(404).json({ message: 'Destination not found' });
+// 		}
+
+// 		// Parse the form data using the transformNestedFields helper
+// 		const parsedData = transformNestedFields(req.body);
+// 		console.log('Parsed update data:', parsedData);
+
+// 		// Handle image deletion
+// 		if (req.body.deleteImages) {
+// 			const imagesToDelete = Array.isArray(req.body.deleteImages) ? req.body.deleteImages : [req.body.deleteImages];
+
+// 			for (const publicId of imagesToDelete) {
+// 				try {
+// 					await deleteImage(publicId);
+// 					console.log(`Successfully deleted image with publicId: ${publicId}`);
+// 				} catch (error) {
+// 					console.error(`Error deleting image ${publicId}:`, error);
+// 				}
+// 			}
+
+// 			// Filter out deleted images from the destination
+// 			destination.images = destination.images.filter((img) => !imagesToDelete.includes(img.publicId));
+// 		}
+
+// 		// Upload new images
+// 		if (req.files && req.files.length > 0) {
+// 			for (const file of req.files) {
+// 				try {
+// 					const result = await uploadImage(file);
+// 					destination.images.push(result);
+
+// 					// Clean up uploaded file
+// 					fs.unlinkSync(file.path);
+// 				} catch (error) {
+// 					console.error('Error uploading image:', error);
+// 				}
+// 			}
+// 		}
+
+// 		// Update destination with parsed data
+// 		// We use Object.assign to update all fields at once
+// 		Object.assign(destination, parsedData);
+
+// 		// Save updated destination
+// 		await destination.save();
+
+// 		res.json({ success: true, destination });
+// 	} catch (error) {
+// 		console.error('Error updating destination:', error);
+
+// 		// Clean up any uploaded files
+// 		if (req.files) {
+// 			req.files.forEach((file) => {
+// 				if (fs.existsSync(file.path)) {
+// 					fs.unlinkSync(file.path);
+// 				}
+// 			});
+// 		}
+
+// 		res.status(500).json({ message: 'Server Error', error: error.message });
+// 	}
+// });
+
 router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), async (req, res) => {
 	try {
 		const destination = await Destination.findById(req.params.id);
@@ -373,17 +441,8 @@ router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), a
 		if (req.body.deleteImages) {
 			const imagesToDelete = Array.isArray(req.body.deleteImages) ? req.body.deleteImages : [req.body.deleteImages];
 
-			for (const publicId of imagesToDelete) {
-				try {
-					await deleteImage(publicId);
-					console.log(`Successfully deleted image with publicId: ${publicId}`);
-				} catch (error) {
-					console.error(`Error deleting image ${publicId}:`, error);
-				}
-			}
-
 			// Filter out deleted images from the destination
-			destination.images = destination.images.filter((img) => !imagesToDelete.includes(img.publicId));
+			destination.images = destination.images.filter((img) => !imagesToDelete.includes(img._id.toString()));
 		}
 
 		// Upload new images
@@ -438,8 +497,8 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 
 		// Delete images from Cloudinary
 		for (const image of destination.images) {
-			if (image.public_id) {
-				await deleteImage(image.public_id);
+			if (image._id) {
+				await deleteImage(image._id);
 			}
 		}
 
@@ -448,6 +507,39 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 
 		res.status(200).json({ success: true, message: 'Destination deleted successfully' });
 	} catch (error) {
+		res.status(500).json({ success: false, message: error.message });
+	}
+});
+
+// @route DELETE /api/destinations/:destinationId/images/:imageId
+// @desc Delete an image from a destination
+// @access Private (Admin only)
+router.delete('/:destinationId/images/:imageId', verifyUser, verifyRole('admin'), async (req, res) => {
+	try {
+		const { destinationId, imageId } = req.params;
+
+		const destination = await Destination.findById(destinationId);
+
+		if (!destination) {
+			return res.status(404).json({ success: false, message: 'Destination not found' });
+		}
+
+		// Find the image by its _id
+		const imageIndex = destination.images.findIndex((img) => img._id.toString() === imageId);
+
+		if (imageIndex === -1) {
+			return res.status(404).json({ success: false, message: 'Image not found' });
+		}
+
+		// Remove the image from the images array
+		destination.images.splice(imageIndex, 1);
+
+		// Save the updated destination
+		await destination.save();
+
+		res.status(200).json({ success: true, message: 'Image deleted successfully' });
+	} catch (error) {
+		console.error('Error deleting image:', error);
 		res.status(500).json({ success: false, message: error.message });
 	}
 });

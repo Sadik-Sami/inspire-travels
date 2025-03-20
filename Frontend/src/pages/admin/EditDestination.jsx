@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Upload, X, Star, Plus, Trash2, Utensils, Wifi, Car, Loader2 } from 'lucide-react';
+import { Upload, X, Star, Loader2, Calendar, Plus, Wifi, Car, Utensils, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useDestinationDetail, useDestinationCategories } from '@/hooks/useDestinationQuery';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { useDestinationDetail } from '@/hooks/useDestinationQuery';
 import { useUpdateDestination, useDeleteDestinationImage } from '@/hooks/useDestinationMutation';
 import {
 	AlertDialog,
@@ -27,12 +27,37 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+
+// Replace the formatDate function that uses date-fns with a native JS implementation
+const formatDate = (date) => {
+	if (!date) return '';
+	const d = new Date(date);
+	return d.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	});
+};
+
+// Add a function to format date as YYYY-MM-DD
+const formatDateForStorage = (date) => {
+	if (!date) return '';
+	const d = new Date(date);
+	const year = d.getFullYear();
+	const month = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+};
 
 const EditDestination = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [imageToDelete, setImageToDelete] = useState(null);
+	const [newAvailableDate, setNewAvailableDate] = useState(null);
 	const axiosSecure = useAxiosSecure();
 
 	// Default form state
@@ -110,29 +135,26 @@ const EditDestination = () => {
 	// Fetch destination data
 	const { data: destination, isLoading, isError, error } = useDestinationDetail(id);
 
-	// Fetch categories
-	const { data: categoriesData } = useDestinationCategories();
-
 	// Update mutation
 	const updateMutation = useUpdateDestination(axiosSecure);
 
 	// Delete image mutation
 	const deleteImageMutation = useDeleteDestinationImage(axiosSecure);
 
-	// Available categories
-	const categories = categoriesData || [
-		{ id: 'beach', name: 'Beach' },
-		{ id: 'mountain', name: 'Mountain' },
-		{ id: 'city', name: 'City' },
-		{ id: 'cultural', name: 'Cultural' },
-		{ id: 'adventure', name: 'Adventure' },
-		{ id: 'romantic', name: 'Romantic' },
-		{ id: 'family-friendly', name: 'Family-friendly' },
-		{ id: 'luxury', name: 'Luxury' },
-		{ id: 'budget', name: 'Budget' },
-		{ id: 'wildlife', name: 'Wildlife' },
-		{ id: 'historical', name: 'Historical' },
-		{ id: 'foodie', name: 'Food & Wine' },
+	// Static categories
+	const categories = [
+		{ id: 'beach', label: 'Beach' },
+		{ id: 'mountain', label: 'Mountain' },
+		{ id: 'city', label: 'City' },
+		{ id: 'cultural', label: 'Cultural' },
+		{ id: 'adventure', label: 'Adventure' },
+		{ id: 'romantic', label: 'Romantic' },
+		{ id: 'family-friendly', label: 'Family-friendly' },
+		{ id: 'luxury', label: 'Luxury' },
+		{ id: 'budget', label: 'Budget' },
+		{ id: 'wildlife', label: 'Wildlife' },
+		{ id: 'historical', label: 'Historical' },
+		{ id: 'foodie', label: 'Food & Wine' },
 	];
 
 	// Populate form with destination data when it loads
@@ -210,7 +232,7 @@ const EditDestination = () => {
 		} else {
 			setFormData((prev) => ({
 				...prev,
-				[name]: numValue,
+				[name]: value,
 			}));
 		}
 	};
@@ -338,8 +360,8 @@ const EditDestination = () => {
 	const handleRemoveImage = (index) => {
 		const image = formData.images[index];
 
-		// If it's an existing image (has public_id), confirm deletion
-		if (image.public_id) {
+		// If it's an existing image (has _id), confirm deletion
+		if (image._id) {
 			setImageToDelete({ index, id: image._id });
 			return;
 		}
@@ -387,9 +409,86 @@ const EditDestination = () => {
 		}
 	};
 
+	// Fix the date picker timezone issue by ensuring we preserve the local date
+	const handleDateChange = (date, field) => {
+		if (!date) {
+			if (field.includes('.')) {
+				const [parent, child] = field.split('.');
+				setFormData((prev) => ({
+					...prev,
+					[parent]: {
+						...prev[parent],
+						[child]: '',
+					},
+				}));
+			} else {
+				setFormData((prev) => ({
+					...prev,
+					[field]: '',
+				}));
+			}
+			return;
+		}
+
+		// Format the date as YYYY-MM-DD to avoid timezone issues
+		const formattedDate = formatDateForStorage(date);
+
+		if (field.includes('.')) {
+			const [parent, child] = field.split('.');
+			setFormData((prev) => ({
+				...prev,
+				[parent]: {
+					...prev[parent],
+					[child]: formattedDate,
+				},
+			}));
+		} else {
+			setFormData((prev) => ({
+				...prev,
+				[field]: formattedDate,
+			}));
+		}
+	};
+
+	// Add available date to the list
+	const handleAddAvailableDate = () => {
+		if (!newAvailableDate) return;
+
+		// Format the date as YYYY-MM-DD to avoid timezone issues
+		const dateString = formatDateForStorage(newAvailableDate);
+
+		// Check if date already exists
+		if (formData.dates.availableDates.includes(dateString)) {
+			toast.error('This date is already added');
+			return;
+		}
+
+		setFormData((prev) => ({
+			...prev,
+			dates: {
+				...prev.dates,
+				availableDates: [...prev.dates.availableDates, dateString].sort(),
+			},
+		}));
+
+		setNewAvailableDate(null);
+	};
+
+	// Remove date from available dates
+	const handleRemoveAvailableDate = (dateToRemove) => {
+		setFormData((prev) => ({
+			...prev,
+			dates: {
+				...prev.dates,
+				availableDates: prev.dates.availableDates.filter((date) => date !== dateToRemove),
+			},
+		}));
+	};
+
 	// Form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
 		// Validate form
 		if (!formData.title || !formData.summary || !formData.description) {
 			toast.error('Please fill in all required fields.');
@@ -431,7 +530,6 @@ const EditDestination = () => {
 				features: filteredFeatures,
 				activities: filteredActivities,
 			};
-			console.log('submissionData:', submissionData);
 
 			await updateMutation.mutateAsync({
 				id,
@@ -623,16 +721,16 @@ const EditDestination = () => {
 							<CardContent>
 								<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'>
 									{categories.map((category) => (
-										<div key={category} className='flex items-center space-x-2'>
+										<div key={category.id} className='flex items-center space-x-2'>
 											<Checkbox
-												id={`category-${category}`}
-												checked={formData.categories.includes(category)}
-												onCheckedChange={(checked) => handleCategoryChange(category, checked)}
+												id={`category-${category.id}`}
+												checked={formData.categories.includes(category.id)}
+												onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
 											/>
 											<label
-												htmlFor={`category-${category}`}
+												htmlFor={`category-${category.id}`}
 												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-												{category}
+												{category.label}
 											</label>
 										</div>
 									))}
@@ -876,7 +974,6 @@ const EditDestination = () => {
 							</CardContent>
 						</Card>
 					</TabsContent>
-
 					{/* Pricing & Dates Tab */}
 					<TabsContent value='pricing' className='space-y-6'>
 						<Card>
@@ -981,37 +1078,116 @@ const EditDestination = () => {
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
 										<Label htmlFor='dates.startDate'>Start Date</Label>
-										<Input
-											id='dates.startDate'
-											name='dates.startDate'
-											type='date'
-											value={formData.dates.startDate}
-											onChange={handleChange}
-										/>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button variant='outline' className='w-full justify-start text-left font-normal'>
+													<Calendar className='mr-2 h-4 w-4' />
+													{formData.dates.startDate ? formatDate(formData.dates.startDate) : <span>Pick a date</span>}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<CalendarComponent
+													mode='single'
+													selected={formData.dates.startDate ? new Date(formData.dates.startDate) : undefined}
+													onSelect={(date) => handleDateChange(date, 'dates.startDate')}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
 									</div>
 
 									<div className='space-y-2'>
 										<Label htmlFor='dates.endDate'>End Date</Label>
-										<Input
-											id='dates.endDate'
-											name='dates.endDate'
-											type='date'
-											value={formData.dates.endDate}
-											onChange={handleChange}
-										/>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button variant='outline' className='w-full justify-start text-left font-normal'>
+													<Calendar className='mr-2 h-4 w-4' />
+													{formData.dates.endDate ? formatDate(formData.dates.endDate) : <span>Pick a date</span>}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<CalendarComponent
+													mode='single'
+													selected={formData.dates.endDate ? new Date(formData.dates.endDate) : undefined}
+													onSelect={(date) => handleDateChange(date, 'dates.endDate')}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
 									</div>
 								</div>
 
 								<div className='space-y-2'>
 									<Label htmlFor='dates.bookingDeadline'>Booking Deadline</Label>
-									<Input
-										id='dates.bookingDeadline'
-										name='dates.bookingDeadline'
-										type='date'
-										value={formData.dates.bookingDeadline}
-										onChange={handleChange}
-									/>
+									<Popover>
+										<PopoverTrigger asChild>
+											<Button variant='outline' className='w-full justify-start text-left font-normal'>
+												<Calendar className='mr-2 h-4 w-4' />
+												{formData.dates.bookingDeadline ? (
+													formatDate(formData.dates.bookingDeadline)
+												) : (
+													<span>Pick a date</span>
+												)}
+											</Button>
+										</PopoverTrigger>
+										<PopoverContent className='w-auto p-0'>
+											<CalendarComponent
+												mode='single'
+												selected={formData.dates.bookingDeadline ? new Date(formData.dates.bookingDeadline) : undefined}
+												onSelect={(date) => handleDateChange(date, 'dates.bookingDeadline')}
+												initialFocus
+											/>
+										</PopoverContent>
+									</Popover>
 									<p className='text-xs text-muted-foreground'>Last date when customers can book this trip</p>
+								</div>
+
+								<div className='space-y-2 mt-4'>
+									<Label>Available Dates</Label>
+									<div className='flex flex-wrap gap-2 mb-2'>
+										{formData.dates.availableDates.map((date) => (
+											<Badge key={date} variant='secondary' className='flex items-center gap-1'>
+												{formatDate(date)}
+												<button
+													type='button'
+													onClick={(e) => {
+														e.preventDefault();
+														handleRemoveAvailableDate(date);
+													}}
+													className='ml-1 h-3 w-3 rounded-full inline-flex items-center justify-center hover:bg-muted'>
+													<X className='h-3 w-3' />
+												</button>
+											</Badge>
+										))}
+										{formData.dates.availableDates.length === 0 && (
+											<p className='text-sm text-muted-foreground'>No available dates added yet</p>
+										)}
+									</div>
+
+									<div className='flex gap-2'>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button variant='outline' className='flex-1 justify-start text-left font-normal'>
+													<Calendar className='mr-2 h-4 w-4' />
+													{newAvailableDate ? formatDate(newAvailableDate) : <span>Select date to add</span>}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<CalendarComponent
+													mode='single'
+													selected={newAvailableDate}
+													onSelect={setNewAvailableDate}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
+										<Button type='button' onClick={handleAddAvailableDate} disabled={!newAvailableDate}>
+											Add Date
+										</Button>
+									</div>
+									<p className='text-xs text-muted-foreground'>
+										Add specific dates when this trip is available for booking
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -1262,7 +1438,6 @@ const EditDestination = () => {
 							</CardContent>
 						</Card>
 					</TabsContent>
-
 					{/* Media Tab */}
 					<TabsContent value='media' className='space-y-6'>
 						<Card>
