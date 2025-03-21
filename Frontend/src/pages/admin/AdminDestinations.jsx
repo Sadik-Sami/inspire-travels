@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Edit, Trash, Eye, Star, TrendingUp } from 'lucide-react';
@@ -13,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import DestinationFilters from '@/components/Destination/DestinationFilters';
 import PaginationControls from '@/components/Destination/PaginationControls';
 import {
@@ -26,6 +28,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useDestinationQuery } from '@/hooks/useDestinationQuery';
 
 const AdminDestinations = () => {
 	const navigate = useNavigate();
@@ -105,33 +108,13 @@ const AdminDestinations = () => {
 	};
 
 	// Fetch destinations with TanStack Query
-	const { data, isLoading, isError } = useQuery({
-		queryKey: ['destinations', page, searchQuery, activeSort, filters],
-		queryFn: async () => {
-			const params = new URLSearchParams({
-				page: page.toString(),
-				limit: '10',
-				sortBy: getSortParam(),
-			});
-
-			if (searchQuery) {
-				params.append('search', searchQuery);
-			}
-
-			const apiFilters = getApiFilters();
-			Object.entries(apiFilters).forEach(([key, value]) => {
-				if (Array.isArray(value)) {
-					value.forEach((v) => params.append(key, v));
-				} else {
-					params.append(key, value);
-				}
-			});
-
-			const response = await axiosSecure.get(`/api/destinations?${params.toString()}`);
-			return response.data;
-		},
-		staleTime: 60000,
-		refetchOnWindowFocus: false,
+	const { data, isLoading, isError } = useDestinationQuery({
+		page,
+		limit: 10,
+		search: searchQuery,
+		sortBy: getSortParam(),
+		filters: getApiFilters(),
+		enabled: true,
 	});
 
 	// Delete destination mutation
@@ -202,7 +185,7 @@ const AdminDestinations = () => {
 
 	// Extract destinations array safely
 	const destinations = data?.destinations || [];
-	const pagination = data?.pagination || { totalPages: 1 };
+	const pagination = data?.pagination || { totalPages: 1, total: 0 };
 
 	return (
 		<div>

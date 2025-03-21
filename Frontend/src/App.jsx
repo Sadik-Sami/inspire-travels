@@ -17,6 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AddDestination from './pages/admin/AddDestination';
 import EditDestination from './pages/admin/EditDestination';
 import DestinationDetails from './pages/DestinationDetails';
+import AdminRoute from './routes/AdminRoute';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -41,14 +42,20 @@ const App = () => {
 								<Route path='destinations' element={<Destinations />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
-								<Route path="destinations/:id" element={<DestinationDetails />} />
+								<Route path='destinations/:id' element={<DestinationDetails />} />
 							</Route>
-							<Route path='/admin' element={<AdminLayout />}>
+							<Route
+								path='/admin'
+								element={
+									<AdminRoute>
+										<AdminLayout />
+									</AdminRoute>
+								}>
 								<Route index element={<AdminHome />} />
 								<Route path='users' element={<AdminUsers />} />
 								<Route path='destinations' element={<AdminDestinations />} />
 								<Route path='destinations/new' element={<AddDestination />} />
-								<Route path="destinations/edit/:id" element={<EditDestination />} />
+								<Route path='destinations/edit/:id' element={<EditDestination />} />
 							</Route>
 						</Routes>
 					</AuthProvider>

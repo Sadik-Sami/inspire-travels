@@ -9,7 +9,7 @@ const useRole = () => {
 	const {
 		data: userData,
 		isPending,
-		isLoading,
+		isLoading: roleLoading,
 		isError,
 		refetch,
 	} = useQuery({
@@ -30,7 +30,7 @@ const useRole = () => {
 		isEmployee: userData?.role === 'employee',
 		isCustomer: userData?.role === 'customer',
 		isPending,
-		isLoading,
+		roleLoading,
 		isError,
 		refetch,
 	};

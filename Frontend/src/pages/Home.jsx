@@ -4,36 +4,13 @@ import FeaturedDestinations from '@/components/Sections/FeaturedDestinations';
 import ValueProposition from '@/components/Sections/ValueProposition';
 import TestimonialSection from '@/components/Sections/TestimonialSection';
 import NewsletterSection from '@/components/Sections/NewsletterSection';
+import { useEffect, useState } from 'react';
+import useAxiosPublic from '@/hooks/use-AxiosPublic';
 
 const Home = () => {
-	const featuredDestinations = [
-		{
-			id: 1,
-			name: 'Bali',
-			location: 'Indonesia',
-			description: 'Beautiful beaches, vibrant culture, and stunning landscapes make Bali a perfect tropical getaway.',
-			price: 1299,
-			imageUrl: 'https://picsum.photos/300/400?random=1',
-		},
-		{
-			id: 2,
-			name: 'Paris',
-			location: 'France',
-			description: 'The City of Light offers iconic landmarks, world-class cuisine, and romantic ambiance.',
-			price: 1599,
-			imageUrl: 'https://picsum.photos/300/400?random=2',
-		},
-		{
-			id: 3,
-			name: 'Tokyo',
-			location: 'Japan',
-			description:
-				"A fascinating blend of traditional culture and cutting-edge technology in Japan's bustling capital.",
-			price: 1899,
-			imageUrl: 'https://picsum.photos/300/400?random=3',
-		},
-	];
-
+	const axiosPublic = useAxiosPublic();
+	const [featuredDestinations, setFeaturedDestinations] = useState();
+	const [isLoading, setIsLoading] = useState(true);
 	const features = [
 		{
 			title: 'Best Price Guarantee',
@@ -115,6 +92,21 @@ const Home = () => {
 		},
 	];
 
+	useEffect(() => {
+		setIsLoading(true);
+		const getFeaturedDestinations = async () => {
+			const response = await axiosPublic.get(`/api/destinations/featured`);
+			setFeaturedDestinations(response.data.destinations);
+		};
+		try {
+			getFeaturedDestinations();
+		} catch (error) {
+			console.log(error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
+
 	return (
 		<div className='min-h-screen bg-background text-foreground'>
 			{/* Hero Section */}
@@ -131,7 +123,7 @@ const Home = () => {
 			<SearchSection />
 
 			{/* Featured Destinations */}
-			<FeaturedDestinations destinations={featuredDestinations} />
+			<FeaturedDestinations destinations={featuredDestinations} loading={isLoading} />
 
 			{/* Why Choose Us */}
 			<ValueProposition features={features} />

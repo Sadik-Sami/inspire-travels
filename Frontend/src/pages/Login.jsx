@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,8 +12,9 @@ import loginPhoto from '../assets/loginPhoto.jpg';
 
 const Login = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { login } = useAuth();
-
+	const from = location?.state?.from || '/'; // Redirect to previous location after login
 	// Form state
 	const [formData, setFormData] = useState({
 		email: '',
@@ -68,7 +69,7 @@ const Login = () => {
 		try {
 			const result = await login(formData.email, formData.password);
 			if (result.success) {
-				navigate('/'); // Redirect to home page after successful login
+				navigate(from); // Redirect after successful login
 			} else {
 				setLoginError(result.error || 'Invalid email or password');
 			}

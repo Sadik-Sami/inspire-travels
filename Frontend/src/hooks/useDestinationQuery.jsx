@@ -48,7 +48,6 @@ export const useDestinationQuery = ({
 					}
 				}
 			});
-			console.log('API Request params:', params.toString());
 			const response = await axiosPublic.get(`/api/destinations?${params.toString()}`);
 			return response.data;
 		},
