@@ -109,6 +109,7 @@ const Navbar = () => {
 	const navLinks = [
 		{ name: 'Home', path: '/' },
 		{ name: 'Destinations', path: '/destinations' },
+		{ name: 'Blogs', path: '/blogs' },
 		{ name: 'About', path: '/about' },
 		{ name: 'Contact', path: '/contact' },
 		(isAdmin || isEmployee || isModerator) && { name: 'Dashboard', path: '/admin' },

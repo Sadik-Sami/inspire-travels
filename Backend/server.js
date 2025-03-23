@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const destinationRoutes = require('./routes/destinationRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 
 const path = require('path');
 const multer = require('multer');
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/destinations', destinationRoutes);
+app.use('/api/blogs', blogRoutes);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);

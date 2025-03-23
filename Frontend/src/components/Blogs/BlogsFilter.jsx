@@ -26,36 +26,29 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 
-const DestinationFilters = ({
-	filters,
-	setFilters,
-	sortOptions,
-	activeSort,
-	setActiveSort,
-	onSearch,
-	isAdmin = false,
-}) => {
+const BlogsFilter = ({ filters, setFilters, sortOptions, activeSort, setActiveSort, onSearch, isAdmin = false }) => {
 	// Local state for search input
 	const [searchInput, setSearchInput] = useState(filters.search || '');
 	// Debounce search to avoid too many API calls
 	const debouncedSearch = useDebounce(searchInput, 500);
+
 	// Local state for filters in the sheet
 	const [localFilters, setLocalFilters] = useState(filters);
 
-	// Static categories
+	// Static blog categories
 	const categories = [
-		{ id: 'beach', label: 'Beach' },
-		{ id: 'mountain', label: 'Mountain' },
-		{ id: 'city', label: 'City' },
-		{ id: 'cultural', label: 'Cultural' },
+		{ id: 'travel-tips', label: 'Travel Tips' },
+		{ id: 'destination-guides', label: 'Destination Guides' },
 		{ id: 'adventure', label: 'Adventure' },
-		{ id: 'romantic', label: 'Romantic' },
-		{ id: 'family-friendly', label: 'Family-friendly' },
-		{ id: 'luxury', label: 'Luxury' },
-		{ id: 'budget', label: 'Budget' },
-		{ id: 'wildlife', label: 'Wildlife' },
-		{ id: 'historical', label: 'Historical' },
-		{ id: 'foodie', label: 'Food & Wine' },
+		{ id: 'food-and-dining', label: 'Food & Dining' },
+		{ id: 'culture', label: 'Culture' },
+		{ id: 'budget-travel', label: 'Budget Travel' },
+		{ id: 'luxury-travel', label: 'Luxury Travel' },
+		{ id: 'family-travel', label: 'Family Travel' },
+		{ id: 'solo-travel', label: 'Solo Travel' },
+		{ id: 'photography', label: 'Photography' },
+		{ id: 'sustainable-travel', label: 'Sustainable Travel' },
+		{ id: 'travel-stories', label: 'Travel Stories' },
 	];
 
 	// Update search when debounced value changes
@@ -90,8 +83,7 @@ const DestinationFilters = ({
 	// Reset filters
 	const resetFilters = () => {
 		const defaultFilters = {
-			priceRange: [0, 5000],
-			duration: 'any',
+			readTimeRange: [0, 60],
 			categories: [],
 			...(isAdmin && { status: 'all' }),
 		};
@@ -102,28 +94,18 @@ const DestinationFilters = ({
 	// Count active filters
 	const countActiveFilters = () => {
 		let count = 0;
-		if (filters.priceRange && (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000)) count++;
-		if (filters.duration && filters.duration !== 'any') count++;
+		if (filters.readTimeRange && (filters.readTimeRange[0] > 0 || filters.readTimeRange[1] < 60)) count++;
 		if (filters.categories && filters.categories.length > 0) count++;
 		if (isAdmin && filters.status && filters.status !== 'all') count++;
 		return count;
 	};
 
-	// Duration options
-	const durationOptions = [
-		{ value: 'any', label: 'Any Duration' },
-		{ value: '1-3', label: 'Short Trip (1-3 days)' },
-		{ value: '4-7', label: 'Week Trip (4-7 days)' },
-		{ value: '8-14', label: 'Extended Trip (8-14 days)' },
-		{ value: '15', label: 'Long Trip (15+ days)' },
-	];
-
 	// Status options (for admin)
 	const statusOptions = [
 		{ value: 'all', label: 'All Statuses' },
-		{ value: 'active', label: 'Active' },
+		{ value: 'published', label: 'Published' },
 		{ value: 'draft', label: 'Draft' },
-		{ value: 'inactive', label: 'Inactive' },
+		{ value: 'archived', label: 'Archived' },
 	];
 
 	return (
@@ -134,7 +116,7 @@ const DestinationFilters = ({
 					<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
 					<Input
 						type='text'
-						placeholder='Search destinations...'
+						placeholder='Search blogs...'
 						value={searchInput}
 						onChange={handleSearchChange}
 						className='pl-10 pr-10'
@@ -164,47 +146,29 @@ const DestinationFilters = ({
 						</SheetTrigger>
 						<SheetContent className='sm:max-w-md overflow-y-auto'>
 							<SheetHeader>
-								<SheetTitle>Filter Destinations</SheetTitle>
+								<SheetTitle>Filter Blogs</SheetTitle>
 								<SheetDescription>Narrow down your search with these filters</SheetDescription>
 							</SheetHeader>
 
-							<div className='p-4 space-y-6'>
-								<Accordion type='single' collapsible className='w-full' defaultValue='price'>
-									{/* Price Range Filter */}
-									<AccordionItem value='price'>
-										<AccordionTrigger>Price Range</AccordionTrigger>
+							<div className='p-6 space-y-6'>
+								<Accordion type='single' collapsible className='w-full' defaultValue='categories'>
+									{/* Read Time Range Filter */}
+									<AccordionItem value='readTime'>
+										<AccordionTrigger>Read Time</AccordionTrigger>
 										<AccordionContent>
 											<div className='space-y-4 pt-2'>
 												<Slider
-													defaultValue={localFilters.priceRange || [0, 5000]}
-													max={5000}
-													step={100}
-													value={localFilters.priceRange || [0, 5000]}
-													onValueChange={(value) => handleFilterChange('priceRange', value)}
+													defaultValue={localFilters.readTimeRange || [0, 60]}
+													max={60}
+													step={5}
+													value={localFilters.readTimeRange || [0, 60]}
+													onValueChange={(value) => handleFilterChange('readTimeRange', value)}
 												/>
 												<div className='flex justify-between mt-2 text-sm'>
-													<span>${localFilters.priceRange?.[0] || 0}</span>
-													<span>${localFilters.priceRange?.[1] || 5000}</span>
+													<span>{localFilters.readTimeRange?.[0] || 0} min</span>
+													<span>{localFilters.readTimeRange?.[1] || 60} min</span>
 												</div>
 											</div>
-										</AccordionContent>
-									</AccordionItem>
-
-									{/* Duration Filter */}
-									<AccordionItem value='duration'>
-										<AccordionTrigger>Duration</AccordionTrigger>
-										<AccordionContent>
-											<RadioGroup
-												value={localFilters.duration || 'any'}
-												onValueChange={(value) => handleFilterChange('duration', value)}
-												className='space-y-2 pt-2'>
-												{durationOptions.map((option) => (
-													<div key={option.value} className='flex items-center space-x-2'>
-														<RadioGroupItem value={option.value} id={`duration-${option.value}`} />
-														<Label htmlFor={`duration-${option.value}`}>{option.label}</Label>
-													</div>
-												))}
-											</RadioGroup>
 										</AccordionContent>
 									</AccordionItem>
 
@@ -294,21 +258,15 @@ const DestinationFilters = ({
 			{countActiveFilters() > 0 && (
 				<div className='flex flex-wrap gap-2 items-center'>
 					<span className='text-sm text-muted-foreground'>Active filters:</span>
-					{filters.priceRange && (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000) && (
+					{filters.readTimeRange && (filters.readTimeRange[0] > 0 || filters.readTimeRange[1] < 60) && (
 						<Badge variant='outline' className='flex items-center gap-1'>
 							<span>
-								Price: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+								Read Time: {filters.readTimeRange[0]} - {filters.readTimeRange[1]} min
 							</span>
 							<X
 								className='h-3 w-3 ml-1 cursor-pointer'
-								onClick={() => setFilters({ ...filters, priceRange: [0, 5000] })}
+								onClick={() => setFilters({ ...filters, readTimeRange: [0, 60] })}
 							/>
-						</Badge>
-					)}
-					{filters.duration && filters.duration !== 'any' && (
-						<Badge variant='outline' className='flex items-center gap-1'>
-							<span>Duration: {durationOptions.find((o) => o.value === filters.duration)?.label}</span>
-							<X className='h-3 w-3 ml-1 cursor-pointer' onClick={() => setFilters({ ...filters, duration: 'any' })} />
 						</Badge>
 					)}
 					{filters.categories && filters.categories.length > 0 && (
@@ -332,4 +290,4 @@ const DestinationFilters = ({
 	);
 };
 
-export default DestinationFilters;
+export default BlogsFilter;

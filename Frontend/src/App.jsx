@@ -18,6 +18,11 @@ import AddDestination from './pages/admin/AddDestination';
 import EditDestination from './pages/admin/EditDestination';
 import DestinationDetails from './pages/DestinationDetails';
 import AdminRoute from './routes/AdminRoute';
+import AddBlog from './pages/admin/AddBlog';
+import AdminBlogs from './pages/admin/AdminBlogs';
+import Blogs from './pages/Blogs';
+import BlogDetails from './pages/BlogDetails';
+import EditBlog from './pages/admin/EditBlog';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -40,9 +45,11 @@ const App = () => {
 								<Route path='about' element={<About />} />
 								<Route path='contact' element={<Contact />} />
 								<Route path='destinations' element={<Destinations />} />
+								<Route path='destinations/:id' element={<DestinationDetails />} />
+								<Route path='blogs' element={<Blogs />} />
+								<Route path='blogs/:slug' element={<BlogDetails />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
-								<Route path='destinations/:id' element={<DestinationDetails />} />
 							</Route>
 							<Route
 								path='/admin'
@@ -56,6 +63,9 @@ const App = () => {
 								<Route path='destinations' element={<AdminDestinations />} />
 								<Route path='destinations/new' element={<AddDestination />} />
 								<Route path='destinations/edit/:id' element={<EditDestination />} />
+								<Route path='blogs' element={<AdminBlogs />} />
+								<Route path='blogs/new' element={<AddBlog />} />
+								<Route path='blogs/edit/:id' element={<EditBlog />} />
 							</Route>
 						</Routes>
 					</AuthProvider>
