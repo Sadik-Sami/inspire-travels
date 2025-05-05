@@ -1,7 +1,10 @@
+'use client';
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useDestinationDetail } from '../hooks/useDestinationQuery';
+import { useAuth } from '@/contexts/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import BookingForm from '@/components/booking/BookingForm';
 import {
 	CalendarIcon,
 	Clock,
@@ -39,7 +43,9 @@ import {
 const DestinationDetails = () => {
 	const { id } = useParams();
 	const { data: destination, isLoading, error } = useDestinationDetail(id);
+	const { user, isAuthenticated } = useAuth();
 	const [selectedDate, setSelectedDate] = useState(null);
+	const [showBookingForm, setShowBookingForm] = useState(false);
 
 	if (isLoading) {
 		return <DestinationSkeleton />;
@@ -74,6 +80,16 @@ const DestinationDetails = () => {
 
 	const handleDateSelect = (date) => {
 		setSelectedDate(date);
+	};
+
+	const handleBookNow = () => {
+		if (!isAuthenticated) {
+			// Redirect to login page with return URL
+			window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+			return;
+		}
+
+		setShowBookingForm(true);
 	};
 
 	// Format dates
@@ -548,13 +564,18 @@ const DestinationDetails = () => {
 							</div>
 						</CardContent>
 						<CardFooter>
-							<Button className='w-full' size='lg' disabled={!selectedDate}>
+							<Button className='w-full' size='lg' onClick={handleBookNow} disabled={!selectedDate}>
 								Book Now <ArrowRight className='ml-2 h-4 w-4' />
 							</Button>
 						</CardFooter>
 					</Card>
 				</div>
 			</div>
+
+			{/* Booking Form Dialog */}
+			{showBookingForm && (
+				<BookingForm destination={destination} selectedDate={selectedDate} onClose={() => setShowBookingForm(false)} />
+			)}
 		</div>
 	);
 };

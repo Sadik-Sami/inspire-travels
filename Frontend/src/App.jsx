@@ -23,6 +23,8 @@ import AdminBlogs from './pages/admin/AdminBlogs';
 import Blogs from './pages/Blogs';
 import BlogDetails from './pages/BlogDetails';
 import EditBlog from './pages/admin/EditBlog';
+import MyBookings from './pages/MyBookings';
+import AdminBookings from './pages/admin/AdminBookings';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -50,6 +52,7 @@ const App = () => {
 								<Route path='blogs/:slug' element={<BlogDetails />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
+								<Route path='my-bookings' element={<MyBookings />} />
 							</Route>
 							<Route
 								path='/admin'
@@ -66,6 +69,7 @@ const App = () => {
 								<Route path='blogs' element={<AdminBlogs />} />
 								<Route path='blogs/new' element={<AddBlog />} />
 								<Route path='blogs/edit/:id' element={<EditBlog />} />
+								<Route path='bookings' element={<AdminBookings />} />
 							</Route>
 						</Routes>
 					</AuthProvider>

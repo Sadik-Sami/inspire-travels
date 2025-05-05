@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowLeftSquare, BookOpen, Bot, Frame, GalleryVerticalEnd, PieChart, Settings2 } from 'lucide-react';
+import { ArrowLeftSquare, BookOpen, Bot, Calendar, Frame, GalleryVerticalEnd, PieChart, Settings2 } from 'lucide-react';
 import { NavMain } from '@/components/Dashboard/nav-main';
 import { NavSettings } from '@/components/Dashboard/nav-settings';
 import { NavUser } from '@/components/Dashboard/nav-user';
@@ -13,6 +13,7 @@ import {
 	SidebarRail,
 } from '@/components/ui/sidebar';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const data = {
 	user: {
@@ -64,6 +65,17 @@ const data = {
 				{
 					title: 'Add Blogs',
 					url: '/admin/blogs/new',
+				},
+			],
+		},
+		{
+			title: 'Bookings',
+			url: '#',
+			icon: Calendar,
+			items: [
+				{
+					title: 'All Bookings',
+					url: '/admin/bookings',
 				},
 			],
 		},
