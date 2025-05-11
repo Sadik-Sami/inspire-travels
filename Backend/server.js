@@ -7,6 +7,7 @@ const destinationRoutes = require('./routes/destinationRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const visaRoutes = require('./routes/visaRoutes');
+const visaBookingRoutes = require('./routes/visaBookingRoutes');
 
 const path = require('path');
 const multer = require('multer');
@@ -30,6 +31,7 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/visas', visaRoutes);
+app.use('/api/visa-bookings', visaBookingRoutes);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
