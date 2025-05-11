@@ -25,6 +25,12 @@ import BlogDetails from './pages/BlogDetails';
 import EditBlog from './pages/admin/EditBlog';
 import MyBookings from './pages/MyBookings';
 import AdminBookings from './pages/admin/AdminBookings';
+import AdminVisas from './pages/admin/AdminVisas';
+import AddVisa from './pages/admin/AddVisa';
+import EditVisa from './pages/admin/EditVisa';
+import VisaPackages from './pages/VisaPackages';
+import VisaDetails from './pages/VisaDetails';
+import VisaBooking from './pages/VisaBooking';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -50,6 +56,9 @@ const App = () => {
 								<Route path='destinations/:id' element={<DestinationDetails />} />
 								<Route path='blogs' element={<Blogs />} />
 								<Route path='blogs/:slug' element={<BlogDetails />} />
+								<Route path='/visas' element={<VisaPackages />} />
+								<Route path='/visas/details/:slug' element={<VisaDetails />} />
+								<Route path='/visas/book/:slug' element={<VisaBooking />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
 								<Route path='my-bookings' element={<MyBookings />} />
@@ -63,12 +72,19 @@ const App = () => {
 								}>
 								<Route index element={<AdminHome />} />
 								<Route path='users' element={<AdminUsers />} />
+								{/* Destination Packages */}
 								<Route path='destinations' element={<AdminDestinations />} />
 								<Route path='destinations/new' element={<AddDestination />} />
 								<Route path='destinations/edit/:id' element={<EditDestination />} />
+								{/* Visa Packages */}
+								<Route path='visas' element={<AdminVisas />} />
+								<Route path='visas/new' element={<AddVisa />} />
+								<Route path='visas/edit/:id' element={<EditVisa />} />
+								{/* Blogs */}
 								<Route path='blogs' element={<AdminBlogs />} />
 								<Route path='blogs/new' element={<AddBlog />} />
 								<Route path='blogs/edit/:id' element={<EditBlog />} />
+								{/* Bookings */}
 								<Route path='bookings' element={<AdminBookings />} />
 							</Route>
 						</Routes>

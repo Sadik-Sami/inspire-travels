@@ -109,9 +109,11 @@ const Navbar = () => {
 	const navLinks = [
 		{ name: 'Home', path: '/' },
 		{ name: 'Destinations', path: '/destinations' },
+		{ name: 'Visas', path: '/visas' },
 		{ name: 'Blogs', path: '/blogs' },
 		{ name: 'About', path: '/about' },
 		{ name: 'Contact', path: '/contact' },
+		isAuthenticated && { name: 'My Bookings', path: '/my-bookings' },
 		(isAdmin || isEmployee || isModerator) && { name: 'Dashboard', path: '/admin' },
 	].filter(Boolean);
 	const isActive = (path) => location.pathname === path;

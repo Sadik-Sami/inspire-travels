@@ -1,5 +1,15 @@
 import * as React from 'react';
-import { ArrowLeftSquare, BookOpen, Bot, Calendar, Frame, GalleryVerticalEnd, PieChart, Settings2 } from 'lucide-react';
+import {
+	ArrowLeftSquare,
+	BookOpen,
+	Bot,
+	Calendar,
+	Frame,
+	GalleryVerticalEnd,
+	PieChart,
+	Plane,
+	Settings2,
+} from 'lucide-react';
 import { NavMain } from '@/components/Dashboard/nav-main';
 import { NavSettings } from '@/components/Dashboard/nav-settings';
 import { NavUser } from '@/components/Dashboard/nav-user';
@@ -65,6 +75,21 @@ const data = {
 				{
 					title: 'Add Blogs',
 					url: '/admin/blogs/new',
+				},
+			],
+		},
+		{
+			title: 'Visas',
+			url: '#',
+			icon: Plane,
+			items: [
+				{
+					title: 'All Visas',
+					url: '/admin/visas',
+				},
+				{
+					title: 'Add Visas',
+					url: '/admin/visas/new',
 				},
 			],
 		},
