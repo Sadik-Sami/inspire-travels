@@ -140,7 +140,7 @@ const Navbar = () => {
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ duration: 0.5 }}>
 							<Link to='/' className='text-2xl font-bold text-primary'>
-								TravelEase
+								Inspire Travels
 							</Link>
 						</motion.div>
 

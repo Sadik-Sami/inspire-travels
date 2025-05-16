@@ -33,7 +33,7 @@ const data = {
 	},
 	navMain: [
 		{
-			title: 'Users Management',
+			title: 'Users & Invoices',
 			url: '#',
 			icon: Settings2,
 			isActive: true,
@@ -43,8 +43,12 @@ const data = {
 					url: '/admin/users',
 				},
 				{
-					title: 'Add User',
-					url: '/add-user',
+					title: 'All Invoices',
+					url: '/admin/invoices',
+				},
+				{
+					title: 'Create Invoice',
+					url: '/admin/invoices/new',
 				},
 			],
 		},
@@ -94,12 +98,12 @@ const data = {
 			],
 		},
 		{
-			title: 'Bookings',
+			title: 'Financials',
 			url: '#',
 			icon: Calendar,
 			items: [
 				{
-					title: 'All Bookings',
+					title: 'Bookings',
 					url: '/admin/bookings',
 				},
 			],
@@ -125,6 +129,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }) {
+	const { user } = useAuth();
 	return (
 		<Sidebar collapsible='icon' {...props}>
 			<SidebarHeader>
@@ -141,7 +146,7 @@ export function AppSidebar({ ...props }) {
 				</NavLink>
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser user={user} />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

@@ -112,8 +112,7 @@ const Destinations = () => {
 			<HeroSection
 				title='Explore Our Destinations'
 				subtitle='Discover our carefully curated selection of travel experiences around the world'
-				imageUrl='/placeholder.svg?height=600&width=1200'
-				height='h-[400px]'
+				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
 			/>
 
 			{/* Filters Section */}
@@ -132,7 +131,7 @@ const Destinations = () => {
 						<p className='text-sm text-muted-foreground'>
 							{isLoading
 								? 'Loading destinations...'
-								: `Showing ${data?.data?.length || 0} of ${data?.total || 0} destinations`}
+								: `Showing ${data?.total || 0} of ${data?.total || 0} destinations`}
 						</p>
 					</div>
 				</div>

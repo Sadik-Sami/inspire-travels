@@ -95,7 +95,6 @@ const Blogs = () => {
 				title='Our Travel Blog'
 				subtitle='Discover travel tips, destination guides, and inspiring stories from around the world'
 				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
-				height='h-[600px]'
 			/>
 
 			{/* Filters Section */}

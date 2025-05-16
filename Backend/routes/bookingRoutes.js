@@ -156,7 +156,7 @@ router.patch('/:id/cancel', verifyUser, async (req, res) => {
 // Admin routes
 
 // Get all bookings (admin only)
-router.get('/', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
+router.get('/', verifyUser, async (req, res) => {
 	try {
 		const page = Number.parseInt(req.query.page) || 1;
 		const limit = Number.parseInt(req.query.limit) || 10;

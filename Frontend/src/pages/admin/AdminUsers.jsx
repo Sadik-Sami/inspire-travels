@@ -1,4 +1,7 @@
+'use client';
+
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
 	Search,
 	Plus,
@@ -10,6 +13,7 @@ import {
 	Phone,
 	UserCog,
 	ArrowUpDown,
+	FileIcon as FileInvoice,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -54,6 +58,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 const AdminUsers = () => {
 	const axiosSecure = useAxiosSecure();
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 
 	// State for pagination, filtering, and sorting
 	const [page, setPage] = useState(1);
@@ -149,6 +154,19 @@ const AdminUsers = () => {
 				role: selectedRole,
 			});
 		}
+	};
+
+	// Handle creating invoice for a user
+	const handleCreateInvoice = (user) => {
+		navigate('/admin/invoices/new', {
+			state: {
+				customer: {
+					name: user.name,
+					email: user.email,
+					phone: user.phone,
+				},
+			},
+		});
 	};
 
 	// Handle sorting
@@ -395,6 +413,12 @@ const AdminUsers = () => {
 															}}>
 															<UserCog className='h-4 w-4' />
 															Change Role
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															className='flex items-center gap-2'
+															onClick={() => handleCreateInvoice(user)}>
+															<FileInvoice className='h-4 w-4' />
+															Create Invoice
 														</DropdownMenuItem>
 														<DropdownMenuSeparator />
 														<DropdownMenuItem

@@ -133,8 +133,7 @@ const VisaPackages = () => {
 			<HeroSection
 				title='Visa Services'
 				subtitle='Simplify your travel with our comprehensive visa services for destinations worldwide'
-				imageUrl='/placeholder.svg?height=600&width=1200'
-				height='h-[400px]'
+				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
 			/>
 
 			{/* Filters Section */}
@@ -146,22 +145,7 @@ const VisaPackages = () => {
 							<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
 							<Input placeholder='Search visa packages...' value={search} onChange={handleSearch} className='pl-10' />
 						</div>
-
 						<div className='flex flex-wrap gap-2 items-center'>
-							{/* Sort Dropdown */}
-							<Select value={activeSort} onValueChange={(value) => setActiveSort(value)}>
-								<SelectTrigger className='w-[180px]'>
-									<SelectValue placeholder='Sort by' />
-								</SelectTrigger>
-								<SelectContent>
-									{sortOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											{option.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-
 							{/* Filters Sheet */}
 							<Sheet>
 								<SheetTrigger asChild>
@@ -170,7 +154,7 @@ const VisaPackages = () => {
 										Filters
 									</Button>
 								</SheetTrigger>
-								<SheetContent className='w-full sm:max-w-md overflow-y-auto'>
+								<SheetContent className='w-full sm:max-w-lg overflow-y-auto px-4'>
 									<SheetHeader className='mb-4'>
 										<SheetTitle>Filter Visa Packages</SheetTitle>
 										<SheetDescription>Adjust the filters to find the perfect visa package.</SheetDescription>
@@ -237,6 +221,19 @@ const VisaPackages = () => {
 									</SheetFooter>
 								</SheetContent>
 							</Sheet>
+							{/* Sort Dropdown */}
+							<Select value={activeSort} onValueChange={(value) => setActiveSort(value)}>
+								<SelectTrigger className='w-[180px]'>
+									<SelectValue placeholder='Sort by' />
+								</SelectTrigger>
+								<SelectContent>
+									{sortOptions.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 					</div>
 

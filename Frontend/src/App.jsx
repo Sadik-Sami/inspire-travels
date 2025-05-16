@@ -31,6 +31,13 @@ import EditVisa from './pages/admin/EditVisa';
 import VisaPackages from './pages/VisaPackages';
 import VisaDetails from './pages/VisaDetails';
 import VisaBooking from './pages/VisaBooking';
+import AdminInvoices from './pages/admin/AdminInvoices';
+import CreateInvoice from './pages/admin/CreateInvoice';
+import InvoiceDetailsPage from './components/Admin/InvoiceDetailsPage';
+import PrivateRoute from './routes/ProtectedRoute';
+import AccessDeniedPage from './pages/AccessDeniedPage';
+import NotFoundPage from './pages/NotFoundPage';
+import InvoiceAnalytics from './pages/admin/InvoiceAnalytics';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -61,12 +68,19 @@ const App = () => {
 								<Route path='/visas/book/:slug' element={<VisaBooking />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
-								<Route path='my-bookings' element={<MyBookings />} />
+								<Route
+									path='my-bookings'
+									element={
+										<PrivateRoute>
+											<MyBookings />
+										</PrivateRoute>
+									}
+								/>
 							</Route>
 							<Route
 								path='/admin'
 								element={
-									<AdminRoute>
+									<AdminRoute allowedRoles={['admin', 'employee', 'moderator']}>
 										<AdminLayout />
 									</AdminRoute>
 								}>
@@ -86,7 +100,15 @@ const App = () => {
 								<Route path='blogs/edit/:id' element={<EditBlog />} />
 								{/* Bookings */}
 								<Route path='bookings' element={<AdminBookings />} />
+								{/* Invoices */}
+								<Route path='invoices' element={<AdminInvoices />} />
+								<Route path='invoices/new' element={<CreateInvoice />} />
+								<Route path='invoices/analytics' element={<InvoiceAnalytics />} />
+								<Route path='invoices/:id' element={<InvoiceDetailsPage />} />
 							</Route>
+							{/* Error Pages */}
+							<Route path='/access-denied' element={<AccessDeniedPage />} />
+							<Route path='*' element={<NotFoundPage />} />
 						</Routes>
 					</AuthProvider>
 				</BrowserRouter>
