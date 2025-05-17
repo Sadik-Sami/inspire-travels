@@ -402,7 +402,7 @@ const AdminHome = () => {
 									</TabsList>
 
 									<TabsContent value='invoices'>
-										<div className='h-[200px]'>
+										<div className='h-[300px]'>
 											<ResponsiveContainer width='100%' height='100%'>
 												<RechartsPieChart>
 													<Pie
@@ -425,7 +425,7 @@ const AdminHome = () => {
 									</TabsContent>
 
 									<TabsContent value='bookings'>
-										<div className='h-[200px]'>
+										<div className='h-[300px]'>
 											<ResponsiveContainer width='100%' height='100%'>
 												<RechartsPieChart>
 													<Pie
@@ -448,7 +448,7 @@ const AdminHome = () => {
 									</TabsContent>
 
 									<TabsContent value='visas'>
-										<div className='h-[200px]'>
+										<div className='h-[300px]'>
 											<ResponsiveContainer width='100%' height='100%'>
 												<RechartsPieChart>
 													<Pie
