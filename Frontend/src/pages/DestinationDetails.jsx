@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import BookingForm from '@/components/booking/BookingForm';
+import BookingForm from '@/components/Booking/BookingForm';
 import {
 	CalendarIcon,
 	Clock,
