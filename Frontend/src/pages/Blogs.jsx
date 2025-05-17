@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBlogQuery } from '@/hooks/useBlogQuery';
-import BlogsFilter from '@/components/blogs/BlogsFilter';
+import BlogsFilter from '@/components/Blogs/BlogsFilter';
 import PaginationControls from '@/components/Destination/PaginationControls';
 import HeroSection from '@/components/Sections/HeroSection';
 import NewsletterSection from '@/components/Sections/NewsletterSection';
