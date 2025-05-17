@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import AddUserDialog from '@/components/admin/AddUserDialog';
+import AddUserDialog from '@/components/Admin/AddUserDialog';
 import PaginationControls from '@/components/Destination/PaginationControls';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
