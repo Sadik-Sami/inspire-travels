@@ -133,7 +133,8 @@ const VisaPackages = () => {
 			<HeroSection
 				title='Visa Services'
 				subtitle='Simplify your travel with our comprehensive visa services for destinations worldwide'
-				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
+				imageUrl='/assets/images/hero.jpg'
+				showButton={false}
 			/>
 
 			{/* Filters Section */}

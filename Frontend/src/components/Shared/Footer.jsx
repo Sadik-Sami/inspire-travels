@@ -35,7 +35,7 @@ const Footer = () => {
 			whileInView='visible'
 			viewport={{ once: true, amount: 0.1 }}
 			variants={containerVariants}
-			className='bg-primary text-primary-foreground'>
+			className='bg-content2 border-t border-border text-primary-foreground'>
 			<div className='container mx-auto px-4 py-12'>
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
 					<motion.div variants={itemVariants}>
@@ -78,7 +78,7 @@ const Footer = () => {
 									transition={{ type: 'spring', stiffness: 400, damping: 10 }}>
 									<Link
 										to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(' ', '-')}`}
-										className='hover:text-white/80 transition-colors'>
+										className='hover:text-primary transition-colors'>
 										{item}
 									</Link>
 								</motion.li>
@@ -99,7 +99,7 @@ const Footer = () => {
 									key={index}
 									whileHover={{ x: 5 }}
 									transition={{ type: 'spring', stiffness: 400, damping: 10 }}>
-									<Link to={destination.path} className='hover:text-white/80 transition-colors'>
+									<Link to={destination.path} className='hover:text-primary transition-colors'>
 										{destination.name}
 									</Link>
 								</motion.li>

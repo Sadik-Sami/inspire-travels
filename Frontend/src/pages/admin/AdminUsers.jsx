@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -194,17 +192,29 @@ const AdminUsers = () => {
 	const getRoleBadge = (role) => {
 		switch (role) {
 			case 'admin':
-				return <Badge variant='default'>{role}</Badge>;
+				return (
+					<Badge variant='destructive' className='w-20'>
+						{role}
+					</Badge>
+				);
 			case 'moderator':
-				return <Badge variant='secondary'>{role}</Badge>;
+				return (
+					<Badge variant='secondary' className='w-20'>
+						{role}
+					</Badge>
+				);
 			case 'employee':
 				return (
-					<Badge variant='outline' className='bg-blue-100'>
+					<Badge variant='default' className='dark:text-white w-20'>
 						{role}
 					</Badge>
 				);
 			default:
-				return <Badge variant='outline'>{role}</Badge>;
+				return (
+					<Badge variant='outline' className='bg-success-600 text-white w-20'>
+						{role}
+					</Badge>
+				);
 		}
 	};
 
@@ -301,7 +311,7 @@ const AdminUsers = () => {
 						</DropdownMenuContent>
 					</DropdownMenu>
 
-					<Button className='flex items-center gap-2' onClick={() => setIsAddUserDialogOpen(true)}>
+					<Button variant='default' className='flex items-center gap-2' onClick={() => setIsAddUserDialogOpen(true)}>
 						<Plus className='h-4 w-4' />
 						Add User
 					</Button>
@@ -325,38 +335,38 @@ const AdminUsers = () => {
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (
-						<div className='flex justify-center py-8'>
+						<div className='flex justify-center items-center py-8'>
 							<div className='animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full'></div>
 						</div>
 					) : isError ? (
-						<div className='text-center py-8 text-red-500'>Error loading users. Please try again.</div>
+						<div className='text-center py-8 text-danger'>Error loading users. Please try again.</div>
 					) : users.length === 0 ? (
 						<div className='text-center py-8 text-muted-foreground'>No users found. Try adjusting your search.</div>
 					) : (
 						<div className='overflow-x-auto'>
 							<Table>
-								<TableHeader>
+								<TableHeader className={'h-20'}>
 									<TableRow>
 										<TableHead>
 											<Button
-												variant='ghost'
-												className='p-0 font-bold flex items-center'
+												variant='outline'
+												className='p-2 font-bold flex items-center rounded'
 												onClick={() => handleSort('name')}>
 												User {getSortIcon('name')}
 											</Button>
 										</TableHead>
 										<TableHead>
 											<Button
-												variant='ghost'
-												className='p-0 font-bold flex items-center'
+												variant='outline'
+												className='p-2 font-bold flex items-center rounded'
 												onClick={() => handleSort('email')}>
 												Contact {getSortIcon('email')}
 											</Button>
 										</TableHead>
 										<TableHead>
 											<Button
-												variant='ghost'
-												className='p-0 font-bold flex items-center'
+												variant='outline'
+												className='p-2 font-bold flex items-center rounded'
 												onClick={() => handleSort('role')}>
 												Role {getSortIcon('role')}
 											</Button>
@@ -366,7 +376,7 @@ const AdminUsers = () => {
 								</TableHeader>
 								<TableBody>
 									{users.map((user) => (
-										<TableRow key={user._id}>
+										<TableRow className='' key={user._id}>
 											<TableCell>
 												<div className='flex items-center gap-3'>
 													<Avatar>

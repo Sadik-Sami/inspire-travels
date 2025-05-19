@@ -112,7 +112,8 @@ const Destinations = () => {
 			<HeroSection
 				title='Explore Our Destinations'
 				subtitle='Discover our carefully curated selection of travel experiences around the world'
-				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
+				imageUrl='/assets/images/hero.jpg'
+				showButton={false}
 			/>
 
 			{/* Filters Section */}

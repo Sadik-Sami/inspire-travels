@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import FadeIn from '@/components/Animation/FadeIn';
 import AnimatedCard from '@/components/Animation/AnimatedCard';
 import AnimatedButton from '@/components/Animation/AnimatedButton';
+import HeroSection from '@/components/Sections/HeroSection';
 
 const About = () => {
 	const teamMembers = [
@@ -112,20 +113,13 @@ const About = () => {
 
 	return (
 		<div className='min-h-screen bg-background text-foreground'>
-			{/* Hero Section */}
-			<section className='relative py-20 bg-primary text-primary-foreground'>
-				<div className="absolute inset-0 bg-[url('/placeholder.svg?height=600&width=1200')] bg-cover bg-center opacity-20"></div>
-				<div className='container mx-auto px-4 relative z-10'>
-					<FadeIn>
-						<h1 className='text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-center'>About TravelEase</h1>
-						<p className='text-xl max-w-3xl mx-auto text-center'>
-							We're passionate about creating unforgettable travel experiences that connect people with the world's most
-							amazing destinations.
-						</p>
-					</FadeIn>
-				</div>
-			</section>
-
+			<HeroSection
+				title='About Inspire Travels'
+				subtitle="We're passionate about creating unforgettable travel experiences that connect people with the world's most
+							amazing destinations."
+				imageUrl='/assets/images/hero.jpg'
+				showButton={false}
+			/>
 			{/* Our Story Section */}
 			<section className='py-16'>
 				<div className='container mx-auto px-4'>

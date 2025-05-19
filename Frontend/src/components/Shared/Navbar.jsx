@@ -129,7 +129,7 @@ const Navbar = () => {
 				variants={navVariants}
 				initial='hidden'
 				animate='visible'
-				className={`fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md ${
+				className={`fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-md ${
 					scrolled ? 'shadow-md' : ''
 				} transition-shadow duration-300`}>
 				<div className='container mx-auto px-4'>
@@ -159,7 +159,7 @@ const Navbar = () => {
 										<Link
 											to={link.path}
 											className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-												isActive(link.path) ? 'bg-primary text-primary-foreground' : 'hover:bg-content1'
+												isActive(link.path) ? 'bg-primary text-white' : 'hover:bg-content1'
 											}`}>
 											{link.name}
 										</Link>

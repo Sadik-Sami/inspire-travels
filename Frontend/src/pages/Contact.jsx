@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import HeroSection from '@/components/Sections/HeroSection';
 
 const Contact = () => {
 	const [formData, setFormData] = useState({
@@ -103,18 +104,12 @@ const Contact = () => {
 	return (
 		<div className='min-h-screen bg-background text-foreground'>
 			{/* Hero Section */}
-			<section className='relative py-20 bg-primary text-primary-foreground'>
-				<div className="absolute inset-0 bg-[url('/placeholder.svg?height=600&width=1200')] bg-cover bg-center opacity-20"></div>
-				<div className='container mx-auto px-4 relative z-10'>
-					<FadeIn>
-						<h1 className='text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-center'>Contact Us</h1>
-						<p className='text-xl max-w-3xl mx-auto text-center'>
-							Have questions or ready to plan your next adventure? We're here to help you every step of the way.
-						</p>
-					</FadeIn>
-				</div>
-			</section>
-
+			<HeroSection
+				title='Contact Us'
+				subtitle="Have questions or ready to plan your next adventure? We're here to help you every step of the way."
+				imageUrl='/assets/images/hero.jpg'
+				showButton={false}
+			/>
 			{/* Contact Information */}
 			<section className='py-16'>
 				<div className='container mx-auto px-4'>

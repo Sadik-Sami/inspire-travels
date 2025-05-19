@@ -76,19 +76,22 @@ const Home = () => {
 			name: 'Sarah Johnson',
 			location: 'New York, USA',
 			comment:
-				'"The trip to Bali was amazing! Everything was well organized and the accommodations were fantastic. Will definitely book with TravelEase again."',
+				'Our trip to Japan was flawlessly organized. Every detail was considered, from the ryokan stays to the private tea ceremony. It was truly the experience of a lifetime!',
+			rating: 5,
 		},
 		{
-			name: 'Michael Chen',
+			name: 'David Chen',
 			location: 'Toronto, Canada',
 			comment:
-				'"Our family trip to Paris was perfect. The itinerary was well-planned and gave us plenty of time to explore. The hotel was in a great location. Highly recommend!"',
+				'The African safari exceeded all expectations. Our guide was incredibly knowledgeable, and the accommodations were luxurious yet authentic. Will definitely book again!',
+			rating: 5,
 		},
 		{
-			name: 'Emily Rodriguez',
-			location: 'Sydney, Australia',
+			name: 'Emma Rodriguez',
+			location: 'London, UK',
 			comment:
-				'"The customer service was exceptional. When our flight was delayed, the TravelEase team quickly rearranged our transportation. They really went above and beyond!"',
+				'The customized European tour was perfect for our family. The team was responsive to our needs and the local experiences they arranged gave us a genuine feel for each country.',
+			rating: 4.5,
 		},
 	];
 
@@ -113,7 +116,7 @@ const Home = () => {
 			<HeroSection
 				title='Explore the World with Us'
 				subtitle='Discover amazing places at exclusive deals'
-				imageUrl='https://i.ibb.co.com/v40H6BZx/tom-winckels-I7o-LRd-M9-YIw-unsplash.jpg'
+				imageUrl='/assets/images/hero.jpg'
 				buttonText='Explore Destinations'
 				buttonLink='/destinations'
 				showButton={true}
