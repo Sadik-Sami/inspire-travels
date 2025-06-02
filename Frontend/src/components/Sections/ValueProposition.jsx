@@ -8,7 +8,7 @@ const ValueProposition = ({ features }) => {
 	return (
 		<section className='py-24 bg-content1 relative overflow-hidden'>
 			{/* Background decoration */}
-			<div className='absolute inset-0 -z-10'>
+			<div className='absolute inset-0'>
 				<div className='absolute top-0 right-0 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-30 transform translate-x-1/3 -translate-y-1/3' />
 				<div className='absolute bottom-0 left-0 w-96 h-96 bg-secondary-100 rounded-full blur-3xl opacity-30 transform -translate-x-1/3 translate-y-1/3' />
 			</div>

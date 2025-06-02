@@ -4,6 +4,8 @@ const Invoice = require('../models/Invoice');
 const { verifyUser, verifyRole } = require('../middlewares/authMiddleware');
 const PDFDocument = require('pdfkit');
 const { Parser } = require('json2csv');
+const path = require('path');
+const fs = require('fs');
 
 // Create a new invoice
 router.post('/', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
@@ -289,6 +291,7 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 });
 
 // Generate PDF for an invoice
+// NOTE: This is V1.0 and working with broken layout
 router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		const invoice = await Invoice.findById(req.params.id);
@@ -319,16 +322,21 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		const contentWidth = pageWidth - 100; // Accounting for margins
 
 		// Add company logo and info
-		doc.fontSize(20).text('Travel Agency', { align: 'right' });
-		doc.fontSize(10).text('123 Travel Street', { align: 'right' });
-		doc.text('City, Country', { align: 'right' });
-		doc.text('Phone: +1 234 567 890', { align: 'right' });
-		doc.text('Email: info@travelagency.com', { align: 'right' });
+		const logoPath = path.join(__dirname, '../assets/logo.png'); // Update this path as needed
+		if (fs.existsSync(logoPath)) {
+			doc.image(logoPath, 50, 45, { width: 70, align: 'left' });
+		}
+
+		doc.fontSize(20).text('Inspite Travels Ltd.', { align: 'right' });
+		doc.fontSize(10).text('Mirpur 1', { align: 'right' });
+		doc.text('Dhaka, Bangladesh', { align: 'right' });
+		doc.text('Phone: +880 1318 446398', { align: 'right' });
+		doc.text('Email: info@inspire.com', { align: 'right' });
 
 		doc.moveDown();
 
 		// Add invoice header
-		doc.fontSize(24).text('INVOICE', { align: 'left' });
+		doc.fontSize(20).text('INVOICE', { align: 'left' });
 		doc.fontSize(10).text(`Invoice Number: ${invoice.invoiceNumber}`, { align: 'left' });
 		doc.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString()}`, { align: 'left' });
 		doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, { align: 'left' });
@@ -337,7 +345,7 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		doc.moveDown();
 
 		// Add customer info
-		doc.fontSize(14).text('Bill To:', { align: 'left' });
+		doc.fontSize(12).text('Bill To:', { align: 'left' });
 		doc.fontSize(10).text(`Name: ${invoice.customer.name}`, { align: 'left' });
 		doc.text(`Email: ${invoice.customer.email}`, { align: 'left' });
 		doc.text(`Phone: ${invoice.customer.phone}`, { align: 'left' });
@@ -425,9 +433,9 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		tableRow += 20;
 
 		// Add totals with better layout
-		const totalsX = pageWidth - 200; // Position for totals section
+		const totalsX = pageWidth - 260; // Position for totals section
 		const totalsLabelWidth = 120;
-		const totalsValueWidth = 70;
+		const totalsValueWidth = 80;
 
 		// Helper function for adding total rows
 		const addTotalRow = (label, value, isBold = false) => {
@@ -444,7 +452,7 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 
 			doc
 				.fontSize(10)
-				.text(label, totalsX, tableRow, { width: totalsLabelWidth, align: 'right' })
+				.text(label, totalsX, tableRow, { width: totalsLabelWidth, align: 'left' })
 				.text(value, totalsX + totalsLabelWidth + 10, tableRow, { width: totalsValueWidth, align: 'right' });
 
 			tableRow += 15;
