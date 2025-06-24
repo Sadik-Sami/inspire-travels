@@ -122,8 +122,8 @@ const Home = () => {
 				showButton={true}
 			/>
 
-			{/* Search Section */}
-			<SearchSection />
+			{/* Search Section (commented for later when flyhub API is integrated) */}
+			{/* <SearchSection /> */}
 
 			{/* Featured Destinations */}
 			<FeaturedDestinations destinations={featuredDestinations} loading={isLoading} />
