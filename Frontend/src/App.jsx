@@ -38,6 +38,7 @@ import PrivateRoute from './routes/ProtectedRoute';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import NotFoundPage from './pages/NotFoundPage';
 import InvoiceAnalytics from './pages/admin/InvoiceAnalytics';
+import AdminContactInfo from './pages/admin/AdminContactInfo';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -105,6 +106,7 @@ const App = () => {
 								<Route path='invoices/new' element={<CreateInvoice />} />
 								<Route path='invoices/analytics' element={<InvoiceAnalytics />} />
 								<Route path='invoices/:id' element={<InvoiceDetailsPage />} />
+								<Route path='contact-info' element={<AdminContactInfo />} />
 							</Route>
 							{/* Error Pages */}
 							<Route path='/access-denied' element={<AccessDeniedPage />} />

@@ -117,7 +117,7 @@ const data = {
 		},
 		{
 			name: 'Contact Information',
-			url: '/contact-edit',
+			url: '/admin/contact-info',
 			icon: PieChart,
 		},
 		{

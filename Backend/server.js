@@ -28,6 +28,7 @@ const visaRoutes = require('./routes/visaRoutes');
 const visaBookingRoutes = require('./routes/visaBookingRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const contactInfoRoutes = require('./routes/contactInfoRoutes');
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/visas', visaRoutes);
 app.use('/api/visa-bookings', visaBookingRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/contact-info', contactInfoRoutes);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
