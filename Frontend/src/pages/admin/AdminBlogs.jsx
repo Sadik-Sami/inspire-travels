@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useBlogQuery } from '@/hooks/useBlogQuery';
 import { useBlogMutation } from '@/hooks/useBlogMutation';
-import BlogsFilter from '@/components/blogs/BlogsFilter';
+import BlogsFilter from '@/components/Blogs/BlogsFilter'
 import PaginationControls from '@/components/Destination/PaginationControls';
 
 const AdminBlogs = () => {
