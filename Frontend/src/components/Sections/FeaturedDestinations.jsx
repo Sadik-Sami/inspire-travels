@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import AnimatedButton from '../Animation/AnimatedButton';
+import AnimatedButton from '@/components/Animation/AnimatedButton';
 import GradientText from '@/components/ui/gradient-text';
 
 const FeaturedDestinations = ({ destinations, isLoading }) => {
