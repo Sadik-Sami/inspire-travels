@@ -2,8 +2,7 @@ import * as React from 'react';
 import {
 	ArrowLeftSquare,
 	BookOpen,
-	Bot,
-	Calendar,
+	DollarSign,
 	Frame,
 	GalleryVerticalEnd,
 	PieChart,
@@ -53,17 +52,17 @@ const data = {
 			],
 		},
 		{
-			title: 'Destinations',
+			title: 'Packages',
 			url: '#',
-			icon: Bot,
+			icon: Plane,
 			items: [
 				{
-					title: 'All Destinations',
+					title: 'Destination Packages',
 					url: '/admin/destinations',
 				},
 				{
-					title: 'Add Destinations',
-					url: '/admin/destinations/new',
+					title: 'Visa Packages',
+					url: '/admin/visas',
 				},
 			],
 		},
@@ -83,28 +82,17 @@ const data = {
 			],
 		},
 		{
-			title: 'Visas',
-			url: '#',
-			icon: Plane,
-			items: [
-				{
-					title: 'All Visas',
-					url: '/admin/visas',
-				},
-				{
-					title: 'Add Visas',
-					url: '/admin/visas/new',
-				},
-			],
-		},
-		{
 			title: 'Financials',
 			url: '#',
-			icon: Calendar,
+			icon: DollarSign,
 			items: [
 				{
 					title: 'Bookings',
 					url: '/admin/bookings',
+				},
+				{
+					title: 'Insights',
+					url: '/admin/invoices/analytics',
 				},
 			],
 		},
