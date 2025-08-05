@@ -1,5 +1,3 @@
-'use client';
-
 import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, Star, Heart, TrendingUp, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
