@@ -1,54 +1,81 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { verifyAccessToken } = require('../utils/authUtils');
+const admin = require('../config/firebase-admin');
+
+// Verify Firebase token middleware
+const verifyFirebaseToken = async (req, res, next) => {
+	try {
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			return res.status(401).json({ message: 'No Firebase token provided' });
+		}
+
+		const idToken = authHeader.split(' ')[1];
+
+		// Verify the Firebase ID token
+		const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+		req.firebaseUser = {
+			uid: decodedToken.uid,
+			email: decodedToken.email,
+			name: decodedToken.name || decodedToken.display_name,
+			emailVerified: decodedToken.email_verified,
+		};
+
+		next();
+	} catch (error) {
+		console.error('Firebase token verification error:', error);
+		return res.status(401).json({ message: 'Invalid Firebase token' });
+	}
+};
 
 // Middleware to protect routes
 const verifyUser = async (req, res, next) => {
-	let token;
+	try {
+		const token = req.header('Authorization')?.replace('Bearer ', '');
 
-	if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-		try {
-			// Get token from header
-			token = req.headers.authorization.split(' ')[1];
-
-			// Verify token
-			const decoded = verifyAccessToken(token);
-
-			if (!decoded) {
-				return res.status(401).json({
-					message: 'Token expired or invalid',
-					tokenExpired: true,
-				});
-			}
-
-			// Get user from the token
-			req.user = await User.findById(decoded.user.id).select('-password -refreshTokens');
-
-			if (!req.user) {
-				return res.status(401).json({ message: 'User not found' });
-			}
-
-			next();
-		} catch (error) {
-			console.log('Token Verification Failed', error);
-			res.status(401).json({
-				message: 'Not Authorized, token failed',
-				tokenExpired: error.name === 'TokenExpiredError',
-			});
+		if (!token) {
+			return res.status(401).json({ message: 'No token, authorization denied' });
 		}
-	} else {
-		res.status(401).json({ message: 'Not Authorized, No token provided' });
+
+		// Verify the token
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+		// Find user by ID from the decoded token
+		const user = await User.findById(decoded.user.id).select('-refreshTokens -firebaseUid');
+
+		if (!user) {
+			return res.status(401).json({ message: 'Token is not valid' });
+		}
+
+		req.user = user;
+		next();
+	} catch (error) {
+		console.error('Token verification error:', error);
+		res.status(401).json({ message: 'Token is not valid' });
 	}
 };
 
 // Role-based access control
-const verifyRole = (...allowedRoles) => {
+const verifyRole = (requiredRole) => {
 	return (req, res, next) => {
-		if (!req.user || !allowedRoles.includes(req.user.role)) {
-			return res.status(403).json({ message: 'Access Forbidden' });
+		if (!req.user) {
+			return res.status(401).json({ message: 'User not authenticated' });
 		}
+
+		// Allow admin to access all routes
+		if (req.user.role === 'admin') {
+			return next();
+		}
+
+		// Check if user has the required role
+		if (req.user.role !== requiredRole) {
+			return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+		}
+
 		next();
 	};
 };
 
-module.exports = { verifyUser, verifyRole };
+module.exports = { verifyUser, verifyRole, verifyFirebaseToken };

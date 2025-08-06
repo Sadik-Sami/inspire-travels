@@ -1,14 +1,9 @@
 import * as React from 'react';
-import {
-	ArrowLeftSquare,
-	BookOpen,
-	DollarSign,
-	Frame,
-	GalleryVerticalEnd,
-	PieChart,
-	Plane,
-	Settings2,
-} from 'lucide-react';
+import { FaUserGroup } from 'react-icons/fa6';
+import { PiUsersThreeFill, PiBookOpenFill, PiCurrencyDollarFill } from 'react-icons/pi';
+import { IoDocuments } from 'react-icons/io5';
+import { FaHome } from 'react-icons/fa';
+import { MdTravelExplore } from 'react-icons/md';
 import { NavMain } from '@/components/Dashboard/nav-main';
 import { NavSettings } from '@/components/Dashboard/nav-settings';
 import { NavUser } from '@/components/Dashboard/nav-user';
@@ -34,16 +29,12 @@ const data = {
 		{
 			title: 'Users & Invoices',
 			url: '#',
-			icon: Settings2,
+			icon: PiUsersThreeFill,
 			isActive: true,
 			items: [
 				{
 					title: 'All Users',
 					url: '/admin/users',
-				},
-				{
-					title: 'All Invoices',
-					url: '/admin/invoices',
 				},
 				{
 					title: 'Create Invoice',
@@ -54,7 +45,7 @@ const data = {
 		{
 			title: 'Packages',
 			url: '#',
-			icon: Plane,
+			icon: MdTravelExplore,
 			items: [
 				{
 					title: 'Destination Packages',
@@ -69,7 +60,7 @@ const data = {
 		{
 			title: 'Blogs',
 			url: '#',
-			icon: BookOpen,
+			icon: PiBookOpenFill,
 			items: [
 				{
 					title: 'All Blogs',
@@ -84,11 +75,15 @@ const data = {
 		{
 			title: 'Financials',
 			url: '#',
-			icon: DollarSign,
+			icon: PiCurrencyDollarFill,
 			items: [
 				{
 					title: 'Bookings',
 					url: '/admin/bookings',
+				},
+				{
+					title: 'Invoices',
+					url: '/admin/invoices',
 				},
 				{
 					title: 'Insights',
@@ -99,19 +94,14 @@ const data = {
 	],
 	settings: [
 		{
-			name: 'Hero Banner',
-			url: '/banner-edit',
-			icon: Frame,
-		},
-		{
-			name: 'Contact Information',
+			name: 'Contacts & Info',
 			url: '/admin/contact-info',
-			icon: PieChart,
+			icon: IoDocuments,
 		},
 		{
-			name: 'Image Gallery',
-			url: '/gallery-edit',
-			icon: GalleryVerticalEnd,
+			name: 'Staff Management',
+			url: '/admin/staffs',
+			icon: FaUserGroup,
 		},
 	],
 };
@@ -128,7 +118,7 @@ export function AppSidebar({ ...props }) {
 				<NavSettings settings={data.settings} />
 				<NavLink to='/'>
 					<SidebarMenuButton className='pl-4 mx-auto'>
-						<ArrowLeftSquare />
+						<FaHome />
 						Home
 					</SidebarMenuButton>
 				</NavLink>

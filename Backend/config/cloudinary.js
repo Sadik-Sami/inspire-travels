@@ -8,7 +8,7 @@ cloudinary.config({
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Upload image to Cloudinary
+// Upload image to Cloudinary (for destinations, visas, blogs - high quality)
 const uploadImage = async (file) => {
 	try {
 		const result = await cloudinary.uploader.upload(file.path, {
@@ -25,6 +25,27 @@ const uploadImage = async (file) => {
 	}
 };
 
+// Upload user profile image to Cloudinary (optimized for profile pictures)
+const uploadUserImage = async (file) => {
+	try {
+		const result = await cloudinary.uploader.upload(file.path, {
+			folder: 'travel-users',
+			use_filename: true,
+			transformation: [
+				{ width: 400, height: 400, crop: 'fill', gravity: 'face' },
+				{ quality: 'auto', fetch_format: 'auto' },
+			],
+		});
+		return {
+			url: result.secure_url,
+			publicId: result.public_id,
+		};
+	} catch (error) {
+		console.error('Error uploading user image to Cloudinary:', error);
+		throw new Error('User image upload failed');
+	}
+};
+
 // Delete image from Cloudinary
 const deleteImage = async (publicId) => {
 	try {
@@ -36,4 +57,4 @@ const deleteImage = async (publicId) => {
 	}
 };
 
-module.exports = { uploadImage, deleteImage };
+module.exports = { uploadImage, uploadUserImage, deleteImage };

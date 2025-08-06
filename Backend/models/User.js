@@ -1,56 +1,93 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
 	{
 		name: {
 			type: String,
-			required: [true, 'Name is required'],
 			trim: true,
 		},
 		email: {
 			type: String,
-			required: [true, 'Email is required'],
+			required: true,
 			unique: true,
 			lowercase: true,
-			match: [/\S+@\S+\.\S+/, 'Email is invalid'],
+			trim: true,
 		},
 		phone: {
 			type: String,
-			required: [true, 'Phone number is required'],
+			trim: true,
 		},
-		password: {
+		address: {
 			type: String,
-			required: [true, 'Password is required'],
-			minlength: [8, 'Password must be at least 8 characters'],
+			trim: true,
+		},
+		passportNumber: {
+			type: String,
+			trim: true,
+		},
+		profileImage: {
+			url: {
+				type: String,
+				default: '',
+			},
+			publicId: {
+				type: String,
+				default: '',
+			},
 		},
 		role: {
 			type: String,
 			enum: ['customer', 'admin', 'moderator', 'employee'],
 			default: 'customer',
 		},
+		firebaseUid: {
+			type: String,
+			required: true,
+			unique: true,
+		},
 		refreshTokens: [
 			{
-				token: { type: String },
-				expiresAt: { type: Date },
-				userAgent: { type: String },
-				createdAt: { type: Date, default: Date.now },
+				token: {
+					type: String,
+					required: true,
+				},
+				expiresAt: {
+					type: Date,
+					required: true,
+				},
+				userAgent: {
+					type: String,
+					default: 'unknown',
+				},
 			},
 		],
 	},
-	{ timestamps: true }
+	{
+		timestamps: true,
+	}
 );
 
-// Hash password before saving
-UserSchema.pre('save', async function (next) {
-	if (!this.isModified('password')) return next();
-	this.password = await bcrypt.hash(this.password, 10);
+// Index for better query performance
+userSchema.index({ email: 1 });
+userSchema.index({ firebaseUid: 1 });
+userSchema.index({ 'refreshTokens.token': 1 });
+userSchema.index({ role: 1 }); // Add role index for better filtering performance
+userSchema.index({ createdAt: -1 }); // Add createdAt index for sorting
+
+// Remove expired refresh tokens before saving
+userSchema.pre('save', function (next) {
+	this.refreshTokens = this.refreshTokens.filter((tokenObj) => tokenObj.expiresAt > new Date());
 	next();
 });
 
-// Compare entered password with stored hash
-UserSchema.methods.comparePassword = async function (enteredPassword) {
-	return await bcrypt.compare(enteredPassword, this.password);
-};
+// Handle version conflicts by retrying the save operation
+userSchema.post('save', function (error, doc, next) {
+	if (error.name === 'VersionError') {
+		// Retry the save operation
+		this.save(next);
+	} else {
+		next(error);
+	}
+});
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', userSchema);

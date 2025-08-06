@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -448,7 +446,7 @@ const AdminInvoices = () => {
 						Analytics
 					</Button>
 
-					<Button className='flex items-center gap-2' onClick={() => navigate('/admin/invoices/create')}>
+					<Button className='flex items-center gap-2' onClick={() => navigate('/admin/invoices/new')}>
 						<Plus className='h-4 w-4' />
 						Create Invoice
 					</Button>

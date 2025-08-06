@@ -1,18 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-	Search,
-	Plus,
-	Filter,
-	ChevronDown,
-	MoreHorizontal,
-	Trash,
-	Mail,
-	Phone,
-	UserCog,
-	ArrowUpDown,
-	FileIcon as FileInvoice,
-} from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Trash, Mail, Phone, ArrowUpDown, FileIcon as FileInvoice } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,17 +25,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import AddUserDialog from '@/components/Admin/AddUserDialog';
+import AddUserDialog from '@/components/admin/AddUserDialog';
 import PaginationControls from '@/components/Destination/PaginationControls';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -61,36 +39,30 @@ const AdminUsers = () => {
 	// State for pagination, filtering, and sorting
 	const [page, setPage] = useState(1);
 	const [searchQuery, setSearchQuery] = useState('');
-	const [userRole, setUserRole] = useState('all');
 	const [sortField, setSortField] = useState('createdAt');
 	const [sortDirection, setSortDirection] = useState('desc');
 
 	// State for dialogs
 	const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 	const [userToDelete, setUserToDelete] = useState(null);
-	const [userToEdit, setUserToEdit] = useState(null);
-	const [selectedRole, setSelectedRole] = useState('');
 
 	// Debounce search to avoid too many API calls
 	const debouncedSearch = useDebounce(searchQuery, 500);
 
-	// Fetch users with filtering, sorting, and pagination
+	// Fetch users with filtering, sorting, and pagination (only customers)
 	const { data, isLoading, isError } = useQuery({
-		queryKey: ['users', page, debouncedSearch, userRole, sortField, sortDirection],
+		queryKey: ['users', page, debouncedSearch, sortField, sortDirection],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
 				limit: '10',
 				sort: sortField,
 				direction: sortDirection,
+				role: 'customer', // Only fetch customers
 			});
 
 			if (debouncedSearch) {
 				params.append('search', debouncedSearch);
-			}
-
-			if (userRole !== 'all') {
-				params.append('role', userRole);
 			}
 
 			const response = await axiosSecure.get(`/api/users?${params.toString()}`);
@@ -115,22 +87,6 @@ const AdminUsers = () => {
 		},
 	});
 
-	// Update user role mutation
-	const updateRoleMutation = useMutation({
-		mutationFn: async ({ userId, role }) => {
-			const response = await axiosSecure.patch(`/api/users/${userId}/role`, { role });
-			return response.data;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			toast.success('User role updated successfully');
-			setUserToEdit(null);
-		},
-		onError: (error) => {
-			toast.error(`Failed to update user role: ${error.response?.data?.message || 'Unknown error'}`);
-		},
-	});
-
 	// Handle adding a new user
 	const handleAddUser = (newUser) => {
 		queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -141,16 +97,6 @@ const AdminUsers = () => {
 	const handleDeleteUser = () => {
 		if (userToDelete) {
 			deleteMutation.mutate(userToDelete._id);
-		}
-	};
-
-	// Handle updating user role
-	const handleUpdateRole = () => {
-		if (userToEdit && selectedRole) {
-			updateRoleMutation.mutate({
-				userId: userToEdit._id,
-				role: selectedRole,
-			});
 		}
 	};
 
@@ -170,52 +116,18 @@ const AdminUsers = () => {
 	// Handle sorting
 	const handleSort = (field) => {
 		if (sortField === field) {
-			// Toggle direction if clicking the same field
 			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
 		} else {
-			// Set new field and default to ascending
 			setSortField(field);
 			setSortDirection('asc');
 		}
-		// Reset to first page when sorting changes
 		setPage(1);
 	};
 
 	// Handle page change
 	const handlePageChange = (newPage) => {
 		setPage(newPage);
-		// Scroll to top of the page
 		window.scrollTo({ top: 0, behavior: 'smooth' });
-	};
-
-	// Get role badge variant
-	const getRoleBadge = (role) => {
-		switch (role) {
-			case 'admin':
-				return (
-					<Badge variant='destructive' className='w-20'>
-						{role}
-					</Badge>
-				);
-			case 'moderator':
-				return (
-					<Badge variant='secondary' className='w-20'>
-						{role}
-					</Badge>
-				);
-			case 'employee':
-				return (
-					<Badge variant='default' className='dark:text-white w-20'>
-						{role}
-					</Badge>
-				);
-			default:
-				return (
-					<Badge variant='outline' className='bg-success-600 text-white w-20'>
-						{role}
-					</Badge>
-				);
-		}
 	};
 
 	// Get initials for avatar fallback
@@ -232,7 +144,6 @@ const AdminUsers = () => {
 	// Get sort icon
 	const getSortIcon = (field) => {
 		if (sortField !== field) return null;
-
 		return sortDirection === 'asc' ? (
 			<ArrowUpDown className='h-4 w-4 ml-1 rotate-180' />
 		) : (
@@ -259,57 +170,10 @@ const AdminUsers = () => {
 							value={searchQuery}
 							onChange={(e) => {
 								setSearchQuery(e.target.value);
-								setPage(1); // Reset to first page on search
+								setPage(1);
 							}}
 						/>
 					</div>
-
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant='outline' className='flex items-center gap-2'>
-								<Filter className='h-4 w-4' />
-								Role: {userRole === 'all' ? 'All' : userRole}
-								<ChevronDown className='h-4 w-4' />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='end'>
-							<DropdownMenuItem
-								onClick={() => {
-									setUserRole('all');
-									setPage(1); // Reset to first page on filter change
-								}}>
-								All Roles
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setUserRole('admin');
-									setPage(1);
-								}}>
-								Admin
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setUserRole('customer');
-									setPage(1);
-								}}>
-								Customer
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setUserRole('employee');
-									setPage(1);
-								}}>
-								Employee
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setUserRole('moderator');
-									setPage(1);
-								}}>
-								Moderator
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
 
 					<Button variant='default' className='flex items-center gap-2' onClick={() => setIsAddUserDialogOpen(true)}>
 						<Plus className='h-4 w-4' />
@@ -325,7 +189,7 @@ const AdminUsers = () => {
 				<CardHeader className='pb-2'>
 					<CardTitle>Users</CardTitle>
 					<CardDescription>
-						Manage your users and their permissions.
+						Manage your customers and their information.
 						{!isLoading && (
 							<span className='ml-2 text-sm'>
 								Showing {users.length} of {pagination.total} users
@@ -339,13 +203,13 @@ const AdminUsers = () => {
 							<div className='animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full'></div>
 						</div>
 					) : isError ? (
-						<div className='text-center py-8 text-danger'>Error loading users. Please try again.</div>
+						<div className='text-center py-8 text-red-500'>Error loading users. Please try again.</div>
 					) : users.length === 0 ? (
 						<div className='text-center py-8 text-muted-foreground'>No users found. Try adjusting your search.</div>
 					) : (
 						<div className='overflow-x-auto'>
 							<Table>
-								<TableHeader className={'h-20'}>
+								<TableHeader className='h-20'>
 									<TableRow>
 										<TableHead>
 											<Button
@@ -367,8 +231,8 @@ const AdminUsers = () => {
 											<Button
 												variant='outline'
 												className='p-2 font-bold flex items-center rounded'
-												onClick={() => handleSort('role')}>
-												Role {getSortIcon('role')}
+												onClick={() => handleSort('createdAt')}>
+												Joined {getSortIcon('createdAt')}
 											</Button>
 										</TableHead>
 										<TableHead className='text-right'>Actions</TableHead>
@@ -376,20 +240,21 @@ const AdminUsers = () => {
 								</TableHeader>
 								<TableBody>
 									{users.map((user) => (
-										<TableRow className='' key={user._id}>
+										<TableRow key={user._id}>
 											<TableCell>
 												<div className='flex items-center gap-3'>
 													<Avatar>
 														<AvatarImage
-															src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-																user.name
-															)}&background=random`}
+															src={user.profileImage?.url || '/placeholder.svg?height=32&width=32'}
 															alt={user.name}
 														/>
 														<AvatarFallback>{getInitials(user.name)}</AvatarFallback>
 													</Avatar>
 													<div>
 														<div className='font-medium'>{user.name}</div>
+														<Badge variant='outline' className='bg-green-100 text-green-800 w-20 mt-1'>
+															Customer
+														</Badge>
 													</div>
 												</div>
 											</TableCell>
@@ -401,11 +266,15 @@ const AdminUsers = () => {
 													</div>
 													<div className='flex items-center gap-1'>
 														<Phone className='h-3 w-3 text-muted-foreground' />
-														<span className='text-sm'>{user.phone}</span>
+														<span className='text-sm'>{user.phone || 'N/A'}</span>
 													</div>
 												</div>
 											</TableCell>
-											<TableCell>{getRoleBadge(user.role)}</TableCell>
+											<TableCell>
+												<span className='text-sm text-muted-foreground'>
+													{new Date(user.createdAt).toLocaleDateString()}
+												</span>
+											</TableCell>
 											<TableCell className='text-right'>
 												<DropdownMenu>
 													<DropdownMenuTrigger asChild>
@@ -415,15 +284,6 @@ const AdminUsers = () => {
 														</Button>
 													</DropdownMenuTrigger>
 													<DropdownMenuContent align='end'>
-														<DropdownMenuItem
-															className='flex items-center gap-2'
-															onClick={() => {
-																setUserToEdit(user);
-																setSelectedRole(user.role);
-															}}>
-															<UserCog className='h-4 w-4' />
-															Change Role
-														</DropdownMenuItem>
 														<DropdownMenuItem
 															className='flex items-center gap-2'
 															onClick={() => handleCreateInvoice(user)}>
@@ -478,46 +338,6 @@ const AdminUsers = () => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-
-			{/* Edit User Role Dialog */}
-			<Dialog open={!!userToEdit} onOpenChange={(open) => !open && setUserToEdit(null)}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Change User Role</DialogTitle>
-						<DialogDescription>
-							Update the role for {userToEdit?.name}. This will change their permissions in the system.
-						</DialogDescription>
-					</DialogHeader>
-
-					<div className='space-y-4 py-4'>
-						<div className='space-y-2'>
-							<Label htmlFor='role'>Role</Label>
-							<Select value={selectedRole} onValueChange={setSelectedRole}>
-								<SelectTrigger>
-									<SelectValue placeholder='Select a role' />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value='customer'>Customer</SelectItem>
-									<SelectItem value='employee'>Employee</SelectItem>
-									<SelectItem value='moderator'>Moderator</SelectItem>
-									<SelectItem value='admin'>Admin</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-
-					<DialogFooter>
-						<Button variant='outline' onClick={() => setUserToEdit(null)}>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleUpdateRole}
-							disabled={updateRoleMutation.isPending || selectedRole === userToEdit?.role}>
-							{updateRoleMutation.isPending ? 'Updating...' : 'Update Role'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 };

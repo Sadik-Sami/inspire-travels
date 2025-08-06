@@ -39,6 +39,9 @@ import AccessDeniedPage from './pages/AccessDeniedPage';
 import NotFoundPage from './pages/NotFoundPage';
 import InvoiceAnalytics from './pages/admin/InvoiceAnalytics';
 import AdminContactInfo from './pages/admin/AdminContactInfo';
+import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import AdminStaffs from './pages/admin/AdminStaffs';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -69,6 +72,15 @@ const App = () => {
 								<Route path='/visas/book/:slug' element={<VisaBooking />} />
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
+								<Route path='forgot-password' element={<ForgotPassword />} />
+								<Route
+									path='/profile'
+									element={
+										<PrivateRoute>
+											<Profile />
+										</PrivateRoute>
+									}
+								/>
 								<Route
 									path='my-bookings'
 									element={
@@ -87,6 +99,7 @@ const App = () => {
 								}>
 								<Route index element={<AdminHome />} />
 								<Route path='users' element={<AdminUsers />} />
+								<Route path='staffs' element={<AdminStaffs />} />
 								{/* Destination Packages */}
 								<Route path='destinations' element={<AdminDestinations />} />
 								<Route path='destinations/new' element={<AddDestination />} />

@@ -1,20 +1,31 @@
+'use client';
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, LogIn, Mail, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '../components/ui/dialog';
 import loginPhoto from '../assets/loginPhoto.jpg';
 
 const Login = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { login } = useAuth();
+	const { login, googleLogin, resetPassword } = useAuth();
 	const from = location?.state?.from || '/'; // Redirect to previous location after login
+
 	// Form state
 	const [formData, setFormData] = useState({
 		email: '',
@@ -25,7 +36,14 @@ const Login = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [errors, setErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 	const [loginError, setLoginError] = useState('');
+
+	// Password reset state
+	const [resetEmail, setResetEmail] = useState('');
+	const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+	const [resetStatus, setResetStatus] = useState({ type: '', message: '' });
+	const [isResetting, setIsResetting] = useState(false);
 
 	// Handle input changes
 	const handleChange = (e) => {
@@ -78,6 +96,62 @@ const Login = () => {
 			console.error('Login error:', error);
 		} finally {
 			setIsSubmitting(false);
+		}
+	};
+
+	// Handle Google login
+	const handleGoogleLogin = async () => {
+		setLoginError('');
+		setIsGoogleSubmitting(true);
+		try {
+			const result = await googleLogin();
+			if (result.success) {
+				navigate(from);
+			} else {
+				setLoginError(result.error || 'Failed to login with Google');
+			}
+		} catch (error) {
+			setLoginError('An unexpected error occurred. Please try again.');
+			console.error('Google login error:', error);
+		} finally {
+			setIsGoogleSubmitting(false);
+		}
+	};
+
+	// Handle password reset
+	const handleResetPassword = async () => {
+		if (!resetEmail || !/\S+@\S+\.\S+/.test(resetEmail)) {
+			setResetStatus({
+				type: 'error',
+				message: 'Please enter a valid email address',
+			});
+			return;
+		}
+
+		setIsResetting(true);
+		setResetStatus({ type: '', message: '' });
+
+		try {
+			const result = await resetPassword(resetEmail);
+			if (result.success) {
+				setResetStatus({
+					type: 'success',
+					message: 'Password reset email sent. Please check your inbox.',
+				});
+			} else {
+				setResetStatus({
+					type: 'error',
+					message: result.error || 'Failed to send reset email. Please try again.',
+				});
+			}
+		} catch (error) {
+			setResetStatus({
+				type: 'error',
+				message: 'An unexpected error occurred. Please try again.',
+			});
+			console.error('Password reset error:', error);
+		} finally {
+			setIsResetting(false);
 		}
 	};
 
@@ -173,9 +247,12 @@ const Login = () => {
 								<motion.div className='space-y-2' variants={itemVariants}>
 									<div className='flex items-center justify-between'>
 										<Label htmlFor='password'>Password</Label>
-										<Link to='/forgot-password' className='text-sm text-primary hover:underline'>
+										<button
+											type='button'
+											onClick={() => setIsResetDialogOpen(true)}
+											className='text-sm text-primary hover:underline'>
 											Forgot password?
-										</Link>
+										</button>
 									</div>
 									<div className='relative'>
 										<Input
@@ -213,6 +290,53 @@ const Login = () => {
 									</Button>
 								</motion.div>
 							</form>
+
+							<div className='relative my-6'>
+								<div className='absolute inset-0 flex items-center'>
+									<div className='w-full border-t border-gray-300'></div>
+								</div>
+								<div className='relative flex justify-center text-sm'>
+									<span className='px-2 bg-background text-muted-foreground'>Or continue with</span>
+								</div>
+							</div>
+
+							<motion.div variants={itemVariants}>
+								<Button
+									type='button'
+									variant='outline'
+									className='w-full bg-transparent'
+									onClick={handleGoogleLogin}
+									disabled={isGoogleSubmitting}>
+									{isGoogleSubmitting ? (
+										<div className='flex items-center'>
+											<div className='animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full'></div>
+											Connecting...
+										</div>
+									) : (
+										<div className='flex items-center justify-center'>
+											<svg className='mr-2 h-4 w-4' viewBox='0 0 24 24'>
+												<path
+													d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
+													fill='#4285F4'
+												/>
+												<path
+													d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
+													fill='#34A853'
+												/>
+												<path
+													d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
+													fill='#FBBC05'
+												/>
+												<path
+													d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
+													fill='#EA4335'
+												/>
+											</svg>
+											Continue with Google
+										</div>
+									)}
+								</Button>
+							</motion.div>
 						</CardContent>
 						<CardFooter className='flex justify-center'>
 							<motion.div variants={itemVariants} className='text-center'>
@@ -227,6 +351,58 @@ const Login = () => {
 					</Card>
 				</motion.div>
 			</div>
+
+			{/* Password Reset Dialog */}
+			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+				<DialogContent className='sm:max-w-[425px]'>
+					<DialogHeader>
+						<DialogTitle>Reset your password</DialogTitle>
+						<DialogDescription>
+							Enter your email address and we'll send you a link to reset your password.
+						</DialogDescription>
+					</DialogHeader>
+					<div className='grid gap-4 py-4'>
+						{resetStatus.message && (
+							<Alert variant={resetStatus.type === 'error' ? 'destructive' : 'default'} className='mb-4'>
+								{resetStatus.type === 'error' ? (
+									<AlertCircle className='h-4 w-4 mr-2' />
+								) : (
+									<Mail className='h-4 w-4 mr-2' />
+								)}
+								<AlertDescription>{resetStatus.message}</AlertDescription>
+							</Alert>
+						)}
+						<div className='grid grid-cols-4 items-center gap-4'>
+							<Label htmlFor='reset-email' className='text-right col-span-1'>
+								Email
+							</Label>
+							<Input
+								id='reset-email'
+								type='email'
+								placeholder='name@example.com'
+								className='col-span-3'
+								value={resetEmail}
+								onChange={(e) => setResetEmail(e.target.value)}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant='outline' onClick={() => setIsResetDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleResetPassword} disabled={isResetting}>
+							{isResetting ? (
+								<div className='flex items-center'>
+									<div className='animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full'></div>
+									Sending...
+								</div>
+							) : (
+								'Send Reset Link'
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };
