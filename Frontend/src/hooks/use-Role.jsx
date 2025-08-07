@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import useAxiosSecure from './use-AxiosSecure';
+import useAxiosPublic from './use-AxiosPublic';
 
 const useRole = () => {
 	const { user } = useAuth();
-	const axiosSecure = useAxiosSecure();
+	const axiosPublic = useAxiosPublic();
+	const currentAccessToken = localStorage.getItem('accessToken');
 
 	const {
 		data: userData,
@@ -13,12 +14,19 @@ const useRole = () => {
 		isError,
 		refetch,
 	} = useQuery({
-		queryKey: ['userRole'],
+		queryKey: ['userRole', user?.email],
 		queryFn: async () => {
-			const { data } = await axiosSecure.get('/api/users/role');
+			if (!user?.email) {
+				return { role: 'customer' };
+			}
+			const { data } = await axiosPublic('/api/users/role', {
+				headers: {
+					Authorization: `Bearer ${currentAccessToken}`,
+				},
+			});
 			return data.user;
 		},
-		enabled: !!user,
+		enabled: !!user?.email,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});

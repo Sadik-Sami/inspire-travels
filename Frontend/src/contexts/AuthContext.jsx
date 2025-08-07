@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
 
 	// Function to refresh the access token
 	const refreshAccessToken = async () => {
+		setLoading(true);
 		try {
 			// Get refresh token from state or localStorage
 			const currentRefreshToken = refreshToken || localStorage.getItem('refreshToken');
@@ -52,16 +53,16 @@ export const AuthProvider = ({ children }) => {
 			// If refresh fails, log the user out
 			logout();
 			return null;
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	// Function to sync Firebase user with backend
 	const syncUserWithBackend = async (firebaseUser, additionalData = {}) => {
+		setLoading(true);
 		try {
-			// Get Firebase ID token
 			const idToken = await firebaseUser.getIdToken();
-
-			// Send to backend to authenticate/create user
 			const { data } = await axiosPublic.post(
 				'/api/users/firebase-auth',
 				{
@@ -75,11 +76,9 @@ export const AuthProvider = ({ children }) => {
 			);
 
 			if (data.success) {
-				// Store tokens and user data
 				localStorage.setItem('accessToken', data.accessToken);
 				localStorage.setItem('refreshToken', data.refreshToken);
 				localStorage.setItem('user', JSON.stringify(data.user));
-
 				setUser(data.user);
 				setAccessToken(data.accessToken);
 				setRefreshToken(data.refreshToken);
@@ -94,33 +93,31 @@ export const AuthProvider = ({ children }) => {
 				success: false,
 				error: error.response?.data?.message || error.message || 'Failed to authenticate with server',
 			};
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	// Check if user is already logged in on mount
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+			setLoading(true);
 			setFirebaseUser(currentUser);
-
-			if (currentUser) {
-				try {
-					// Get user data from localStorage for immediate UI update
+			try {
+				if (currentUser?.email) {
 					const userData = JSON.parse(localStorage.getItem('user'));
 					if (userData) {
 						setUser(userData);
 					}
-
-					// Sync with backend
 					await syncUserWithBackend(currentUser);
-				} catch (error) {
-					console.error('Authentication error:', error);
+				} else {
 					clearAuthData();
 				}
-			} else {
-				clearAuthData();
+			} catch (error) {
+				console.error('Error syncing user with backend:', error);
+			} finally {
+				setLoading(false);
 			}
-
-			setLoading(false);
 		});
 
 		return () => unsubscribe();
@@ -140,10 +137,7 @@ export const AuthProvider = ({ children }) => {
 	const signup = async (name, email, phone, password, address = '') => {
 		setLoading(true);
 		try {
-			// Create user in Firebase
 			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-			// Update profile with name
 			await updateProfile(userCredential.user, { displayName: name });
 
 			// Sync with backend
@@ -152,7 +146,6 @@ export const AuthProvider = ({ children }) => {
 			if (result.success) {
 				toast.success('Account created successfully!');
 			}
-
 			return result;
 		} catch (error) {
 			console.error('Signup error:', error);
@@ -179,10 +172,7 @@ export const AuthProvider = ({ children }) => {
 	const login = async (email, password) => {
 		setLoading(true);
 		try {
-			// Sign in with Firebase
 			const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-			// Sync with backend
 			const result = await syncUserWithBackend(userCredential.user);
 
 			if (result.success) {
