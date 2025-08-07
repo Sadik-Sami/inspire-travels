@@ -93,3 +93,27 @@ export const useDestinationCategories = () => {
 		staleTime: 1000 * 60 * 30, // Consider data fresh for 30 minutes
 	});
 };
+
+export const useFeaturedDestinations = () => {
+	const axiosPublic = useAxiosPublic();
+	const {
+		data: destinations = [],
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ['featured-destinations'],
+		queryFn: async () => {
+			const response = await axiosPublic.get('/api/destinations/featured');
+			return response.data.destinations;
+		},
+		staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
+		cacheTime: 60 * 60 * 1000, // 10 minutes
+		retry: 3,
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+	});
+	return {
+		destinations,
+		isLoading,
+		error,
+	};
+};

@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '../Theme/theme-toggle';
 import { Button } from '@/components/ui/button';
 import useRole from '@/hooks/use-Role';
+import { MdDashboard, MdSchedule } from 'react-icons/md';
 
 const Navbar = () => {
 	const { user, isAuthenticated, logout } = useAuth();
@@ -107,19 +108,17 @@ const Navbar = () => {
 
 	const navLinks = [
 		{ name: 'Home', path: '/' },
-		{ name: 'Destinations', path: '/destinations' },
-		{ name: 'Visas', path: '/visas' },
+		{ name: 'Tour Packages', path: '/destinations' },
+		{ name: 'Visa Packages', path: '/visas' },
 		{ name: 'Blogs', path: '/blogs' },
 		{ name: 'About', path: '/about' },
 		{ name: 'Contact', path: '/contact' },
-		isAuthenticated && { name: 'My Bookings', path: '/my-bookings' },
-		(isAdmin || isEmployee || isModerator) && { name: 'Dashboard', path: '/admin' },
-	].filter(Boolean);
+	];
 	const isActive = (path) => location.pathname === path;
 
 	const handleLogout = () => {
 		logout();
-		navigate('/login');
+		navigate('/');
 	};
 
 	return (
@@ -189,6 +188,20 @@ const Navbar = () => {
 												<span>Profile</span>
 											</Link>
 										</DropdownMenuItem>
+										{(isAdmin || isEmployee || isModerator) && (
+											<DropdownMenuItem asChild>
+												<Link to='/my-bookings' className='cursor-pointer'>
+													<MdDashboard className='mr-2 h-4 w-4' />
+													<span>Dashboard</span>
+												</Link>
+											</DropdownMenuItem>
+										)}
+										<DropdownMenuItem asChild>
+											<Link to='/admin' className='cursor-pointer'>
+												<MdSchedule className='mr-2 h-4 w-4' />
+												<span>Bookings</span>
+											</Link>
+										</DropdownMenuItem>
 										<DropdownMenuItem onClick={handleLogout} className='cursor-pointer'>
 											<LogOut className='mr-2 h-4 w-4' />
 											<span>Log out</span>
@@ -256,6 +269,20 @@ const Navbar = () => {
 													<User className='inline-block mr-2 h-4 w-4' />
 													Profile
 												</Link>
+												<Link
+													to='/bookings'
+													className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+													<MdSchedule className='inline-block mr-2 h-4 w-4' />
+													Bookings
+												</Link>
+												{(isAdmin || isEmployee || isModerator) && (
+													<Link
+														to='/admin'
+														className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+														<MdDashboard className='inline-block mr-2 h-4 w-4' />
+														Dashboard
+													</Link>
+												)}
 											</motion.div>
 											<motion.div variants={mobileItemVariants} whileTap={{ scale: 0.95 }}>
 												<button

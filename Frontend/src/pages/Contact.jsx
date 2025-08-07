@@ -13,18 +13,20 @@ import {
 	Youtube,
 	Clock,
 	Building2,
+	Sparkles,
+	CheckCircle,
+	MessageSquare,
+	Users,
+	HeadphonesIcon,
 } from 'lucide-react';
-import FadeIn from '@/components/Animation/FadeIn';
 import AnimatedButton from '@/components/Animation/AnimatedButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import HeroSection from '@/components/Sections/HeroSection';
 import { useContactInfoQuery } from '@/hooks/useContactInfoQuery';
-import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import NewsletterSection from '@/components/Sections/NewsletterSection';
+import HeroSection from '@/components/Sections/HeroSection';
 
 const Contact = () => {
 	const { data: contactData, isLoading, isError, error: queryError } = useContactInfoQuery();
@@ -62,22 +64,42 @@ const Contact = () => {
 		return parts.filter(Boolean).join(', ');
 	};
 
+	// Loading State
 	if (isLoading) {
 		return (
-			<div className='flex min-h-[calc(100vh-200px)] items-center justify-center bg-background text-foreground'>
-				<Loader2 className='h-12 w-12 animate-spin text-primary' />
-				<p className='ml-4 font-body text-xl'>Loading Contact Information...</p>
+			<div className='min-h-screen bg-background flex items-center justify-center'>
+				<div className='text-center'>
+					<motion.div
+						animate={{ rotate: 360 }}
+						transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+						className='w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full mx-auto mb-4'
+					/>
+					<h2 className='text-xl font-heading font-semibold text-foreground mb-2'>Loading Contact Information</h2>
+					<p className='text-muted-foreground'>Please wait while we fetch the latest details...</p>
+				</div>
 			</div>
 		);
 	}
 
+	// Error State
 	if (isError || !contactData) {
 		return (
-			<div className='flex min-h-[calc(100vh-200px)] flex-col items-center justify-center bg-background p-6 text-center text-danger'>
-				<h2 className='font-heading text-3xl font-semibold'>Oops! Something went wrong.</h2>
-				<p className='mt-3 font-body text-lg'>We couldn't load the contact information at the moment.</p>
-				{queryError && <p className='mt-2 font-body text-sm'>Error: {queryError.message}</p>}
-				<p className='mt-4 font-body'>Please try again later or contact support if the issue persists.</p>
+			<div className='min-h-screen bg-background flex items-center justify-center p-4'>
+				<div className='text-center max-w-md'>
+					<div className='w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4'>
+						<MessageSquare className='w-8 h-8 text-destructive' />
+					</div>
+					<h2 className='text-2xl font-heading font-bold text-foreground mb-2'>Unable to Load Contact Information</h2>
+					<p className='text-muted-foreground mb-4'>
+						We're experiencing technical difficulties. Please try again later or contact us directly.
+					</p>
+					{queryError && <p className='text-sm text-muted-foreground mb-4'>Error: {queryError.message}</p>}
+					<button
+						onClick={() => window.location.reload()}
+						className='bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors'>
+						Try Again
+					</button>
+				</div>
 			</div>
 		);
 	}
@@ -96,11 +118,11 @@ const Contact = () => {
 	} = contactData;
 
 	const socialIcons = {
-		facebook: <Facebook className='h-5 w-5' />,
-		twitter: <Twitter className='h-5 w-5' />,
-		instagram: <Instagram className='h-5 w-5' />,
-		linkedin: <Linkedin className='h-5 w-5' />,
-		youtube: <Youtube className='h-5 w-5' />,
+		facebook: Facebook,
+		twitter: Twitter,
+		instagram: Instagram,
+		linkedin: Linkedin,
+		youtube: Youtube,
 	};
 
 	const containerVariants = {
@@ -109,23 +131,26 @@ const Contact = () => {
 			opacity: 1,
 			transition: {
 				staggerChildren: 0.1,
+				delayChildren: 0.2,
 			},
 		},
 	};
 
 	const itemVariants = {
-		hidden: { opacity: 0, y: 20 },
+		hidden: { opacity: 0, y: 30 },
 		visible: {
 			opacity: 1,
 			y: 0,
 			transition: {
-				duration: 0.5,
+				duration: 0.6,
+				ease: [0.22, 1, 0.36, 1],
 			},
 		},
 	};
 
 	return (
-		<div className='min-h-screen bg-background text-foreground'>
+		<div className='min-h-screen bg-background'>
+			{/* Banner Section */}
 			<HeroSection
 				title={companyName || 'Contact Us'}
 				subtitle={
@@ -135,191 +160,275 @@ const Contact = () => {
 				imageUrl='/assets/images/hero.jpg'
 				showButton={false}
 			/>
+			{/* Hero Section */}
+			<section className='py-12 lg:py-24 bg-background relative overflow-hidden'>
+				<div className='container mx-auto px-4'>
+					<div className='text-center max-w-4xl mx-auto'>
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6 }}
+							className='mb-6'>
+							<div className='flex items-center justify-center gap-2 mb-4'>
+								<span className='font-display text-sm inline-block text-primary uppercase tracking-wider font-medium'>
+									Get in Touch
+								</span>
+								<motion.div
+									animate={{
+										rotate: [0, 5, -5, 0],
+										scale: [1, 1.1, 1],
+									}}
+									transition={{
+										duration: 2,
+										repeat: Infinity,
+										repeatType: 'reverse',
+									}}>
+									<Sparkles size={16} className='text-primary' />
+								</motion.div>
+							</div>
+
+							<h1 className='text-4xl md:text-5xl font-heading font-bold text-foreground mb-6 leading-tight'>
+								Contact{' '}
+								<span className='text-primary relative'>
+									{companyName || 'Inspire Travels'}
+									<motion.div
+										className='absolute -bottom-2 left-0 right-0 h-1 bg-primary/20 rounded-full'
+										initial={{ scaleX: 0 }}
+										animate={{ scaleX: 1 }}
+										transition={{ duration: 0.8, delay: 0.5 }}
+									/>
+								</span>
+							</h1>
+
+							<p className='text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto'>
+								{additionalInfo ||
+									"Ready to plan your next adventure? We're here to help you every step of the way. Get in touch with our travel experts today."}
+							</p>
+						</motion.div>
+
+						{/* Quick Stats */}
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6, delay: 0.3 }}
+							className='flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground'>
+							<div className='flex items-center gap-2'>
+								<HeadphonesIcon size={16} className='text-primary' />
+								<span>24/7 Support Available</span>
+							</div>
+							<div className='flex items-center gap-2'>
+								<Users size={16} className='text-primary' />
+								<span>Expert Travel Consultants</span>
+							</div>
+							<div className='flex items-center gap-2'>
+								<CheckCircle size={16} className='text-emerald-500' />
+								<span>Response within 24 hours</span>
+							</div>
+						</motion.div>
+					</div>
+				</div>
+			</section>
 
 			{/* Contact Information Section */}
-			<section className='py-16 lg:py-20'>
-				<div className='max-w-7xl mx-auto px-4'>
-					<FadeIn>
-						<div className='text-center mb-12'>
-							<h2 className='font-heading text-3xl font-bold md:text-4xl mb-4'>Get in Touch</h2>
-							<p className='text-muted-foreground text-lg max-w-2xl mx-auto'>
-								Ready to start your journey? Contact us through any of the methods below and let's make your travel
-								dreams come true.
-							</p>
-						</div>
-					</FadeIn>
-
-					<div className='max-w-7xl mx-auto'>
-						<motion.div
-							variants={containerVariants}
-							initial='hidden'
-							whileInView='visible'
-							viewport={{ once: true }}
-							className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-							{/* Contact Details Card */}
-							<motion.div variants={itemVariants}>
-								<Card className='h-full bg-gradient-to-br from-primary/5 to-primary/10 border-primary dark:border-secondary hover:shadow-xl transition-all duration-300'>
-									<CardContent className='p-8'>
-										<div className='flex items-center mb-6'>
-											<Building2 className='h-6 w-6 text-primary mr-3' />
-											<h3 className='font-heading text-xl font-semibold'>Contact Information</h3>
+			<section className='py-10 bg-background'>
+				<div className='container mx-auto px-4'>
+					<motion.div
+						variants={containerVariants}
+						initial='hidden'
+						whileInView='visible'
+						viewport={{ once: true }}
+						className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16'>
+						{/* Contact Details */}
+						<motion.div variants={itemVariants} className='lg:col-span-2'>
+							<Card className='h-full bg-card shadow-lg border border-border hover:shadow-xl transition-all duration-300'>
+								<CardContent className='p-8'>
+									<div className='flex items-center mb-6'>
+										<div className='w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mr-4'>
+											<Building2 className='h-6 w-6 text-primary' />
 										</div>
+										<h3 className='font-heading text-2xl font-bold text-foreground'>Contact Information</h3>
+									</div>
 
-										<div className='space-y-6'>
-											{/* Address */}
-											{address && (
-												<div className='flex items-center space-x-4'>
-													<div className='flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
+									<div className='grid md:grid-cols-2 gap-6'>
+										{/* Address */}
+										{address && (
+											<div className='space-y-3'>
+												<div className='flex items-center gap-3'>
+													<div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
 														<MapPin className='h-5 w-5 text-primary' />
 													</div>
 													<div>
-														<h4 className='font-semibold text-foreground mb-1'>Our Location</h4>
-														<p className='text-muted-foreground leading-relaxed'>{formatAddress(address)}</p>
+														<h4 className='font-semibold text-foreground'>Our Location</h4>
+														<p className='text-muted-foreground text-sm leading-relaxed'>{formatAddress(address)}</p>
 													</div>
 												</div>
-											)}
+											</div>
+										)}
 
-											{/* Phone Numbers */}
-											{phoneNumbers && phoneNumbers.length > 0 && (
-												<div className='flex items-center space-x-4'>
-													<div className='flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
+										{/* Phone Numbers */}
+										{phoneNumbers && phoneNumbers.length > 0 && (
+											<div className='space-y-3'>
+												<div className='flex items-start gap-3'>
+													<div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
 														<Phone className='h-5 w-5 text-primary' />
 													</div>
 													<div>
-														<h4 className='font-semibold text-foreground mb-1'>Phone</h4>
+														<h4 className='font-semibold text-foreground mb-2'>Phone</h4>
 														{phoneNumbers.map((phone, idx) => (
-															<div key={idx} className='text-muted-foreground'>
-																<span className='font-medium'>{phone.label}: </span>
-																<a href={`tel:${phone.number}`} className='hover:text-primary transition-colors'>
+															<div key={idx} className='mb-1'>
+																<span className='text-sm font-medium text-muted-foreground'>{phone.label}: </span>
+																<a
+																	href={`tel:${phone.number}`}
+																	className='text-primary hover:text-primary/80 transition-colors font-medium'>
 																	{phone.number}
 																</a>
 															</div>
 														))}
 													</div>
 												</div>
-											)}
+											</div>
+										)}
 
-											{/* Email Addresses */}
-											{emailAddresses && emailAddresses.length > 0 && (
-												<div className='flex items-center space-x-4'>
-													<div className='flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
+										{/* Email Addresses */}
+										{emailAddresses && emailAddresses.length > 0 && (
+											<div className='space-y-3'>
+												<div className='flex items-start gap-3'>
+													<div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
 														<Mail className='h-5 w-5 text-primary' />
 													</div>
 													<div>
-														<h4 className='font-semibold text-foreground mb-1'>Email</h4>
+														<h4 className='font-semibold text-foreground mb-2'>Email</h4>
 														{emailAddresses.map((email, idx) => (
-															<div key={idx} className='text-muted-foreground'>
-																<span className='font-medium'>{email.label}: </span>
-																<a href={`mailto:${email.email}`} className='hover:text-primary transition-colors'>
+															<div key={idx} className='mb-1'>
+																<span className='text-sm font-medium text-muted-foreground'>{email.label}: </span>
+																<a
+																	href={`mailto:${email.email}`}
+																	className='text-primary hover:text-primary/80 transition-colors font-medium'>
 																	{email.email}
 																</a>
 															</div>
 														))}
 													</div>
 												</div>
-											)}
+											</div>
+										)}
 
-											{/* Website */}
-											{websiteUrl && (
-												<div className='flex items-center space-x-4'>
-													<div className='flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
+										{/* Website */}
+										{websiteUrl && (
+											<div className='space-y-3'>
+												<div className='flex items-center gap-3'>
+													<div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
 														<Globe className='h-5 w-5 text-primary' />
 													</div>
 													<div>
-														<h4 className='font-semibold text-foreground mb-1'>Website</h4>
+														<h4 className='font-semibold text-foreground'>Website</h4>
 														<a
 															href={websiteUrl}
 															target='_blank'
 															rel='noopener noreferrer'
-															className='text-muted-foreground hover:text-primary transition-colors'>
+															className='text-primary hover:text-primary/80 transition-colors font-medium'>
 															{websiteUrl}
 														</a>
 													</div>
 												</div>
-											)}
-										</div>
-
-										{/* Social Media Links */}
-										{socialMediaLinks && Object.values(socialMediaLinks).some((link) => link) && (
-											<div className='mt-8 pt-6 border-t border-border'>
-												<h4 className='font-semibold text-foreground mb-4'>Follow Us</h4>
-												<div className='flex space-x-4'>
-													{Object.entries(socialMediaLinks).map(([platform, url]) => {
-														if (url && socialIcons[platform]) {
-															return (
-																<a
-																	key={platform}
-																	href={url}
-																	target='_blank'
-																	rel='noopener noreferrer'
-																	className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110'>
-																	{socialIcons[platform]}
-																</a>
-															);
-														}
-														return null;
-													})}
-												</div>
 											</div>
 										)}
+									</div>
+
+									{/* Social Media Links */}
+									{socialMediaLinks && Object.values(socialMediaLinks).some((link) => link) && (
+										<div className='mt-8 pt-6 border-t border-border'>
+											<h4 className='font-semibold text-foreground mb-4'>Follow Us</h4>
+											<div className='flex gap-3'>
+												{Object.entries(socialMediaLinks).map(([platform, url]) => {
+													const IconComponent = socialIcons[platform];
+													if (url && IconComponent) {
+														return (
+															<motion.a
+																key={platform}
+																href={url}
+																target='_blank'
+																rel='noopener noreferrer'
+																className='w-12 h-12 bg-primary/10 hover:bg-primary rounded-xl flex items-center justify-center text-primary hover:text-primary-foreground transition-all duration-300'
+																whileHover={{ scale: 1.1 }}
+																whileTap={{ scale: 0.9 }}>
+																<IconComponent size={20} />
+															</motion.a>
+														);
+													}
+													return null;
+												})}
+											</div>
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						</motion.div>
+
+						{/* Office Hours */}
+						{officeHours && officeHours.length > 0 && (
+							<motion.div variants={itemVariants}>
+								<Card className='h-full bg-card shadow-lg border border-border hover:shadow-xl transition-all duration-300'>
+									<CardContent className='p-8'>
+										<div className='flex items-center mb-6'>
+											<div className='w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mr-4'>
+												<Clock className='h-6 w-6 text-primary' />
+											</div>
+											<h3 className='font-heading text-xl font-bold text-foreground'>Office Hours</h3>
+										</div>
+										<div className='space-y-4'>
+											{officeHours.map((oh, index) => (
+												<div
+													key={index}
+													className='flex justify-between items-center py-3 border-b border-border/50 last:border-b-0'>
+													<span className='font-medium text-foreground'>{oh.days}</span>
+													<span className='text-muted-foreground font-semibold'>{oh.hours}</span>
+												</div>
+											))}
+										</div>
+										<div className='mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10'>
+											<p className='text-sm text-muted-foreground text-center'>
+												We're here to help you plan your perfect trip during our business hours.
+											</p>
+										</div>
 									</CardContent>
 								</Card>
 							</motion.div>
-
-							{/* Office Hours Card */}
-							{officeHours && officeHours.length > 0 && (
-								<motion.div variants={itemVariants}>
-									<Card className='border-none border-0 h-full bg-gradient-to-br from-secondary/5 to-secondary/10 hover:shadow-xl transition-all duration-300'>
-										<CardContent className='p-8'>
-											<div className='flex items-center mb-6'>
-												<Clock className='h-6 w-6 text-primary mr-3' />
-												<h3 className='font-heading text-xl font-semibold'>Office Hours</h3>
-											</div>
-											<div className='space-y-4'>
-												{officeHours.map((oh, index) => (
-													<div
-														key={index}
-														className='flex justify-between items-center py-2 border-b border-border/50 last:border-b-0'>
-														<span className='font-medium text-foreground'>{oh.days}</span>
-														<span className='text-muted-foreground font-semibold'>{oh.hours}</span>
-													</div>
-												))}
-											</div>
-											<div className='mt-6 p-4 bg-background/50 rounded-lg'>
-												<p className='text-sm text-muted-foreground text-center'>
-													We're here to help you plan your perfect trip during our business hours.
-												</p>
-											</div>
-										</CardContent>
-									</Card>
-								</motion.div>
-							)}
-						</motion.div>
-					</div>
+						)}
+					</motion.div>
 				</div>
 			</section>
 
 			{/* Contact Form and Map Section */}
-			<section className='py-16 lg:py-20 bg-content1'>
+			<section className='py-10 bg-muted/30'>
 				<div className='container mx-auto px-4'>
-					<div className='grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto'>
-						<FadeIn direction='right'>
-							<Card className='bg-card shadow-xl border-0'>
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto'>
+						{/* Contact Form */}
+						<motion.div
+							initial={{ opacity: 0, x: -50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.6 }}>
+							<Card className='bg-card shadow-xl border border-border'>
 								<CardContent className='p-8'>
-									<h2 className='mb-6 font-heading text-2xl font-bold text-primary sm:text-3xl'>Send Us a Message</h2>
-									<p className='text-muted-foreground mb-8'>
-										Have a specific question or ready to book your next adventure? Drop us a message and we'll get back
-										to you within 24 hours.
-									</p>
+									<div className='mb-8'>
+										<h2 className='text-3xl font-heading font-bold text-foreground mb-4'>Send Us a Message</h2>
+										<p className='text-muted-foreground leading-relaxed'>
+											Have a specific question or ready to book your next adventure? Drop us a message and we'll get
+											back to you within 24 hours.
+										</p>
+									</div>
 
 									{submitSuccess && (
 										<motion.div
 											initial={{ opacity: 0, y: -20 }}
 											animate={{ opacity: 1, y: 0 }}
-											className='mb-6 rounded-lg bg-success/10 border border-success/20 p-4 text-success'>
-											<div className='flex items-center'>
-												<div className='w-2 h-2 bg-success rounded-full mr-3'></div>
-												Thank you! Your message has been sent successfully.
+											className='mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl'>
+											<div className='flex items-center gap-3'>
+												<CheckCircle className='w-5 h-5 text-emerald-600' />
+												<p className='text-emerald-800 font-medium'>
+													Thank you! Your message has been sent successfully.
+												</p>
 											</div>
 										</motion.div>
 									)}
@@ -327,8 +436,8 @@ const Contact = () => {
 									<form onSubmit={handleSubmit} className='space-y-6'>
 										<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 											<div>
-												<Label htmlFor='name' className='font-semibold text-muted-foreground'>
-													Your Name
+												<Label htmlFor='name' className='text-foreground font-medium mb-2 block'>
+													Your Name *
 												</Label>
 												<Input
 													id='name'
@@ -337,12 +446,12 @@ const Contact = () => {
 													onChange={handleChange}
 													placeholder='John Doe'
 													required
-													className='mt-1 h-12'
+													className='h-12 border-border focus:border-primary focus:ring-2 focus:ring-primary/20'
 												/>
 											</div>
 											<div>
-												<Label htmlFor='email' className='font-semibold text-muted-foreground'>
-													Email Address
+												<Label htmlFor='email' className='text-foreground font-medium mb-2 block'>
+													Email Address *
 												</Label>
 												<Input
 													id='email'
@@ -352,14 +461,14 @@ const Contact = () => {
 													onChange={handleChange}
 													placeholder='john@example.com'
 													required
-													className='mt-1 h-12'
+													className='h-12 border-border focus:border-primary focus:ring-2 focus:ring-primary/20'
 												/>
 											</div>
 										</div>
 
 										<div>
-											<Label htmlFor='subject' className='font-semibold text-muted-foreground'>
-												Subject
+											<Label htmlFor='subject' className='text-foreground font-medium mb-2 block'>
+												Subject *
 											</Label>
 											<Input
 												id='subject'
@@ -368,13 +477,13 @@ const Contact = () => {
 												onChange={handleChange}
 												placeholder='How can we help you?'
 												required
-												className='mt-1 h-12'
+												className='h-12 border-border focus:border-primary focus:ring-2 focus:ring-primary/20'
 											/>
 										</div>
 
 										<div>
-											<Label htmlFor='message' className='font-semibold text-muted-foreground'>
-												Your Message
+											<Label htmlFor='message' className='text-foreground font-medium mb-2 block'>
+												Your Message *
 											</Label>
 											<Textarea
 												id='message'
@@ -384,17 +493,21 @@ const Contact = () => {
 												placeholder='Tell us about your travel plans, questions, or how we can assist you...'
 												rows={6}
 												required
-												className='mt-1 resize-none'
+												className='resize-none border-border focus:border-primary focus:ring-2 focus:ring-primary/20'
 											/>
 										</div>
 
 										<AnimatedButton
 											type='submit'
-											className='w-full h-12 cta-primary text-lg font-semibold'
+											className='w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300'
 											disabled={isSubmitting}>
 											{isSubmitting ? (
 												<>
-													<Loader2 className='mr-2 h-5 w-5 animate-spin' />
+													<motion.div
+														animate={{ rotate: 360 }}
+														transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+														className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full mr-2'
+													/>
 													Sending Message...
 												</>
 											) : (
@@ -407,15 +520,25 @@ const Contact = () => {
 									</form>
 								</CardContent>
 							</Card>
-						</FadeIn>
+						</motion.div>
 
-						<FadeIn direction='left'>
-							<Card className='bg-card shadow-xl border-0 h-full'>
+						{/* Map */}
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.6 }}>
+							<Card className='bg-card shadow-xl border border-border h-full'>
 								<CardContent className='p-8 h-full flex flex-col'>
-									<h2 className='mb-6 font-heading text-2xl font-bold text-primary sm:text-3xl'>Find Us Here</h2>
-									<div className='flex-1'>
+									<div className='mb-6'>
+										<h2 className='text-3xl font-heading font-bold text-foreground mb-4'>Find Us Here</h2>
+										<p className='text-muted-foreground'>
+											Visit our office for personalized travel consultation and planning services.
+										</p>
+									</div>
+									<div className='flex-1 min-h-[400px]'>
 										{mapEmbedUrl ? (
-											<div className='h-full min-h-[400px] overflow-hidden rounded-lg border shadow-inner'>
+											<div className='h-full overflow-hidden rounded-xl border border-border shadow-inner'>
 												<iframe
 													src={mapEmbedUrl}
 													width='100%'
@@ -425,61 +548,74 @@ const Contact = () => {
 													loading='lazy'
 													referrerPolicy='no-referrer-when-downgrade'
 													title='Office Location Map'
-													className='w-full h-full'></iframe>
+													className='w-full h-full'
+												/>
 											</div>
 										) : (
-											<div className='flex h-[400px] items-center justify-center rounded-lg border bg-muted text-muted-foreground'>
+											<div className='flex h-full items-center justify-center rounded-xl border border-border bg-muted/50'>
 												<div className='text-center'>
-													<MapPin className='h-12 w-12 mx-auto mb-4 text-primary/50' />
-													<p>Map not available</p>
+													<MapPin className='h-16 w-16 mx-auto mb-4 text-primary/50' />
+													<h3 className='text-lg font-semibold text-foreground mb-2'>Map Unavailable</h3>
+													<p className='text-muted-foreground'>Please use the contact information to reach us.</p>
 												</div>
 											</div>
 										)}
 									</div>
 								</CardContent>
 							</Card>
-						</FadeIn>
+						</motion.div>
 					</div>
 				</div>
 			</section>
 
 			{/* FAQ Section */}
 			{termsAndConditions && termsAndConditions.length > 0 && (
-				<section className='py-16 lg:py-20'>
+				<section className='py-10 bg-background pb-12'>
 					<div className='container mx-auto px-4'>
-						<FadeIn>
-							<div className='text-center mb-12'>
-								<h2 className='font-heading text-3xl font-bold md:text-4xl mb-4'>Frequently Asked Questions</h2>
-								<p className='text-muted-foreground text-lg max-w-2xl mx-auto'>
-									Find answers to common questions about our services, booking process, and travel policies.
-								</p>
-							</div>
-						</FadeIn>
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.6 }}
+							className='text-center mb-16'>
+							<h2 className='text-3xl md:text-4xl font-heading font-bold text-foreground mb-4'>
+								Frequently Asked Questions
+							</h2>
+							<p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+								Find answers to common questions about our services, booking process, and travel policies.
+							</p>
+						</motion.div>
 
-						<div className='mx-auto max-w-4xl'>
+						<div className='max-w-4xl mx-auto'>
 							<Accordion type='single' collapsible className='w-full space-y-4'>
 								{termsAndConditions.map((faq, index) => (
-									<FadeIn key={index} delay={index * 0.05}>
+									<motion.div
+										key={index}
+										initial={{ opacity: 0, y: 20 }}
+										whileInView={{ opacity: 1, y: 0 }}
+										viewport={{ once: true }}
+										transition={{ duration: 0.5, delay: index * 0.1 }}>
 										<AccordionItem
 											value={`item-${index}`}
-											className='rounded-xl border bg-card shadow-sm hover:shadow-md transition-all duration-300'>
+											className='rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300'>
 											<AccordionTrigger className='px-6 py-5 text-left font-heading text-lg font-semibold hover:no-underline hover:text-primary transition-colors'>
 												{faq.title}
 											</AccordionTrigger>
 											<AccordionContent className='px-6 pb-5 pt-0 text-muted-foreground leading-relaxed'>
-												<div dangerouslySetInnerHTML={{ __html: faq.content.replace(/\n/g, '<br />') }} />
+												<div
+													dangerouslySetInnerHTML={{
+														__html: faq.content.replace(/\n/g, '<br />'),
+													}}
+												/>
 											</AccordionContent>
 										</AccordionItem>
-									</FadeIn>
+									</motion.div>
 								))}
 							</Accordion>
 						</div>
 					</div>
 				</section>
 			)}
-
-			{/* Newsletter Section */}
-			<NewsletterSection />
 		</div>
 	);
 };
