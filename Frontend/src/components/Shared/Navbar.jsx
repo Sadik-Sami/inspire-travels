@@ -190,14 +190,14 @@ const Navbar = () => {
 										</DropdownMenuItem>
 										{(isAdmin || isEmployee || isModerator) && (
 											<DropdownMenuItem asChild>
-												<Link to='/my-bookings' className='cursor-pointer'>
+												<Link to='/admin' className='cursor-pointer'>
 													<MdDashboard className='mr-2 h-4 w-4' />
 													<span>Dashboard</span>
 												</Link>
 											</DropdownMenuItem>
 										)}
 										<DropdownMenuItem asChild>
-											<Link to='/admin' className='cursor-pointer'>
+											<Link to='/my-bookings' className='cursor-pointer'>
 												<MdSchedule className='mr-2 h-4 w-4' />
 												<span>Bookings</span>
 											</Link>
@@ -270,7 +270,7 @@ const Navbar = () => {
 													Profile
 												</Link>
 												<Link
-													to='/bookings'
+													to='/my-bookings'
 													className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
 													<MdSchedule className='inline-block mr-2 h-4 w-4' />
 													Bookings
