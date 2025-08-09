@@ -2,13 +2,27 @@ const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const connectDB = require('./config/db');
+const PORT = process.env.PORT || 3000;
+// Routes
+const userRoutes = require('./routes/userRoutes');
+const destinationRoutes = require('./routes/destinationRoutes');
+const blogRoutes = require('./routes/blogRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const visaRoutes = require('./routes/visaRoutes');
+const visaBookingRoutes = require('./routes/visaBookingRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const contactInfoRoutes = require('./routes/contactInfoRoutes');
+
 dotenv.config();
 
 // create app and configure middleware
 const app = express();
+
 app.use(
 	cors({
-		origin: ['http://localhost:5173', 'https://inspire-dev.netlify.app/'],
+		origin: ['https://inspire-dev.netlify.app/', 'http://localhost:5173'],
 		credentials: true,
 	})
 );
@@ -23,21 +37,7 @@ app.use((err, req, res, next) => {
 		error: process.env.NODE_ENV === 'development' ? err.message : 'Server error',
 	});
 });
-// Connect to MongoDB
-const connectDB = require('./config/db');
 
-// Routes
-const userRoutes = require('./routes/userRoutes');
-const destinationRoutes = require('./routes/destinationRoutes');
-const blogRoutes = require('./routes/blogRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-const visaRoutes = require('./routes/visaRoutes');
-const visaBookingRoutes = require('./routes/visaBookingRoutes');
-const invoiceRoutes = require('./routes/invoiceRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
-const contactInfoRoutes = require('./routes/contactInfoRoutes');
-
-const PORT = process.env.PORT || 3000;
 // connect to MongoDB
 connectDB();
 
