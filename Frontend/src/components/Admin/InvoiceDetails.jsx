@@ -1,4 +1,3 @@
-'use client';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
 import { format } from 'date-fns';

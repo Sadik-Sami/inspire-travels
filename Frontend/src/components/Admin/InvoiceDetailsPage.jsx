@@ -1,6 +1,4 @@
-'use client';
 import { useState } from 'react';
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
@@ -35,6 +33,17 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const InvoiceDetailsPage = () => {
 	const { id } = useParams();
@@ -279,11 +288,11 @@ const InvoiceDetailsPage = () => {
 				</div>
 
 				<div className='flex flex-wrap gap-2'>
-					<Button variant='outline' onClick={handlePrint}>
+					<Button variant='outline' className='bg-accent transition-all duration-200' onClick={handlePrint}>
 						<Printer className='h-4 w-4 mr-2' />
 						Print
 					</Button>
-					<Button variant='outline' onClick={handleDownloadPdf}>
+					<Button variant='outline' className='bg-accent transition-all duration-200' onClick={handleDownloadPdf}>
 						<Download className='h-4 w-4 mr-2' />
 						Download PDF
 					</Button>
