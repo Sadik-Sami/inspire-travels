@@ -13,24 +13,20 @@ const createTokenAndRespond = async (user, res) => {
 		const accessToken = generateAccessToken(user._id, user.role);
 
 		// Send response with token in cookie and user data
-		res
-			.cookie('token', accessToken, {
-				httpOnly: true,
-			})
-			.json({
-				success: true,
-				user: {
-					_id: user._id,
-					name: user.name,
-					email: user.email,
-					phone: user.phone,
-					address: user.address,
-					passportNumber: user.passportNumber,
-					profileImage: user.profileImage,
-					role: user.role,
-				},
-				accessToken,
-			});
+		res.cookie('token', accessToken).json({
+			success: true,
+			user: {
+				_id: user._id,
+				name: user.name,
+				email: user.email,
+				phone: user.phone,
+				address: user.address,
+				passportNumber: user.passportNumber,
+				profileImage: user.profileImage,
+				role: user.role,
+			},
+			accessToken,
+		});
 	} catch (error) {
 		throw error;
 	}
