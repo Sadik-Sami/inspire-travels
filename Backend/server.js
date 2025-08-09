@@ -5,16 +5,42 @@ const path = require('path');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 
+dotenv.config();
+
 // create app and configure middleware
 const app = express();
+
+// Enhanced CORS configuration for cross-origin cookies
+const corsOptions = {
+	origin: (origin, callback) => {
+		// Allow requests with no origin (like mobile apps or curl requests)
+		if (!origin) return callback(null, true);
+
+		const allowedOrigins = [
+			'http://localhost:5173',
+			'http://localhost:3000',
+			'https://inspire-self.vercel.app',
+			'https://inspire-dev.netlify.app',
+		];
+
+		if (allowedOrigins.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			console.log('Blocked by CORS:', origin);
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
+	credentials: true, // Enable credentials (cookies, authorization headers, TLS client certificates)
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+	exposedHeaders: ['Set-Cookie'],
+	optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
 app.use(express.json());
-app.use(
-	cors({
-		origin: ['http://localhost:5173', 'https://inspire-self.vercel.app', 'https://inspire-dev.netlify.app'],
-		credentials: true,
-	})
-);
+app.use(cors(corsOptions));
 app.use(cookieParser());
+
 // Error handling middleware
 app.use((err, req, res, next) => {
 	console.error(err.stack);
@@ -37,11 +63,12 @@ const invoiceRoutes = require('./routes/invoiceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const contactInfoRoutes = require('./routes/contactInfoRoutes');
 
-dotenv.config();
-
 const PORT = process.env.PORT || 3000;
+
 // connect to MongoDB
 connectDB();
+
+// Entry point for the application
 app.get('/', (req, res) => {
 	res.send('Welcome to Inspire API');
 });

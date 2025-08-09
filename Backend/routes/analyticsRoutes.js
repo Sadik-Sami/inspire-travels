@@ -8,7 +8,7 @@ const Invoice = require('../models/Invoice');
 const Blog = require('../models/Blog');
 
 // Dashboard summary - all key metrics in one request
-router.get('/dashboard-summary', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/dashboard-summary', verifyUser, verifyRole('admin', 'moderator', 'employee'), async (req, res) => {
 	try {
 		// Get date range for recent activity (last 30 days)
 		const thirtyDaysAgo = new Date();
@@ -124,7 +124,7 @@ router.get('/dashboard-summary', verifyUser, verifyRole('admin'), async (req, re
 });
 
 // Monthly revenue trends
-router.get('/monthly-revenue', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/monthly-revenue', verifyUser, verifyRole('admin', 'moderator', 'employee'), async (req, res) => {
 	try {
 		const { year = new Date().getFullYear() } = req.query;
 
@@ -232,7 +232,7 @@ router.get('/monthly-revenue', verifyUser, verifyRole('admin'), async (req, res)
 });
 
 // User growth over time
-router.get('/user-growth', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/user-growth', verifyUser, verifyRole('admin', 'moderator', 'employee'), async (req, res) => {
 	try {
 		const { year = new Date().getFullYear() } = req.query;
 
@@ -292,7 +292,7 @@ router.get('/user-growth', verifyUser, verifyRole('admin'), async (req, res) => 
 });
 
 // Blog performance
-router.get('/blog-performance', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/blog-performance', verifyUser, verifyRole('admin', 'moderator', 'employee'), async (req, res) => {
 	try {
 		// Get top performing blogs by views
 		const topBlogs = await Blog.find({ status: 'published' })
@@ -332,7 +332,7 @@ router.get('/blog-performance', verifyUser, verifyRole('admin'), async (req, res
 });
 
 // Recent activity
-router.get('/recent-activity', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/recent-activity', verifyUser, verifyRole('admin', 'moderator', 'employee'), async (req, res) => {
 	try {
 		// Get recent bookings
 		const recentBookings = await Booking.find()

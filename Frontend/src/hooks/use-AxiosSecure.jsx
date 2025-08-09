@@ -6,12 +6,13 @@ import { useNavigate } from 'react-router-dom';
 const axiosSecureInstance = axios.create({
 	// baseURL: 'http://localhost:9000',
 	baseURL: 'https://inspire-self.vercel.app',
-	withCredentials: true, //! This enables cookies to be sent with requests
+	withCredentials: true,
 });
 
 const useAxiosSecure = () => {
-	const { accessToken, logout } = useAuth();
+	const { logout } = useAuth();
 	const navigate = useNavigate();
+	const accessToken = localStorage.getItem('accessToken');
 
 	useEffect(() => {
 		// REQUEST INTERCEPTOR
