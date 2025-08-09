@@ -22,47 +22,14 @@ export const AuthProvider = ({ children }) => {
 	const [firebaseUser, setFirebaseUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [accessToken, setAccessToken] = useState(null);
-	const [refreshToken, setRefreshToken] = useState(null);
 	const navigate = useNavigate();
 	const axiosPublic = useAxiosPublic();
-
-	// Function to refresh the access token
-	const refreshAccessToken = async () => {
-		setLoading(true);
-		try {
-			// Get refresh token from state or localStorage
-			const currentRefreshToken = refreshToken || localStorage.getItem('refreshToken');
-
-			if (!currentRefreshToken) {
-				return null;
-			}
-
-			const { data } = await axiosPublic.post('/api/users/refresh-token', {
-				refreshToken: currentRefreshToken,
-			});
-
-			if (data.success && data.accessToken) {
-				localStorage.setItem('accessToken', data.accessToken);
-				setAccessToken(data.accessToken);
-				return data.accessToken;
-			}
-
-			return null;
-		} catch (error) {
-			console.error('Failed to refresh token:', error);
-			// If refresh fails, log the user out
-			logout();
-			return null;
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	// Function to sync Firebase user with backend
 	const syncUserWithBackend = async (firebaseUser, additionalData = {}) => {
 		setLoading(true);
 		try {
-			const idToken = await firebaseUser.getIdToken();
+			const idToken = await firebaseUser.getIdToken(); // Getting the Firebase ID token using the Firebase user object
 			const { data } = await axiosPublic.post(
 				'/api/users/firebase-auth',
 				{
@@ -72,16 +39,15 @@ export const AuthProvider = ({ children }) => {
 					headers: {
 						Authorization: `Bearer ${idToken}`,
 					},
+					withCredentials: true,
 				}
 			);
 
 			if (data.success) {
 				localStorage.setItem('accessToken', data.accessToken);
-				localStorage.setItem('refreshToken', data.refreshToken);
 				localStorage.setItem('user', JSON.stringify(data.user));
 				setUser(data.user);
 				setAccessToken(data.accessToken);
-				setRefreshToken(data.refreshToken);
 
 				return { success: true, user: data.user };
 			}
@@ -126,11 +92,9 @@ export const AuthProvider = ({ children }) => {
 	// Helper to clear all auth data
 	const clearAuthData = () => {
 		localStorage.removeItem('accessToken');
-		localStorage.removeItem('refreshToken');
 		localStorage.removeItem('user');
 		setUser(null);
 		setAccessToken(null);
-		setRefreshToken(null);
 	};
 
 	// Email/Password Signup
@@ -261,6 +225,7 @@ export const AuthProvider = ({ children }) => {
 				headers: {
 					Authorization: `Bearer ${currentAccessToken}`,
 				},
+				withCredentials: true,
 			});
 
 			if (data.success) {
@@ -299,6 +264,7 @@ export const AuthProvider = ({ children }) => {
 					Authorization: `Bearer ${currentAccessToken}`,
 					'Content-Type': 'multipart/form-data',
 				},
+				withCredentials: true,
 			});
 
 			if (data.success) {
@@ -333,6 +299,7 @@ export const AuthProvider = ({ children }) => {
 				headers: {
 					Authorization: `Bearer ${currentAccessToken}`,
 				},
+				withCredentials: true,
 			});
 
 			if (data.success) {
@@ -357,18 +324,18 @@ export const AuthProvider = ({ children }) => {
 	// Logout function
 	const logout = async () => {
 		try {
-			// Call logout endpoint to invalidate refresh token
-			const currentRefreshToken = refreshToken || localStorage.getItem('refreshToken');
+			// Call logout endpoint to clear cookie
 			const currentAccessToken = accessToken || localStorage.getItem('accessToken');
 
-			if (currentAccessToken && currentRefreshToken) {
+			if (currentAccessToken) {
 				await axiosPublic.post(
 					'/api/users/logout',
-					{ refreshToken: currentRefreshToken },
+					{},
 					{
 						headers: {
 							Authorization: `Bearer ${currentAccessToken}`,
 						},
+						withCredentials: true,
 					}
 				);
 			}
@@ -385,34 +352,6 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
-	// Logout from all devices
-	const logoutAll = async () => {
-		try {
-			const currentAccessToken = accessToken || localStorage.getItem('accessToken');
-
-			if (currentAccessToken) {
-				await axiosPublic.post(
-					'/api/users/logout-all',
-					{},
-					{
-						headers: {
-							Authorization: `Bearer ${currentAccessToken}`,
-						},
-					}
-				);
-			}
-
-			// Sign out from Firebase
-			await signOut(auth);
-			toast.success('Logged out from all devices!');
-		} catch (error) {
-			console.error('Logout all error:', error);
-		} finally {
-			clearAuthData();
-			navigate('/login');
-		}
-	};
-
 	// Check if user is authenticated
 	const isAuthenticated = !!user && !!accessToken;
 
@@ -421,14 +360,11 @@ export const AuthProvider = ({ children }) => {
 		firebaseUser,
 		loading,
 		accessToken,
-		refreshToken,
 		login,
 		signup,
 		googleLogin,
 		logout,
-		logoutAll,
 		resetPassword,
-		refreshAccessToken,
 		updateUserProfile,
 		uploadProfileImage,
 		deleteProfileImage,

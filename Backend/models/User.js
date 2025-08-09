@@ -45,22 +45,6 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
-		refreshTokens: [
-			{
-				token: {
-					type: String,
-					required: true,
-				},
-				expiresAt: {
-					type: Date,
-					required: true,
-				},
-				userAgent: {
-					type: String,
-					default: 'unknown',
-				},
-			},
-		],
 	},
 	{
 		timestamps: true,
@@ -68,26 +52,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // Index for better query performance
+userSchema.index({ name: 1 });
 userSchema.index({ email: 1 });
+userSchema.index({ phone: 1 });
+userSchema.index({ passportNumber: 1 });
 userSchema.index({ firebaseUid: 1 });
-userSchema.index({ 'refreshTokens.token': 1 });
-userSchema.index({ role: 1 }); // Add role index for better filtering performance
-userSchema.index({ createdAt: -1 }); // Add createdAt index for sorting
-
-// Remove expired refresh tokens before saving
-userSchema.pre('save', function (next) {
-	this.refreshTokens = this.refreshTokens.filter((tokenObj) => tokenObj.expiresAt > new Date());
-	next();
-});
-
-// Handle version conflicts by retrying the save operation
-userSchema.post('save', function (error, doc, next) {
-	if (error.name === 'VersionError') {
-		// Retry the save operation
-		this.save(next);
-	} else {
-		next(error);
-	}
-});
+userSchema.index({ role: 1 });
+userSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('User', userSchema);

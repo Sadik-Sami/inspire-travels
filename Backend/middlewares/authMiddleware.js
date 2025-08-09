@@ -15,7 +15,7 @@ const verifyFirebaseToken = async (req, res, next) => {
 
 		// Verify the Firebase ID token
 		const decodedToken = await admin.auth().verifyIdToken(idToken);
-
+		console.log('Decoded Firebase token:', decodedToken);
 		req.firebaseUser = {
 			uid: decodedToken.uid,
 			email: decodedToken.email,
@@ -33,7 +33,7 @@ const verifyFirebaseToken = async (req, res, next) => {
 // Middleware to protect routes
 const verifyUser = async (req, res, next) => {
 	try {
-		const token = req.header('Authorization')?.replace('Bearer ', '');
+		const token = req?.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
 
 		if (!token) {
 			return res.status(401).json({ message: 'No token, authorization denied' });
@@ -43,7 +43,7 @@ const verifyUser = async (req, res, next) => {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
 		// Find user by ID from the decoded token
-		const user = await User.findById(decoded.user.id).select('-refreshTokens -firebaseUid');
+		const user = await User.findById(decoded.user.id).select('-firebaseUid');
 
 		if (!user) {
 			return res.status(401).json({ message: 'Token is not valid' });
@@ -58,7 +58,7 @@ const verifyUser = async (req, res, next) => {
 };
 
 // Role-based access control
-const verifyRole = (requiredRole) => {
+const verifyRole = (...allowedRoles) => {
 	return (req, res, next) => {
 		if (!req.user) {
 			return res.status(401).json({ message: 'User not authenticated' });
@@ -70,7 +70,7 @@ const verifyRole = (requiredRole) => {
 		}
 
 		// Check if user has the required role
-		if (req.user.role !== requiredRole) {
+		if (!allowedRoles.includes(req.user.role)) {
 			return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
 		}
 
