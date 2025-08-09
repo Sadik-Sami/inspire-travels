@@ -8,12 +8,18 @@ const router = express.Router();
 
 // Helper function to handle token generation and response
 const createTokenAndRespond = async (user, res) => {
+	const cookieOptions = {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production', // only over HTTPS in production
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // none for cross-site in prod
+		maxAge: 24 * 60 * 60 * 1000, // 24 Hours
+	};
 	try {
 		// Generate access token
 		const accessToken = generateAccessToken(user._id, user.role);
 
 		// Send response with token in cookie and user data
-		res.cookie('token', accessToken).json({
+		res.cookie('token', accessToken, cookieOptions).json({
 			success: true,
 			user: {
 				_id: user._id,
@@ -78,7 +84,13 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 // @access Private
 router.post('/logout', verifyUser, async (req, res) => {
 	try {
-		res.clearCookie('token').json({ success: true, message: 'Logged out successfully' });
+		res
+			.clearCookie('token', {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+			})
+			.json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ message: 'Server Error' });

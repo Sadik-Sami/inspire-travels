@@ -17,15 +17,28 @@ const contactInfoRoutes = require('./routes/contactInfoRoutes');
 
 dotenv.config();
 
-// create app and configure middleware
 const app = express();
+app.set('trust proxy', 1);
 
-app.use(
-	cors({
-		origin: ['https://inspire-dev.netlify.app/', 'http://localhost:5173'],
-		credentials: true,
-	})
-);
+const allowedOrigins = [
+	'https://inspire-dev.netlify.app', // production frontend
+	'http://localhost:5173', // local frontend
+];
+
+const corsOptions = {
+	origin: function (origin, callback) {
+		if (!origin) return callback(null, true); // allow non-browser requests
+		if (allowedOrigins.includes(origin)) return callback(null, true);
+		return callback(new Error('Not allowed by CORS'));
+	},
+	credentials: true, // allow cookies
+	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 app.use(cookieParser());
 

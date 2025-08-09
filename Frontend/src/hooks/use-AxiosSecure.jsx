@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const axiosSecureInstance = axios.create({
-	// baseURL: 'http://localhost:9000',
+	// baseURL: 'http://localhost:3000',
 	baseURL: 'https://inspire-self.vercel.app',
 	withCredentials: true,
 });
@@ -12,7 +12,6 @@ const axiosSecureInstance = axios.create({
 const useAxiosSecure = () => {
 	const { logout } = useAuth();
 	const navigate = useNavigate();
-	const accessToken = localStorage.getItem('accessToken');
 
 	useEffect(() => {
 		// REQUEST INTERCEPTOR
@@ -21,6 +20,7 @@ const useAxiosSecure = () => {
 			function (config) {
 				// Add access token to Authorization header if available
 				// This provides fallback authentication via headers when cookies aren't available
+				const accessToken = localStorage.getItem('accessToken');
 				if (accessToken) {
 					config.headers.authorization = `Bearer ${accessToken}`;
 				}
@@ -62,7 +62,7 @@ const useAxiosSecure = () => {
 			axiosSecureInstance.interceptors.request.eject(requestInterceptor);
 			axiosSecureInstance.interceptors.response.eject(responseInterceptor);
 		};
-	}, [accessToken, logout, navigate]);
+	}, [logout, navigate]);
 
 	return axiosSecureInstance;
 };
