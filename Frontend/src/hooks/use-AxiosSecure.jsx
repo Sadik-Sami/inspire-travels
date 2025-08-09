@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const axiosSecureInstance = axios.create({
-	baseURL: 'http://localhost:9000',
-	// baseURL: 'https://inspire-self.vercel.app',
+	// baseURL: 'http://localhost:9000',
+	baseURL: 'https://inspire-self.vercel.app',
 	withCredentials: true, //! This enables cookies to be sent with requests
 });
 

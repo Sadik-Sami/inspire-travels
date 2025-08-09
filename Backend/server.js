@@ -42,7 +42,6 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 // connect to MongoDB
 connectDB();
-
 app.get('/', (req, res) => {
 	res.send('Welcome to Inspire API');
 });

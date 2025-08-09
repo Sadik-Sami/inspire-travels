@@ -34,6 +34,8 @@ const verifyFirebaseToken = async (req, res, next) => {
 const verifyUser = async (req, res, next) => {
 	try {
 		const token = req?.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
+		// const token = req?.cookies?.token;
+		// console.log('Token from cookies:', token);
 
 		if (!token) {
 			return res.status(401).json({ message: 'No token, authorization denied' });
