@@ -3,9 +3,7 @@ const router = express.Router();
 const Blog = require('../models/Blog');
 const { verifyUser, verifyRole } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
-const fs = require('fs');
-const { uploadImage, deleteImage } = require('../config/cloudinary');
-const path = require('path');
+const { uploadImage } = require('../config/cloudinary');
 
 // Helper function to transform nested fields
 const transformNestedFields = (data) => {
@@ -36,12 +34,6 @@ const transformNestedFields = (data) => {
 
 	return transformed;
 };
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-	fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // @route GET /api/blogs
 // @desc Get all blogs with filtering, pagination and search
@@ -268,9 +260,6 @@ router.post(
 				const coverImageFile = req.files.coverImage[0];
 				const coverImageResult = await uploadImage(coverImageFile);
 				blog.coverImage = coverImageResult;
-
-				// Clean up uploaded file
-				fs.unlinkSync(coverImageFile.path);
 			}
 
 			// Upload additional images to Cloudinary
@@ -278,9 +267,6 @@ router.post(
 				for (const file of req.files.images) {
 					const result = await uploadImage(file);
 					blog.images.push(result);
-
-					// Clean up uploaded file
-					fs.unlinkSync(file.path);
 				}
 			}
 
@@ -290,18 +276,6 @@ router.post(
 			res.status(201).json({ success: true, blog });
 		} catch (error) {
 			console.error('Error creating blog:', error);
-
-			// Clean up any uploaded files
-			if (req.files) {
-				Object.values(req.files).forEach((fileArray) => {
-					fileArray.forEach((file) => {
-						if (fs.existsSync(file.path)) {
-							fs.unlinkSync(file.path);
-						}
-					});
-				});
-			}
-
 			res.status(500).json({ success: false, message: error.message });
 		}
 	}
@@ -362,9 +336,6 @@ router.put(
 				const coverImageFile = req.files.coverImage[0];
 				const coverImageResult = await uploadImage(coverImageFile);
 				blog.coverImage = coverImageResult;
-
-				// Clean up uploaded file
-				fs.unlinkSync(coverImageFile.path);
 			}
 
 			// Upload new additional images
@@ -372,9 +343,6 @@ router.put(
 				for (const file of req.files.images) {
 					const result = await uploadImage(file);
 					blog.images.push(result);
-
-					// Clean up uploaded file
-					fs.unlinkSync(file.path);
 				}
 			}
 
@@ -384,18 +352,6 @@ router.put(
 			res.json({ success: true, blog });
 		} catch (error) {
 			console.error('Error updating blog:', error);
-
-			// Clean up any uploaded files
-			if (req.files) {
-				Object.values(req.files).forEach((fileArray) => {
-					fileArray.forEach((file) => {
-						if (fs.existsSync(file.path)) {
-							fs.unlinkSync(file.path);
-						}
-					});
-				});
-			}
-
 			res.status(500).json({ message: 'Server Error', error: error.message });
 		}
 	}

@@ -1,15 +1,8 @@
 const multer = require('multer');
 const path = require('path');
 
-// Configure storage
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		cb(null, 'uploads/');
-	},
-	filename: (req, file, cb) => {
-		cb(null, `${Date.now()}-${file.originalname}`);
-	},
-});
+// Configure memory storage (no disk save)
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req, file, cb) => {
@@ -25,7 +18,7 @@ const fileFilter = (req, file, cb) => {
 
 // Initialize upload
 const upload = multer({
-	storage: storage,
+	storage: storage, // use memory storage
 	limits: { fileSize: 5000000 }, // 5MB limit
 	fileFilter: fileFilter,
 });

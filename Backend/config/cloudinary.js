@@ -1,5 +1,6 @@
 require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -8,17 +9,28 @@ cloudinary.config({
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Helper for streaming upload
+const streamUpload = (buffer, options) => {
+	return new Promise((resolve, reject) => {
+		const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+			if (result)
+				resolve({
+					url: result.secure_url,
+					publicId: result.public_id,
+				});
+			else reject(error);
+		});
+		streamifier.createReadStream(buffer).pipe(stream);
+	});
+};
+
 // Upload image to Cloudinary (for destinations, visas, blogs - high quality)
 const uploadImage = async (file) => {
 	try {
-		const result = await cloudinary.uploader.upload(file.path, {
+		return await streamUpload(file.buffer, {
 			folder: 'travel-destinations',
 			use_filename: true,
 		});
-		return {
-			url: result.secure_url,
-			publicId: result.public_id,
-		};
 	} catch (error) {
 		console.error('Error uploading to Cloudinary:', error);
 		throw new Error('Image upload failed');
@@ -28,7 +40,7 @@ const uploadImage = async (file) => {
 // Upload user profile image to Cloudinary (optimized for profile pictures)
 const uploadUserImage = async (file) => {
 	try {
-		const result = await cloudinary.uploader.upload(file.path, {
+		return await streamUpload(file.buffer, {
 			folder: 'travel-users',
 			use_filename: true,
 			transformation: [
@@ -36,10 +48,6 @@ const uploadUserImage = async (file) => {
 				{ quality: 'auto', fetch_format: 'auto' },
 			],
 		});
-		return {
-			url: result.secure_url,
-			publicId: result.public_id,
-		};
 	} catch (error) {
 		console.error('Error uploading user image to Cloudinary:', error);
 		throw new Error('User image upload failed');

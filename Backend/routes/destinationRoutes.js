@@ -3,15 +3,7 @@ const router = express.Router();
 const Destination = require('../models/Destination');
 const { verifyUser, verifyRole } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
-const fs = require('fs');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
-const path = require('path');
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-	fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 const transformNestedFields = (data) => {
 	const transformed = {};
@@ -328,9 +320,6 @@ router.post('/', verifyUser, verifyRole('admin'), upload.array('images', 5), asy
 			for (const file of req.files) {
 				const result = await uploadImage(file);
 				destination.images.push(result);
-
-				// Clean up uploaded file
-				fs.unlinkSync(file.path);
 			}
 		}
 
@@ -340,16 +329,6 @@ router.post('/', verifyUser, verifyRole('admin'), upload.array('images', 5), asy
 		res.status(201).json(destination);
 	} catch (error) {
 		console.error('Error creating destination:', error);
-
-		// Clean up any uploaded files
-		if (req.files) {
-			req.files.forEach((file) => {
-				if (fs.existsSync(file.path)) {
-					fs.unlinkSync(file.path);
-				}
-			});
-		}
-
 		res.status(500).json({ message: 'Server Error' });
 	}
 });
@@ -380,9 +359,6 @@ router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), a
 				try {
 					const result = await uploadImage(file);
 					destination.images.push(result);
-
-					// Clean up uploaded file
-					fs.unlinkSync(file.path);
 				} catch (error) {
 					console.error('Error uploading image:', error);
 				}
@@ -399,16 +375,6 @@ router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), a
 		res.json({ success: true, destination });
 	} catch (error) {
 		console.error('Error updating destination:', error);
-
-		// Clean up any uploaded files
-		if (req.files) {
-			req.files.forEach((file) => {
-				if (fs.existsSync(file.path)) {
-					fs.unlinkSync(file.path);
-				}
-			});
-		}
-
 		res.status(500).json({ message: 'Server Error', error: error.message });
 	}
 });
