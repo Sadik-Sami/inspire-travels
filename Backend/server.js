@@ -6,14 +6,15 @@ dotenv.config();
 
 // create app and configure middleware
 const app = express();
-app.use(express.json());
 app.use(
 	cors({
-		origin: ['http://localhost:5173', 'https://inspire-self.vercel.app/', 'https://inspire-dev.netlify.app/'],
+		origin: ['http://localhost:5173', 'https://inspire-dev.netlify.app/'],
 		credentials: true,
 	})
 );
+app.use(express.json());
 app.use(cookieParser());
+
 // Error handling middleware
 app.use((err, req, res, next) => {
 	console.error(err.stack);
