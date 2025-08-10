@@ -4,15 +4,16 @@ const { verifyRole, verifyUser, verifyFirebaseToken } = require('../middlewares/
 const { generateAccessToken } = require('../utils/authUtils');
 const { uploadUserImage, deleteImage } = require('../config/cloudinary');
 const upload = require('../middlewares/uploadMiddleware');
+const admin = require('../config/firebase-admin');
 const router = express.Router();
 
 // Helper function to handle token generation and response
 const createTokenAndRespond = async (user, res) => {
 	const cookieOptions = {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production', // only over HTTPS in production
-		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // none for cross-site in prod
-		maxAge: 24 * 60 * 60 * 1000, // 24 Hours
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+		maxAge: 24 * 60 * 60 * 1000,
 	};
 	try {
 		// Generate access token
@@ -37,6 +38,131 @@ const createTokenAndRespond = async (user, res) => {
 		throw error;
 	}
 };
+
+// @route POST /api/users/create-user
+// @desc Create a new user using Firebase Admin SDK
+// @access Private (Admin only)
+router.post('/create-user', verifyUser, verifyRole('admin'), async (req, res) => {
+	try {
+		const { name, email, password, phone, address, passportNumber, role } = req.body;
+
+		// Validate required fields
+		if (!name || !email || !password || !phone) {
+			return res.status(400).json({
+				success: false,
+				message: 'Name, email, password, and phone are required fields',
+			});
+		}
+
+		// Validate role
+		const validRoles = ['customer', 'admin', 'moderator', 'employee'];
+		if (!validRoles.includes(role)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid role specified',
+			});
+		}
+
+		// Check if user already exists in our database
+		const existingUser = await User.findOne({ email: email.toLowerCase() });
+		if (existingUser) {
+			return res.status(400).json({
+				success: false,
+				message: 'User with this email already exists',
+			});
+		}
+
+		// Create user in Firebase
+		let firebaseUser;
+		try {
+			firebaseUser = await admin.auth().createUser({
+				email: email.toLowerCase(),
+				password: password,
+				displayName: name,
+				emailVerified: true, // Auto-verify email for admin-created users
+			});
+		} catch (firebaseError) {
+			console.error('Firebase user creation error:', firebaseError);
+
+			// Handle specific Firebase errors
+			if (firebaseError.code === 'auth/email-already-exists') {
+				return res.status(400).json({
+					success: false,
+					message: 'A user with this email already exists in Firebase',
+				});
+			} else if (firebaseError.code === 'auth/invalid-email') {
+				return res.status(400).json({
+					success: false,
+					message: 'Invalid email address format',
+				});
+			} else if (firebaseError.code === 'auth/weak-password') {
+				return res.status(400).json({
+					success: false,
+					message: 'Password is too weak. Please use a stronger password',
+				});
+			}
+
+			return res.status(500).json({
+				success: false,
+				message: 'Failed to create user in Firebase',
+				error: firebaseError.message,
+			});
+		}
+
+		// Create user in our database
+		try {
+			const newUser = new User({
+				name,
+				email: email.toLowerCase(),
+				phone,
+				address: address || '',
+				passportNumber: passportNumber || '',
+				role,
+				firebaseUid: firebaseUser.uid,
+			});
+
+			await newUser.save();
+
+			// Return success response with user data (excluding sensitive info)
+			res.status(201).json({
+				success: true,
+				message: 'User created successfully',
+				user: {
+					_id: newUser._id,
+					name: newUser.name,
+					email: newUser.email,
+					phone: newUser.phone,
+					address: newUser.address,
+					passportNumber: newUser.passportNumber,
+					role: newUser.role,
+					createdAt: newUser.createdAt,
+				},
+			});
+		} catch (dbError) {
+			console.error('Database user creation error:', dbError);
+
+			// If database creation fails, clean up Firebase user
+			try {
+				await admin.auth().deleteUser(firebaseUser.uid);
+			} catch (cleanupError) {
+				console.error('Failed to cleanup Firebase user:', cleanupError);
+			}
+
+			return res.status(500).json({
+				success: false,
+				message: 'Failed to create user in database',
+				error: dbError.message,
+			});
+		}
+	} catch (error) {
+		console.error('User creation error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Server Error',
+			error: error.message,
+		});
+	}
+});
 
 // @route POST /api/users/firebase-auth
 // @desc Authenticate user with Firebase token and create/login user
@@ -339,6 +465,16 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
+		// Delete user from Firebase if firebaseUid exists
+		if (user.firebaseUid) {
+			try {
+				await admin.auth().deleteUser(user.firebaseUid);
+			} catch (firebaseError) {
+				console.error('Error deleting Firebase user:', firebaseError);
+				// Continue with database deletion even if Firebase deletion fails
+			}
+		}
+
 		// Delete profile image from Cloudinary if it exists
 		if (user.profileImage && user.profileImage.publicId) {
 			try {
@@ -348,7 +484,7 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 			}
 		}
 
-		// Delete user
+		// Delete user from database
 		await User.findByIdAndDelete(req.params.id);
 
 		res.json({ message: 'User deleted successfully' });
