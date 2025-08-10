@@ -1,993 +1,511 @@
+# Inspire Travels
+
+## Project Overview
+
+Inspire Travels (also referred to as SureTrip Travels in the code) is a full-stack travel management application. It allows users to browse destinations, book trips, apply for visas, read blogs, manage bookings, and handle administrative tasks like creating invoices and analytics.
+
+- **Backend**: Built with Node.js, Express.js, MongoDB (using Mongoose), and integrates with Cloudinary for image uploads, Firebase for authentication, and JWT for session management.
+- **Frontend**: Built with React.js, using Vite for bundling, Tailwind CSS for styling, and various UI libraries like ShadCN/UI. It includes user authentication, protected routes, and dynamic pages for bookings, visas, blogs, etc.
+
+The application supports roles: customer, admin, moderator, employee. Admins have full access, while customers can book and view content.
+
+Key features:
+- User authentication (Firebase + JWT).
+- Destination and visa management.
+- Booking system for trips and visas.
+- Blogging platform.
+- Invoice generation and analytics.
+- Contact info management.
+
+This README provides detailed setup instructions, architecture overviews, and API/model details for the backend, as well as component/page structures for the frontend.
 
 ---
 
-## 📄 Inspire Travels Backend – Detailed Documentation
+## Prerequisites
 
-### 📌 Table of Contents
-
-1. [Overview](#overview)
-2. [Tech Stack](#tech-stack)
-3. [Folder Structure](#folder-structure)
-4. [Installation & Setup](#installation--setup)
-5. [Environment Variables](#environment-variables)
-6. [Authentication & Authorization](#authentication--authorization)
-7. [Middlewares](#middlewares)
-8. [Models](#models)
-
-   * [User](#1-user-model)
-   * [Destination](#2-destination-model)
-   * [Booking](#3-booking-model)
-   * [Visa](#4-visa-model)
-   * [VisaBooking](#5-visabooking-model)
-   * [Blog](#6-blog-model)
-   * [Invoice](#7-invoice-model)
-   * [ContactInfo](#8-contactinfo-model)
-9. [Routes](#routes)
-
-   * Auth & Users
-   * Destinations
-   * Bookings
-   * Visas
-   * Visa Bookings
-   * Blogs
-   * Invoices
-   * Contact Info
-   * Analytics
-10. [Utilities](#utilities)
-11. [Deployment Notes](#deployment-notes)
+- Node.js (v18+)
+- MongoDB (local or Atlas)
+- Firebase account (for authentication)
+- Cloudinary account (for image storage)
+- Environment variables (see `.env` examples below)
 
 ---
 
-## Overview
+## Installation
 
-The **Inspire Travels Backend** is a RESTful API built with **Node.js**, **Express**, and **MongoDB** (via Mongoose) for managing a complete travel platform.
-It handles authentication, bookings, visas, blogs, invoicing, and analytics, with role-based access control and cloud storage integration via **Cloudinary**.
-
----
-
-## Tech Stack
-
-* **Runtime:** Node.js
-* **Framework:** Express.js
-* **Database:** MongoDB + Mongoose ODM
-* **Authentication:** JWT + Firebase Auth
-* **File Uploads:** Multer + Cloudinary
-* **PDF Generation:** pdfkit
-* **Data Export:** json2csv
-* **Environment Management:** dotenv
-
----
-
-## Folder Structure
-
-```
-Backend/
-├── config/
-│   ├── cloudinary.js       # Cloudinary config & image upload helpers
-│   ├── db.js               # MongoDB connection
-│   ├── firebase-admin.js   # Firebase Admin SDK config
-│
-├── middlewares/
-│   ├── authMiddleware.js   # JWT/Firebase auth & role verification
-│   ├── uploadMiddleware.js # Multer memory storage for file uploads
-│
-├── models/                 # All Mongoose schemas
-│   ├── User.js
-│   ├── Destination.js
-│   ├── Booking.js
-│   ├── Visa.js
-│   ├── VisaBooking.js
-│   ├── Blog.js
-│   ├── Invoice.js
-│   ├── ContactInfo.js
-│
-├── routes/                 # Express route definitions
-│   ├── analyticsRoutes.js
-│   ├── blogRoutes.js
-│   ├── bookingRoutes.js
-│   ├── contactInfoRoutes.js
-│   ├── destinationRoutes.js
-│   ├── invoiceRoutes.js
-│   ├── userRoutes.js
-│   ├── visaBookingRoutes.js
-│   ├── visaRoutes.js
-│
-├── utils/
-│   ├── authUtils.js        # JWT generation
-│
-├── server.js               # Main Express app entry
-└── package.json
-```
-
----
-
-## Installation & Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Create and fill .env file
-cp .env.example .env
-
-# Start development server
-npm run dev
-
-# Start production
-npm start
-```
-
----
-
-## Environment Variables
-
-| Variable                | Description                             |
-| ----------------------- | --------------------------------------- |
-| `MONGO_URI`             | MongoDB connection string               |
-| `JWT_SECRET`            | Secret key for JWT                      |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name                   |
-| `CLOUDINARY_API_KEY`    | Cloudinary API key                      |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret                   |
-| `FIREBASE_PROJECT_ID`   | Firebase project ID                     |
-| `FIREBASE_CLIENT_EMAIL` | Firebase client email                   |
-| `FIREBASE_PRIVATE_KEY`  | Firebase private key (escaped newlines) |
-
----
-
-## Authentication & Authorization
-
-The backend uses **two authentication strategies**:
-
-1. **Firebase Auth** for verifying identity from the frontend's Firebase login.
-2. **JWT** for securing API routes after user creation.
-
-**Role-based access control**:
-
-* `admin` – Full access to all resources
-* `moderator` – Can manage blogs, moderate bookings
-* `employee` – Can handle bookings, visas, invoices
-* `customer` – Default role; can make bookings, read blogs, etc.
-
----
-
-## Middlewares
-
-### `authMiddleware.js`
-
-* `verifyFirebaseToken` – Validates Firebase ID token from `Authorization` header.
-* `verifyUser` – Validates JWT from cookies or header.
-* `verifyRole(...roles)` – Grants access only if `req.user.role` matches allowed roles.
-
-### `uploadMiddleware.js`
-
-* Configures **Multer** for **in-memory** storage.
-* Restricts file types to `jpeg|jpg|png|webp`.
-* Max file size: **5MB**.
-
----
-
-## Models
-
-### 1. User Model
-
-| Field                   | Type   | Required | Notes                                              |
-| ----------------------- | ------ | -------- | -------------------------------------------------- |
-| `name`                  | String | No       |                                                    |
-| `email`                 | String | Yes      | Unique                                             |
-| `phone`                 | String | No       |                                                    |
-| `address`               | String | No       |                                                    |
-| `passportNumber`        | String | No       |                                                    |
-| `profileImage.url`      | String | No       | Cloudinary URL                                     |
-| `profileImage.publicId` | String | No       | Cloudinary ID                                      |
-| `role`                  | String | No       | Enum: `customer`, `admin`, `moderator`, `employee` |
-| `firebaseUid`           | String | Yes      | Unique Firebase UID                                |
-
-Indexes: `{ name, email, phone, passportNumber, firebaseUid, role, createdAt }`
-
----
-
-### 2. Destination Model
-
-Handles travel packages with details like pricing, amenities, and images.
-
-**Key Fields**:
-
-* `title` (String, required)
-* `summary` (String, max 150 chars)
-* `description` (String, required)
-* `location.from` / `location.to`
-* `pricing.basePrice`, `pricing.discountedPrice`
-* `duration.days`, `duration.nights`
-* `images` (Cloudinary objects)
-* `status` (`draft`, `active`, `inactive`)
-
-**Virtuals**:
-
-* `discountPercentage` – Auto-calculated.
-
----
-
-### 3. Booking Model
-
-Stores trip bookings.
-
-**Key Fields**:
-
-* `destination` (ObjectId → Destination)
-* `user` (ObjectId → User)
-* `fullName`, `email`, `phone`
-* `travelDate`
-* `numberOfTravelers` { adults, children }
-* `pricing` { basePrice, discountedPrice, totalPrice, paymentStatus }
-* `status` (`pending`, `confirmed`, `cancelled`, `completed`)
-
-Indexes: `{ user, destination, status, pricing.paymentStatus }`
-
----
-
-### 4. Visa Model
-
-Manages visa service packages.
-
-Fields:
-
-* `title`, `slug`
-* `shortDescription`, `description`
-* `pricing.basePrice`, `discountedPrice`, `currency`
-* `from`, `to` (countries)
-* `featured`, `isActive`
-* `requirements`, `processingTime`
-
-Virtuals:
-
-* `formattedPrice`, `formattedDiscountedPrice`, `discountPercentage`
-
----
-
-### 5. VisaBooking Model
-
-Stores visa service bookings.
-
-Fields:
-
-* `visa` (ObjectId → Visa)
-* `user` (ObjectId → User)
-* `firstName`, `lastName`
-* `nationality`, `passportNumber`
-* `travelDate`
-* `pricing` { basePrice, discountedPrice, totalPrice, paymentStatus }
-* `status` (`pending`, `processing`, `approved`, `rejected`, `completed`)
-
----
-
-### 6. Blog Model
-
-Blog articles with author reference.
-
-Fields:
-
-* `title`, `slug`
-* `summary`, `content`
-* `author` (User)
-* `coverImage`, `images`
-* `categories`, `tags`
-* `status` (`draft`, `published`, `archived`)
-* `isFeatured`, `viewCount`, `readTime`
-
-Hooks:
-
-* Pre-save slug generation & uniqueness.
-* Auto-read time calculation.
-
----
-
-### 7. Invoice Model
-
-Tracks billing for bookings and visas.
-
-Fields:
-
-* `invoiceNumber` (auto-generated: `INV-YYMM-####`)
-* `customer` { name, email, phone, address }
-* `items[]` { name, quantity, unitPrice, discount, tax, total }
-* `totalAmount`, `paidAmount`, `dueAmount`
-* `status` (`draft`, `sent`, `paid`, etc.)
-* `relatedTo` (`custom`, `booking`, `visa`)
-
-Hooks:
-
-* Auto-calculates dueAmount & status before save.
-
----
-
-### 8. ContactInfo Model
-
-Stores company details.
-
-Fields:
-
-* `companyName`, `address`, `phoneNumbers[]`, `emailAddresses[]`
-* `websiteUrl`, `socialMediaLinks`, `mapEmbedUrl`
-* `officeHours[]`, `termsAndConditions[]`
-
----
-## ## 📡 Routes
-
-### **1. User & Auth Routes** (`/api/users/...`)
-
-> Handles user creation, retrieval, role updates, and authentication.
-
----
-
-#### **POST** `/api/users`
-
-**Description:** Create a new user from Firebase login.
-**Access:** Public (called immediately after Firebase signup)
-
-**Request Body:**
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "firebaseUid": "firebase_uid_here",
-  "role": "customer"
-}
-```
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "user": {
-    "_id": "66aa0f123...",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "customer"
-  }
-}
-```
-
----
-
-#### **GET** `/api/users/profile`
-
-**Description:** Get logged-in user profile.
-**Access:** Private (Any logged-in user)
-
-**Headers:**
-
-```
-Authorization: Bearer <JWT_TOKEN>
-```
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "user": {
-    "_id": "66aa0f123...",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "customer"
-  }
-}
-```
-
----
-
-#### **PATCH** `/api/users/:id/role`
-
-**Description:** Update a user's role.
-**Access:** Private (Admin only)
-
-**Request Body:**
-
-```json
-{
-  "role": "employee"
-}
-```
-
----
-
-### **2. Destination Routes** (`/api/destinations/...`)
-
----
-
-#### **GET** `/api/destinations`
-
-**Description:** Get all destinations with filters and pagination.
-**Access:** Public
-
-**Query Params:**
-
-```
-?search=Paris&category=Europe&minPrice=1000&maxPrice=2000&page=1&limit=10
-```
-
-**Response Example:**
-
-```json
-{
-  "destinations": [
-    {
-      "_id": "66aa1f123...",
-      "title": "Paris Getaway",
-      "pricing": { "basePrice": 1500, "discountedPrice": 1200 },
-      "duration": { "days": 5, "nights": 4 }
-    }
-  ],
-  "pagination": { "totalPages": 5, "currentPage": 1, "total": 50 }
-}
-```
-
----
-
-#### **POST** `/api/destinations`
-
-**Description:** Create a destination.
-**Access:** Private (Admin, Moderator, Employee)
-
-**Form Data Fields:**
-
-```
-title: "Paris Getaway"
-summary: "Romantic trip"
-description: "5 nights in Paris"
-pricing.basePrice: 1500
-pricing.discountedPrice: 1200
-images[]: (file)
-```
-
----
-
-### **3. Booking Routes** (`/api/bookings/...`)
-
----
-
-#### **POST** `/api/bookings`
-
-**Description:** Create a new booking for a destination.
-**Access:** Private (Customer)
-
-**Request Body:**
-
-```json
-{
-  "destination": "66aa1f123...",
-  "fullName": "Jane Doe",
-  "email": "jane@example.com",
-  "phone": "+1234567890",
-  "travelDate": "2025-09-01",
-  "numberOfTravelers": { "adults": 2, "children": 1 },
-  "pricing": {
-    "basePrice": 1500,
-    "discountedPrice": 1200,
-    "totalPrice": 3600
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "booking": { "_id": "66aa2f123...", "status": "pending" }
-}
-```
-
----
-
-#### **GET** `/api/bookings/my`
-
-**Description:** Get bookings of the logged-in user.
-**Access:** Private (Customer)
-
----
-
-### **4. Visa Routes** (`/api/visas/...`)
-
----
-
-#### **GET** `/api/visas`
-
-**Description:** List visa packages with filters.
-**Access:** Public
-
-**Query Params Example:**
-
-```
-?from=Bangladesh&to=Canada&featured=true
-```
-
----
-
-#### **POST** `/api/visas`
-
-**Description:** Create a visa package.
-**Access:** Private (Admin, Moderator, Employee)
-**Form Data:** Similar to destinations.
-
----
-
-### **5. Visa Booking Routes** (`/api/visa-bookings/...`)
-
----
-
-#### **POST** `/api/visa-bookings`
-
-**Description:** Create a new visa booking.
-**Access:** Private (Customer)
-
----
-
-#### **GET** `/api/visa-bookings/my`
-
-**Description:** Get logged-in user's visa bookings.
-**Access:** Private (Customer)
-
----
-
-### **6. Blog Routes** (`/api/blogs/...`)
-
----
-
-#### **GET** `/api/blogs`
-
-**Description:** Get blogs with pagination, search, filter.
-**Access:** Public
-
----
-
-#### **POST** `/api/blogs`
-
-**Description:** Create a blog post.
-**Access:** Private (Admin, Moderator)
-**Form Data:**
-
-```
-title: "Top 10 Destinations"
-summary: "List of destinations..."
-content: "<html>...</html>"
-categories: ["Travel"]
-tags: ["Europe", "Summer"]
-coverImage: (file)
-images[]: (file)
-```
-
----
-
-### **7. Invoice Routes** (`/api/invoices/...`)
-
----
-
-#### **POST** `/api/invoices`
-
-**Description:** Create an invoice.
-**Access:** Private (Admin, Employee)
-
----
-
-#### **GET** `/api/invoices/:id/pdf`
-
-**Description:** Download invoice PDF.
-**Access:** Private (Admin, Employee)
-
----
-
-### **8. Contact Info Routes** (`/api/contact-info/...`)
-
----
-
-#### **GET** `/api/contact-info`
-
-**Description:** Fetch company contact info.
-**Access:** Public
-
-#### **PUT** `/api/contact-info`
-
-**Description:** Update contact info.
-**Access:** Private (Admin)
-
----
-
-### **9. Analytics Routes** (`/api/analytics/...`)
-
----
-
-#### **GET** `/api/analytics/dashboard-summary`
-
-**Description:** Get counts and revenue stats for dashboard.
-**Access:** Private (Admin, Moderator, Employee)
-
----
-
-#### **GET** `/api/analytics/monthly-revenue`
-
-**Description:** Get revenue trend for a year.
-**Access:** Private (Admin, Moderator, Employee)
-**Query:**
-
-```
-?year=2025
-```
-
----
-
-#### **GET** `/api/analytics/user-growth`
-
-**Description:** Get monthly new user count & cumulative growth.
-**Access:** Private (Admin, Moderator, Employee)
-
----
-
-#### **GET** `/api/analytics/blog-performance`
-
-**Description:** Get top blogs by views & views per category.
-**Access:** Private (Admin, Moderator, Employee)
-
----
-
-#### **GET** `/api/analytics/recent-activity`
-
-**Description:** Get latest bookings, invoices, users, blogs.
-**Access:** Private (Admin, Moderator, Employee)
-
----
-
-## 🛠 Utilities
-
-### **`utils/authUtils.js`**
-
-* **Purpose:** JWT token generation and management.
-* **Functions:**
-
-  * `generateToken(userId)`
-
-    * Signs a JWT with `userId` payload.
-    * Expires based on `.env` config.
-    * Used after Firebase authentication to issue a backend token.
-
----
-
-## 🚀 Deployment Notes
-
-### **Local Development**
-
-1. Clone repository:
-
-   ```bash
-   git clone https://github.com/username/inspire-travels.git
-   cd Backend
+1. **Clone the repository**:
    ```
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-3. Create `.env` file based on `.env.example`:
-
-   ```ini
-   MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/inspire-travels
-   JWT_SECRET=your_jwt_secret
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   FIREBASE_PROJECT_ID=...
-   FIREBASE_CLIENT_EMAIL=...
-   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-   ```
-4. Start the server in dev mode:
-
-   ```bash
-   npm run dev
+   git clone <repository-url>
+   cd inspire-travels
    ```
 
----
+2. **Backend Setup**:
+   - Navigate to `Backend` folder.
+   - Install dependencies:
+     ```
+     npm install
+     ```
+   - Create `.env` file in `Backend` with the following:
+     ```
+     MONGO_URI=mongodb://localhost:27017/inspiretravels  # or MongoDB Atlas URI
+     JWT_SECRET=your_jwt_secret_key
+     CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+     CLOUDINARY_API_KEY=your_api_key
+     CLOUDINARY_API_SECRET=your_api_secret
+     FIREBASE_PROJECT_ID=your_firebase_project_id
+     FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+     FIREBASE_PRIVATE_KEY="your_private_key_with_newlines"
+     PORT=5000  # Optional, default 5000
+     ```
+   - Run the server:
+     ```
+     npm run dev  # Development with Nodemon
+     npm start    # Production
+     ```
 
-### **Production Deployment**
+3. **Frontend Setup**:
+   - Navigate to `Frontend` folder.
+   - Install dependencies:
+     ```
+     npm install
+     ```
+   - Create `.env` file in `Frontend` (if needed for API base URL, but defaults to localhost:5000).
+   - Run the app:
+     ```
+     npm run dev  # Development server
+     ```
 
-* **Hosting Options:** Vercel, Render, Railway, or self-hosted Node server.
-* **Database:** Use MongoDB Atlas for managed MongoDB hosting.
-* **Image Hosting:** Ensure Cloudinary credentials are in production env variables.
-* **Security:**
+4. **Database Setup**:
+   - Ensure MongoDB is running.
+   - The backend will auto-connect on startup.
+   - Seed data: No built-in seeder; create via API or admin panel.
 
-  * Always use `https` in production.
-  * Store JWT secret securely.
-  * Restrict Cloudinary API key usage.
-* **Scaling:**
-
-  * Use PM2 or a process manager for production.
-  * Enable MongoDB indexes (already defined in models).
-
----
-
-## 📊 API Response Standards
-
-All API responses follow a **consistent structure**:
-
-**Success:**
-
-```json
-{
-  "success": true,
-  "data": { ... },
-  "message": "Optional success message"
-}
-```
-
-**Error:**
-
-```json
-{
-  "success": false,
-  "message": "Error description",
-  "error": "Detailed error if available"
-}
-```
-
----
-
-## 🔐 Role-Based Access Summary
-
-| Role          | Destinations | Bookings | Visas     | Visa Bookings | Blogs | Invoices | Contact Info | Analytics |
-| ------------- | ------------ | -------- | --------- | ------------- | ----- | -------- | ------------ | --------- |
-| **Admin**     | Full CRUD    | Full     | Full      | Full          | Full  | Full     | Full         | Full      |
-| **Moderator** | Read/Edit    | Limited  | Read/Edit | Read/Edit     | Full  | None     | None         | Full      |
-| **Employee**  | Read/Edit    | Full     | Full      | Full          | None  | Full     | None         | Full      |
-| **Customer**  | Read Only    | Own Only | Read      | Own Only      | Read  | None     | None         | None      |
+5. **Deployment Notes**:
+   - Backend: Deploy to Vercel (vercel.json provided). Use environment variables in Vercel dashboard.
+   - Frontend: Deploy to Netlify/Vercel. Set build command to `npm run build`.
+   - For Vercel backend: Ensure `vercel.json` handles rewrites correctly.
 
 ---
 
-## ✅ Backend Summary
+## Backend Documentation
 
-The **Inspire Travels backend** is:
+The backend is an Express.js API server. It uses Mongoose for MongoDB interactions, Multer for file uploads (memory storage), Cloudinary for image processing, Firebase Admin for token verification, and JWT for auth tokens.
 
-* Fully RESTful with clean, modular routing.
-* Secured with **Firebase authentication + JWT**.
-* Optimized for **role-based access control**.
-* Integrated with **Cloudinary** for image management.
-* Supports **advanced analytics** for admins.
-* Uses **Mongoose virtuals & indexes** for performance.
+### Dependencies
+- Express: Web framework
+- Mongoose: ODM for MongoDB
+- Cloudinary & Streamifier: Image upload/processing
+- Firebase-Admin: Token verification
+- JWT: Authentication
+- Multer: File handling
+- Dotenv: Environment variables
+- Others: Bcryptjs (unused in code), Cors, Cookie-Parser, Json2csv (for exports), Nodemon (dev), PDFKit (invoices), Slugify
+
+### Folder Structure
+- `config/`: Database connection, Cloudinary setup, Firebase config.
+- `middlewares/`: Auth (JWT/Firebase verification, role checks), Upload (Multer config).
+- `models/`: Mongoose schemas (detailed below).
+- `routes/`: API endpoints (detailed below).
+- `utils/`: Auth utilities (e.g., JWT generation).
+- `server.js`: Entry point.
+
+### Authentication Flow
+- Firebase handles user signup/login (frontend).
+- Backend verifies Firebase ID token via `/auth/firebase` (middleware: `verifyFirebaseToken`).
+- Generates JWT token stored in cookies.
+- Protected routes use `verifyUser` middleware + `verifyRole` for role checks.
+- Roles: customer (default), admin, moderator, employee.
+
+### Models
+Each model is a Mongoose schema with timestamps enabled. Details include fields, types, validations, defaults, virtuals, indexes, and pre-save hooks.
+
+#### 1. Blog (models/Blog.js)
+   - **Purpose**: Manages blog posts for travel tips, news, etc.
+   - **Schema Fields**:
+     - `title`: String, required, trimmed.
+     - `slug`: String, unique, lowercase (auto-generated from title).
+     - `summary`: String, required, trimmed, max 500 chars.
+     - `content`: String, required.
+     - `author`: ObjectId (ref: User), required.
+     - `coverImage`: { url: String, public_id: String }.
+     - `images`: Array of { url: String, public_id: String }.
+     - `categories`: Array of String, default [].
+     - `tags`: Array of String, default [].
+     - `status`: Enum ['draft', 'published', 'archived'], default 'draft'.
+     - `isFeatured`: Boolean, default false.
+     - `viewCount`: Number, default 0.
+     - `readTime`: Number, default 0 (auto-calculated from content word count).
+   - **Virtuals/Methods**:
+     - Pre-save: Generates slug from title (handles uniqueness with suffixes). Calculates readTime (words / 200).
+   - **Indexes**:
+     - Text index on title, summary, content, categories, tags (for search).
+   - **Notes**: Only published blogs are visible to users.
+
+#### 2. Booking (models/Booking.js)
+   - **Purpose**: Handles trip bookings linked to destinations.
+   - **Schema Fields**:
+     - `destination`: ObjectId (ref: Destination), required.
+     - `user`: ObjectId (ref: User), required.
+     - `fullName`: String, required, trimmed.
+     - `email`: String, required, trimmed, lowercase.
+     - `phone`: String, required, trimmed.
+     - `travelDate`: Date, required.
+     - `numberOfTravelers`: { adults: Number (min 1, default 1), children: Number (min 0, default 0) }.
+     - `specialRequests`: String, trimmed.
+     - `dietaryRestrictions`: Array of String, default [].
+     - `pricing`: { basePrice: Number (required), discountedPrice: Number (required), totalPrice: Number (required), currency: String (default 'USD'), paymentStatus: Enum ['pending', 'paid', 'refunded', 'cancelled'] (default 'pending') }.
+     - `status`: Enum ['pending', 'confirmed', 'cancelled', 'completed'], default 'pending'.
+     - `destinationDetails`: { title: String, location: String, duration: { days: Number, nights: Number }, image: String } (snapshot for reference).
+   - **Indexes**:
+     - { user: 1, createdAt: -1 } (user bookings history).
+     - { destination: 1 } (per destination).
+     - { status: 1 }.
+     - { 'pricing.paymentStatus': 1 }.
+
+#### 3. ContactInfo (models/ContactInfo.js)
+   - **Purpose**: Single document for company contact details (assumed one instance).
+   - **Schema Fields**:
+     - `companyName`: String, trimmed, default 'SureTrip Travels'.
+     - `address`: { street: String, city: String, state: String, zipCode: String, country: String } (all trimmed).
+     - `phoneNumbers`: Array of { label: String (default 'Main'), number: String (required) }.
+     - `emailAddresses`: Array of { label: String (default 'General'), email: String (required, lowercase) }.
+     - `websiteUrl`: String, trimmed.
+     - `socialMediaLinks`: { facebook: String, twitter: String, instagram: String, linkedin: String, youtube: String } (all trimmed).
+     - `mapEmbedUrl`: String, trimmed (Google Maps embed).
+     - `officeHours`: Array of { days: String (required), hours: String (required) }.
+     - `termsAndConditions`: Array of { title: String (required), content: String (required) }.
+     - `additionalInfo`: String, trimmed.
+     - `lastUpdatedBy`: ObjectId (ref: User).
+   - **Notes**: Application logic ensures only one document; no unique key enforced in schema.
+
+#### 4. Destination (models/Destination.js)
+   - **Purpose**: Manages travel packages/destinations.
+   - **Schema Fields**:
+     - `title`: String, required, trimmed.
+     - `summary`: String, required, trimmed, max 150 chars.
+     - `description`: String, required, trimmed.
+     - `location`: { from: String (required), to: String (required), address: String, mapLink: String }.
+     - `pricing`: { basePrice: Number (required, min 0), discountedPrice: Number (min 0), currency: Enum ['USD', 'EUR', ...] (default 'USD'), priceType: Enum ['perPerson', ...] (default 'perPerson') }.
+     - `duration`: { days: Number (required, min 1), nights: Number (min 0, default 0), flexible: Boolean (default false) }.
+     - `dates`: { startDate: Date, endDate: Date, availableDates: [Date], bookingDeadline: Date }.
+     - `transportation`: { included: Boolean (default true), type: Enum ['flight', ...] (default 'flight'), details: String }.
+     - `accommodation`: { type: Enum ['hotel', ...] (default 'hotel'), rating: Number (1-5, default 3), details: String }.
+     - `meals`: { included: Boolean (default true), details: String }.
+     - `groupSize`: { min: Number (default 1, min 1), max: Number (default 20, min 1), privateAvailable: Boolean (default false) }.
+     - `activities`: [String].
+     - `advantages`: [String], required (min 1).
+     - `features`: [String], required (min 1).
+     - `amenities`: Object with Booleans (wifi, pool, etc., default false).
+     - `categories`: [String].
+     - `images`: Array of { public_id: String, url: String }.
+     - `isFeatured`: Boolean, default false.
+     - `isPopular`: Boolean, default false.
+     - `status`: Enum ['draft', 'active', 'inactive'], default 'draft'.
+     - `createdBy`: ObjectId (ref: User), required.
+   - **Virtuals**:
+     - `discountPercentage`: Calculated as round((base - discounted)/base * 100).
+   - **Indexes**:
+     - Text on title, summary, description, location.from/to.
+
+#### 5. Invoice (models/Invoice.js)
+   - **Purpose**: Manages invoices for bookings/visas/custom.
+   - **Schema Fields**:
+     - `invoiceNumber`: String, required, unique (auto-generated: INV-YYMM-SEQUENCE).
+     - `customer`: { name: String (required), email: String (required), phone: String (required), address: String }.
+     - `items`: Array of { name: String (required), description: String, quantity: Number (min 1), unitPrice: Number (min 0), discount: Number (0-100), tax: Number (min 0), total: Number (required) }.
+     - `subtotal`: Number, required.
+     - `totalDiscount`: Number, default 0.
+     - `additionalDiscount`: Number (0-100, default 0).
+     - `totalTax`: Number, default 0.
+     - `totalAmount`: Number, required.
+     - `paidAmount`: Number, default 0.
+     - `dueAmount`: Number, required.
+     - `issueDate`: Date, required, default now.
+     - `dueDate`: Date, required.
+     - `status`: Enum ['draft', 'sent', 'paid', ...], default 'draft'.
+     - `notes`: String.
+     - `terms`: String, default standard text.
+     - `currency`: Enum ['USD', ...], default 'USD'.
+     - `relatedTo`: { type: Enum ['custom', 'booking', 'visa'] (default 'custom'), bookingId: ObjectId (ref: Booking), visaBookingId: ObjectId (ref: VisaBooking) }.
+     - `invoicer`: { name: String (required), userId: ObjectId (ref: User, required) }.
+     - `updateHistory`: Array of update logs (updater, notes, status changes, etc.).
+   - **Statics**:
+     - `generateInvoiceNumber()`: Async, generates unique number based on month/year.
+   - **Pre-save**: Recalculates dueAmount, updates status based on paidAmount/dueDate.
+
+#### 6. User (models/User.js)
+   - **Purpose**: User accounts, linked to Firebase UID.
+   - **Schema Fields**:
+     - `name`: String, trimmed.
+     - `email`: String, required, unique, lowercase, trimmed.
+     - `phone`: String, trimmed.
+     - `address`: String, trimmed.
+     - `passportNumber`: String, trimmed.
+     - `profileImage`: { url: String (default ''), publicId: String (default '') }.
+     - `role`: Enum ['customer', 'admin', 'moderator', 'employee'], default 'customer'.
+     - `firebaseUid`: String, required, unique.
+   - **Indexes**:
+     - On name, email, phone, passportNumber, firebaseUid, role, createdAt (-1).
+
+#### 7. Visa (models/Visa.js)
+   - **Purpose**: Visa package management.
+   - **Schema Fields**:
+     - `title`: String, required, trimmed, indexed.
+     - `slug`: String, unique, lowercase, indexed (auto-generated).
+     - `shortDescription`: String, required, trimmed, indexed.
+     - `description`: String, required, trimmed.
+     - `pricing`: { basePrice: Number (required, min 0), discountedPrice: Number (default base, min 0), currency: Enum ['USD', ...] (default 'USD') }.
+     - `images`: Array of { url: String, publicId: String, alt: String }.
+     - `coverImage`: { url: String, publicId: String, alt: String }.
+     - `isActive`: Boolean, default true, indexed.
+     - `requirements`: String, trimmed.
+     - `processingTime`: String, trimmed.
+     - `specialRequests`: String, trimmed.
+     - `from`: String, required, trimmed, indexed.
+     - `to`: String, required, trimmed, indexed.
+     - `featured`: Boolean, default false, indexed.
+   - **Virtuals**:
+     - `formattedPrice`: `${symbol}${basePrice}`.
+     - `formattedDiscountedPrice`: Similar for discounted.
+     - `discountPercentage`: Calculated similarly to Destination.
+   - **Indexes**:
+     - Compound: { title:1, from:1, to:1, isActive:1 }, { featured:1, isActive:1 }.
+
+#### 8. VisaBooking (models/VisaBooking.js)
+   - **Purpose**: Handles visa applications/bookings.
+   - **Schema Fields**:
+     - `visa`: ObjectId (ref: Visa), required.
+     - `user`: ObjectId (ref: User), required.
+     - `firstName`: String, required, trimmed.
+     - `lastName`: String, required, trimmed.
+     - `email`: String, required, trimmed, lowercase.
+     - `phone`: String, required, trimmed.
+     - `nationality`: String, required, trimmed.
+     - `passportNumber`: String, required, trimmed.
+     - `travelDate`: Date, required.
+     - `specialRequests`: String, trimmed.
+     - `pricing`: Similar to Booking.pricing.
+     - `status`: Enum ['pending', 'processing', 'approved', 'rejected', 'completed'], default 'pending'.
+     - `visaDetails`: Snapshot { title, from, to, processingTime, image }.
+   - **Indexes**:
+     - Similar to Booking: user/createdAt, visa, status, paymentStatus.
+
+### Routes & API Endpoints
+All routes are under `/api`. Protected routes require JWT in cookies or Authorization header.
+
+#### Analytics Routes (/routes/analyticsRoutes.js)
+- **Base: /api/analytics**
+- Protected: All (admin/moderator/employee).
+- `GET /dashboard-summary`: Returns aggregated stats (users, bookings, visas, invoices, blogs).
+  - Req: None.
+  - Res: 200 { success: true, data: { users: {...}, bookings: {...}, ... } } or 500 error.
+- `GET /monthly-revenue`: Monthly revenue trends by year (query: year=YYYY).
+  - Req: Query { year? }.
+  - Res: 200 { success: true, data: [monthly objects], year } or 500.
+
+#### Blog Routes (/routes/blogRoutes.js)
+- **Base: /api/blogs**
+- `GET /`: List blogs (public, query: page, limit, search, category, tag, status, featured).
+  - Req: Query params.
+  - Res: 200 { blogs: [], pagination }.
+- `GET /:slug`: Get single blog (public).
+  - Req: Params { slug }.
+  - Res: 200 { blog } (increments viewCount).
+- `POST /`: Create blog (protected: admin/moderator, upload images).
+  - Req: Body { title, summary, content, ... }, Files: coverImage, images[].
+  - Res: 201 { message, blog }.
+- `PUT /:id`: Update blog (protected: admin/moderator, owner check).
+  - Req: Params { id }, Body { updates }, Files optional.
+  - Res: 200 { message, updatedBlog }.
+- `DELETE /:id`: Delete blog (protected: admin/moderator, owner).
+  - Req: Params { id }.
+  - Res: 200 { message } (deletes Cloudinary images).
+- `GET /admin`: Admin list (protected, all blogs with filters).
+
+#### Booking Routes (/routes/bookingRoutes.js)
+- **Base: /api/bookings**
+- `POST /`: Create booking (protected: customer).
+  - Req: Body { destinationId, fullName, email, ... }.
+  - Res: 201 { message, booking }.
+- `GET /my-bookings`: User bookings (protected: customer).
+  - Req: Query { page, limit, status, sort }.
+  - Res: 200 { bookings, pagination }.
+- `GET /:id`: Get single booking (protected: owner or admin).
+  - Req: Params { id }.
+  - Res: 200 { booking }.
+- `PUT /:id`: Update booking (protected: admin/employee).
+  - Req: Params { id }, Body { updates }.
+  - Res: 200 { message, updatedBooking }.
+- `DELETE /:id`: Cancel/delete (protected: owner/admin).
+  - Req: Params { id }.
+  - Res: 200 { message }.
+- `GET /admin`: Admin list (protected: admin/employee).
+  - Similar to /my-bookings but all.
+
+#### ContactInfo Routes (/routes/contactInfoRoutes.js)
+- **Base: /api/contact-info**
+- `GET /`: Get contact info (public, assumes single doc).
+  - Res: 200 { contactInfo }.
+- `PUT /`: Update (protected: admin).
+  - Req: Body { updates }.
+  - Res: 200 { message, updatedContactInfo }.
+
+#### Destination Routes (/routes/destinationRoutes.js)
+- **Base: /api/destinations**
+- `GET /`: List (public, query: page, limit, search, category, minPrice, maxPrice, from, to, sortBy).
+  - Res: 200 { destinations, pagination }.
+- `GET /:slug`: Single (public).
+  - Res: 200 { destination }.
+- `POST /`: Create (protected: admin/moderator, upload images[]).
+  - Req: Body { title, ... }, Files: images[].
+  - Res: 201 { message, destination }.
+- `PUT /:id`: Update (protected: admin/moderator).
+  - Req: Params { id }, Body, Files optional.
+  - Res: 200 { message, updatedDestination }.
+- `DELETE /:id`: Delete (protected: admin).
+  - Req: Params { id }.
+  - Res: 200 { message } (deletes images).
+- `GET /admin`: Admin list (protected).
+
+#### Invoice Routes (/routes/invoiceRoutes.js)
+- **Base: /api/invoices**
+- `POST /`: Create (protected: admin/employee).
+  - Req: Body { customer, items, ... }.
+  - Res: 201 { message, invoice } (auto-generates number).
+- `GET /`: List (protected: admin/employee, query: page, limit, status, search).
+  - Res: 200 { invoices, pagination }.
+- `GET /:id`: Single (protected).
+  - Res: 200 { invoice }.
+- `PUT /:id`: Update (protected).
+  - Req: Body { updates }, logs history.
+  - Res: 200 { message, updatedInvoice }.
+- `DELETE /:id`: Delete (protected: admin).
+  - Res: 200 { message }.
+- `GET /export/csv`: Export CSV (protected).
+  - Res: CSV file download.
+- `GET /export/pdf/:id`: PDF for single (protected).
+  - Res: PDF download.
+
+#### User Routes (/routes/userRoutes.js)
+- **Base: /api/users**
+- `POST /auth/firebase`: Verify Firebase token, create/login user, issue JWT.
+  - Req: Headers { Authorization: Bearer <firebase_token> }.
+  - Res: 200 { token, user } (sets cookie).
+- `GET /profile`: Get profile (protected).
+  - Res: 200 { user }.
+- `PUT /profile`: Update profile (protected, upload profileImage).
+  - Req: Body { name, phone, ... }, File: profileImage.
+  - Res: 200 { message, updatedUser }.
+- `GET /`: List users (protected: admin).
+  - Query: page, limit, role, search.
+  - Res: 200 { users, pagination }.
+- `POST /`: Create user (protected: admin).
+  - Req: Body { name, email, role, ... }.
+  - Res: 201 { message, user }.
+- `PUT /:id`: Update user (protected: admin).
+  - Req: Params { id }, Body.
+  - Res: 200 { message, updatedUser }.
+- `DELETE /:id`: Delete (protected: admin).
+  - Res: 200 { message }.
+
+#### VisaBooking Routes (/routes/visaBookingRoutes.js)
+- Similar to Booking routes, but for visas.
+- `POST /`, `GET /my-visa-bookings`, `GET /:id`, etc.
+
+#### Visa Routes (/routes/visaRoutes.js)
+- Similar to Destination routes.
+- `GET /`, `GET /:slug`, `POST /` (upload images/cover), `PUT /:id`, `DELETE /:id`.
+
+### Error Handling
+- Global error handler in server.js (not shown, but assume standard Express).
+- Responses: { success: bool, message/data/error }.
+
+### Security
+- CORS enabled.
+- JWT expiration (not specified, assume config).
+- File uploads limited to 5MB, images only (jpeg/png/webp).
+- Role-based access.
 
 ---
 
-# 🎨 Inspire Travels – Frontend Documentation
+## Frontend Documentation
 
-## 📌 Table of Contents
+The frontend is a React app with Vite, using React Router for navigation, Firebase for auth, Axios for API calls (with public/secure hooks), and ShadCN/UI components. It supports themes, animations (Framer Motion), and responsive design.
 
-1. [Overview](#overview)
-2. [Tech Stack](#tech-stack)
-3. [Folder Structure](#folder-structure)
-4. [Installation & Setup](#installation--setup)
-5. [Environment Variables](#environment-variables)
-6. [Routing Structure](#routing-structure)
-7. [Authentication Flow](#authentication-flow)
-8. [State Management](#state-management)
-9. [Components](#components)
-10. [Pages](#pages)
-11. [API Integration](#api-integration)
-12. [Styling](#styling)
-13. [Deployment Notes](#deployment-notes)
+### Dependencies
+- React, React Router, React Hook Form (forms).
+- UI: ShadCN (Accordion, Alert, Badge, Button, etc.), Lucide Icons.
+- Hooks: Custom (useAxiosPublic, useRole, useDebounce, mutations/queries for each model).
+- Others: Date-fns (formatting), Framer Motion (animations), Tailwind CSS.
 
----
+### Folder Structure
+- `src/assets/`: Images, SVGs.
+- `src/components/`: Reusable UI (Admin, Animation, Blogs, Booking, Dashboard, Destination, Layout, Sections, Shared, Theme, UI, Visa).
+- `src/config/`: Firebase config.
+- `src/contexts/`: AuthContext.
+- `src/hooks/`: Custom hooks (Axios, Role, Mutations/Queries for models, Debounce).
+- `src/pages/`: Routes (About, Blogs, Contact, Destinations, Home, Login, Profile, VisaPackages, Admin pages like AddBlog, AdminBookings).
+- `src/routes/`: ProtectedRoute, AdminRoute.
+- `src/lib/`: Utils (cn for classnames).
+- `main.jsx`: Entry with Router.
 
-## 📖 Overview
+### Authentication Flow
+- Firebase for signup/login (pages/Login.jsx, Signup.jsx).
+- AuthContext provides user, token, login/logout.
+- ProtectedRoute: Wraps private pages (e.g., Profile, MyBookings).
+- AdminRoute: For admin dashboard/pages, checks role via useRole hook.
 
-The **Inspire Travels Frontend** is a **React (Vite)** application that serves as the client-facing interface for the Inspire Travels travel management platform. It provides:
+### Key Hooks
+- `useAxiosPublic`: Axios instance without auth.
+- `useAxiosSecure`: With JWT interceptor.
+- `useRole`: Fetches user role from API.
+- Model-specific: e.g., `useBlogQuery` (getBlogs, getBlogBySlug), `useBlogMutation` (create, update, delete).
+- `useDebounce`: For search inputs.
 
-* A **customer-facing site** to explore destinations, book trips, apply for visas, read blogs, and contact the company.
-* An **admin dashboard** for managing users, destinations, bookings, visas, blogs, invoices, and analytics.
+### Pages & Components
+- **Public Pages**:
+  - Home: Hero, Featured Destinations, Testimonials, Newsletter.
+  - Destinations: List with filters/pagination, Details page.
+  - Blogs: List with filters, Details.
+  - Visas: Packages list, Details, Booking form (multi-step with animation).
+  - Contact, About.
+- **User Pages**:
+  - Login/Signup/ForgotPassword.
+  - Profile: Edit details, upload image.
+  - MyBookings: List bookings.
+- **Admin Pages** (under /admin):
+  - Dashboard: Sidebar, Analytics.
+  - Add/Edit: Blogs, Destinations, Visas.
+  - Lists: Blogs, Bookings, Destinations, Invoices, Users, Visas.
+  - CreateInvoice: Form with items, calculations.
+  - InvoiceAnalytics: Charts/trends.
+- **Components**:
+  - Layout: UserLayout (Navbar/Footer), AdminLayout (Sidebar).
+  - Sections: Hero, Featured, Newsletter, etc.
+  - UI: Custom wrappers for ShadCN (button, card, etc.).
+  - Animation: FadeIn, AnimatedButton/Card.
 
-It communicates with the **backend API** (documented separately) via secure HTTPS requests and implements **Firebase Authentication** for login.
+### Routing
+- Protected: /profile, /my-bookings, /admin/*.
+- Admin: /admin/add-blog, /admin/bookings, etc.
+- Dynamic: /destinations/:slug, /visas/details/:slug, /visas/book/:slug.
 
----
+### Styling & Themes
+- Tailwind CSS with custom fonts.css.
+- ThemeProvider: Light/dark mode toggle.
 
-## 🛠 Tech Stack
+### Running Tests
+- No tests included; add Jest/Vitest if needed.
 
-* **Framework:** React (Vite)
-* **Routing:** React Router DOM
-* **State Management:** Context API + React Query (TanStack Query)
-* **Auth:** Firebase Authentication
-* **HTTP Client:** Axios (with interceptors for token refresh)
-* **UI Library:** Tailwind CSS + shadcn/ui components
-* **Icons:** Lucide-react / Heroicons
-* **Forms:** React Hook Form + Zod validation
-* **Charts:** Recharts (used in dashboard analytics)
-
----
-
-## 📂 Folder Structure
-
-```
-Frontend/
-├── public/                   # Static assets
-├── src/
-│   ├── assets/               # Images, icons
-│   ├── components/           # Reusable components (Navbar, Footer, Forms, Modals, etc.)
-│   ├── context/               # AuthContext, UI context
-│   ├── hooks/                 # Custom hooks (useAuth, useAxiosSecure, etc.)
-│   ├── layouts/               # Layout components (MainLayout, DashboardLayout)
-│   ├── pages/
-│   │   ├── Home/              # Landing page
-│   │   ├── Destinations/      # Destination listing & details
-│   │   ├── Bookings/          # Booking form & confirmation
-│   │   ├── Visas/             # Visa listing & details
-│   │   ├── Blogs/             # Blog listing & details
-│   │   ├── Dashboard/         # Admin dashboard
-│   │   ├── Auth/              # Login, Register
-│   │   └── Error/             # 404 & error pages
-│   ├── routes/                # Route definitions & role-based guards
-│   ├── services/              # API functions (users, bookings, visas, etc.)
-│   ├── styles/                # Global styles
-│   ├── utils/                 # Helpers & constants
-│   ├── App.jsx                # App entry with routes
-│   └── main.jsx               # ReactDOM entry
-├── .env.example
-├── package.json
-└── vite.config.js
-```
+### Deployment Notes
+- Build: `npm run build` (outputs to dist).
+- Environment: Set VITE_API_URL for backend if not localhost.
 
 ---
 
-## ⚙ Installation & Setup
+## Contributing
+- Fork, branch, PR.
+- Follow code style (ESLint in Frontend).
 
-```bash
-# Install dependencies
-npm install
-
-# Copy env file
-cp .env.example .env
-
-# Start development
-npm run dev
-
-# Build for production
-npm run build
-```
-
----
-
-## 🔑 Environment Variables
-
-| Variable                            | Description             |
-| ----------------------------------- | ----------------------- |
-| `VITE_BACKEND_URL`                  | Backend API base URL    |
-| `VITE_FIREBASE_API_KEY`             | Firebase API key        |
-| `VITE_FIREBASE_AUTH_DOMAIN`         | Firebase Auth domain    |
-| `VITE_FIREBASE_PROJECT_ID`          | Firebase Project ID     |
-| `VITE_FIREBASE_STORAGE_BUCKET`      | Firebase Storage bucket |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID      |
-| `VITE_FIREBASE_APP_ID`              | Firebase App ID         |
-
----
-
-## 🗺 Routing Structure
-
-Example route hierarchy:
-
-```
-/                  → HomePage
-/destinations      → DestinationList
-/destinations/:id  → DestinationDetails
-/bookings          → BookingForm (Protected)
-/visas             → VisaList
-/visas/:id         → VisaDetails
-/visa-bookings     → VisaBookingForm (Protected)
-/blogs             → BlogList
-/blogs/:slug       → BlogDetails
-/login             → LoginPage
-/dashboard         → DashboardLayout (Protected + Role-based)
-  /users
-  /bookings
-  /visas
-  /blogs
-  /invoices
-  /analytics
-```
-
----
-
-## 🔐 Authentication Flow
-
-1. **User logs in with Firebase Auth** (Google or Email/Password).
-2. Firebase returns an **ID token**.
-3. Frontend sends ID token to backend `/api/users` to register/get user.
-4. Backend responds with a **JWT access token** (stored in HttpOnly cookie).
-5. Axios interceptors attach JWT to protected requests.
-6. On token expiry, Axios calls `/refresh-token` to get a new one.
-
----
-
-## 📦 State Management
-
-* **AuthContext**: Stores `user`, `loading`, and auth methods.
-* **React Query**:
-
-  * Caches API responses for destinations, blogs, visas, etc.
-  * Automatic refetching on focus or invalidation.
-* **AxiosSecure Hook**: Configures axios with JWT + refresh handling.
-
----
-
-## 🧩 Components
-
-**Key reusable components:**
-
-* `Navbar` – Navigation bar with auth-aware links.
-* `Footer` – Contact & social links.
-* `HeroSection` – Home page hero banner.
-* `Card` – Destination/visa/blog card layout.
-* `Form` – Form components integrated with React Hook Form.
-* `Modal` – Generic modal with children support.
-* `DashboardSidebar` – Navigation for dashboard sections.
-* `ProtectedRoute` – Wraps routes that require login/role.
-
----
-
-## 📄 Pages
-
-**Customer-facing pages:**
-
-* Home – Featured destinations, blogs, and call-to-action.
-* Destinations – Browse/filter destinations.
-* DestinationDetails – Booking form & trip details.
-* Visas – Browse visa packages.
-* Blogs – Articles list and detail view.
-* Contact – Contact info and form.
-
-**Dashboard pages (role-based):**
-
-* Users – Manage roles & profiles.
-* Destinations – CRUD destinations.
-* Bookings – View & manage bookings.
-* Visas – CRUD visas.
-* Visa Bookings – Manage visa requests.
-* Blogs – Manage posts.
-* Invoices – Create & download invoices.
-* Analytics – Charts & recent activity.
-
----
-
-## 🌐 API Integration
-
-* **`services/`** directory contains grouped API calls:
-
-  * `userService.js` – login, getProfile, updateRole
-  * `destinationService.js` – getDestinations, createDestination
-  * `bookingService.js` – createBooking, getMyBookings
-  * `visaService.js` – getVisas, createVisa
-  * `blogService.js` – getBlogs, createBlog
-  * `invoiceService.js` – createInvoice, downloadPDF
-* All API calls use `axiosSecure` for token handling.
-
----
-
-## 🎨 Styling
-
-* **Tailwind CSS** for utility classes.
-* **shadcn/ui** for pre-styled, accessible components.
-* **Custom theme** in `tailwind.config.js` for brand colors.
-* Responsive design with mobile-first approach.
-
----
-
-## 🚀 Deployment Notes
-
-* **Hosting Options:** Vercel / Netlify / Firebase Hosting.
-* **Build Command:** `npm run build`
-* **Output Directory:** `dist/`
-* Ensure `.env` variables are set in hosting provider dashboard.
-* Backend API URL must be accessible via HTTPS in production.
-* Use Firebase domain whitelist to allow auth.
-
----
-
-✅ **Frontend Summary:**
-The Inspire Travels frontend is a **responsive, role-based web app** built with modern React tooling, providing a seamless travel booking and management experience. It integrates tightly with the backend API, Firebase Auth, and Cloudinary-hosted media.
-
----
+## License
+If you encounter issues, check console logs or open an issue. For questions, contact the maintainer.
