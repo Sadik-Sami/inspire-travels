@@ -138,7 +138,7 @@ const AdminStaffs = () => {
 	// Handle adding a new staff member
 	const handleAddUser = (newUser) => {
 		queryClient.invalidateQueries({ queryKey: ['staffs'] });
-		toast.success('Staff member added successfully');
+		toast.success('Staff member created successfully! They can now login with their credentials.');
 	};
 
 	// Handle deleting a staff member
@@ -311,7 +311,12 @@ const AdminStaffs = () => {
 			</div>
 
 			{/* Add User Dialog */}
-			<AddUserDialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen} onAddUser={handleAddUser} />
+			<AddUserDialog
+				open={isAddUserDialogOpen}
+				onOpenChange={setIsAddUserDialogOpen}
+				onAddUser={handleAddUser}
+				userType='staff'
+			/>
 
 			<Card>
 				<CardHeader className='pb-2'>
@@ -459,7 +464,7 @@ const AdminStaffs = () => {
 						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 						<AlertDialogDescription>
 							This action cannot be undone. This will permanently delete the staff account
-							{userToDelete?.name ? ` for ${userToDelete.name}` : ''}.
+							{userToDelete?.name ? ` for ${userToDelete.name}` : ''} from both the database and Firebase.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

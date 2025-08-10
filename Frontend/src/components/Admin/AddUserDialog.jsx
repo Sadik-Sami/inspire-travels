@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Check, AlertCircle } from 'lucide-react';
+import { X, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,26 +13,56 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
+import useAxiosSecure from '@/hooks/use-AxiosSecure';
+import { useMutation } from '@tanstack/react-query';
 
-const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
+const AddUserDialog = ({ open, onOpenChange, onAddUser, userType = 'customer' }) => {
+	const axiosSecure = useAxiosSecure();
+
 	const [formData, setFormData] = useState({
 		name: '',
 		email: '',
+		password: '',
 		phone: '',
-		role: '',
+		address: '',
+		passportNumber: '',
+		role: userType === 'staff' ? 'employee' : 'customer',
 	});
 
 	const [errors, setErrors] = useState({});
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [submitError, setSubmitError] = useState('');
+	const [showPassword, setShowPassword] = useState(false);
 
-	// Role options
-	const roleOptions = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'customer', label: 'Customer' },
-		{ value: 'employee', label: 'Employee' },
-		{ value: 'moderator', label: 'Moderator' },
-	];
+	// Create user mutation
+	const createUserMutation = useMutation({
+		mutationFn: async (userData) => {
+			const response = await axiosSecure.post('/api/users/create-user', userData);
+			return response.data;
+		},
+		onSuccess: (data) => {
+			onAddUser(data.user);
+			onOpenChange(false);
+			resetForm();
+		},
+		onError: (error) => {
+			console.error('Error creating user:', error);
+		},
+	});
+
+	// Reset form
+	const resetForm = () => {
+		setFormData({
+			name: '',
+			email: '',
+			password: '',
+			phone: '',
+			address: '',
+			passportNumber: '',
+			role: userType === 'staff' ? 'employee' : 'customer',
+		});
+		setErrors({});
+		setShowPassword(false);
+	};
 
 	// Handle input changes
 	const handleChange = (e) => {
@@ -58,10 +88,21 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 	};
 
+	// Validate phone format (basic validation)
+	const isValidPhone = (phone) => {
+		return /^[+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-$$$$]/g, ''));
+	};
+
+	// Validate password strength
+	const isValidPassword = (password) => {
+		return password.length >= 6;
+	};
+
 	// Validate form
 	const validateForm = () => {
 		const newErrors = {};
 
+		// Required fields
 		if (!formData.name.trim()) {
 			newErrors.name = 'Name is required';
 		}
@@ -72,8 +113,16 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 			newErrors.email = 'Invalid email format';
 		}
 
+		if (!formData.password.trim()) {
+			newErrors.password = 'Password is required';
+		} else if (!isValidPassword(formData.password)) {
+			newErrors.password = 'Password must be at least 6 characters long';
+		}
+
 		if (!formData.phone.trim()) {
 			newErrors.phone = 'Phone number is required';
+		} else if (!isValidPhone(formData.phone)) {
+			newErrors.phone = 'Invalid phone number format';
 		}
 
 		if (!formData.role) {
@@ -87,69 +136,60 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 	// Handle form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setSubmitError('');
 
 		if (!validateForm()) {
 			return;
 		}
 
-		setIsSubmitting(true);
+		createUserMutation.mutate(formData);
+	};
 
-		try {
-			// In a real app, this would be an API call
-			// For now, we'll simulate a delay and success
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			// Create user object with password same as email
-			const newUser = {
-				...formData,
-				password: formData.email, // Setting password same as email
-				id: Date.now(), // Temporary ID
-				status: 'active',
-				lastLogin: new Date().toISOString(),
-				avatar: '/placeholder.svg?height=40&width=40',
-			};
-
-			onAddUser(newUser);
+	// Handle dialog close
+	const handleClose = () => {
+		if (!createUserMutation.isPending) {
+			resetForm();
 			onOpenChange(false);
-
-			// Reset form
-			setFormData({
-				name: '',
-				email: '',
-				phone: '',
-				role: '',
-			});
-		} catch (error) {
-			console.error('Error adding user:', error);
-			setSubmitError('Failed to add user. Please try again.');
-		} finally {
-			setIsSubmitting(false);
 		}
 	};
 
+	// Get role options based on user type
+	const getRoleOptions = () => {
+		if (userType === 'staff') {
+			return [
+				{ value: 'employee', label: 'Employee' },
+				{ value: 'moderator', label: 'Moderator' },
+				{ value: 'admin', label: 'Admin' },
+			];
+		}
+		return [{ value: 'customer', label: 'Customer' }];
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='sm:max-w-[425px]'>
+		<Dialog open={open} onOpenChange={handleClose}>
+			<DialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
 				<DialogHeader>
-					<DialogTitle>Add New User</DialogTitle>
+					<DialogTitle>Add New {userType === 'staff' ? 'Staff Member' : 'Customer'}</DialogTitle>
 					<DialogDescription>
-						Create a new user account. The password will be set to match the email address.
+						Create a new {userType === 'staff' ? 'staff' : 'customer'} account. The user will be able to login using the
+						provided email and password.
 					</DialogDescription>
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit}>
-					{submitError && (
+					{createUserMutation.error && (
 						<Alert variant='destructive' className='mb-4'>
 							<AlertCircle className='h-4 w-4' />
-							<AlertDescription>{submitError}</AlertDescription>
+							<AlertDescription>
+								{createUserMutation.error.response?.data?.message || 'Failed to create user. Please try again.'}
+							</AlertDescription>
 						</Alert>
 					)}
 
 					<div className='grid gap-4 py-4'>
+						{/* Required Fields */}
 						<div className='grid gap-2'>
 							<Label htmlFor='name' className='flex items-center justify-between'>
-								Full Name
+								Full Name <span className='text-red-500'>*</span>
 								{errors.name && <span className='text-xs text-red-500'>{errors.name}</span>}
 							</Label>
 							<Input
@@ -158,12 +198,13 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 								value={formData.name}
 								onChange={handleChange}
 								className={errors.name ? 'border-red-500' : ''}
+								placeholder='Enter full name'
 							/>
 						</div>
 
 						<div className='grid gap-2'>
 							<Label htmlFor='email' className='flex items-center justify-between'>
-								Email Address
+								Email Address <span className='text-red-500'>*</span>
 								{errors.email && <span className='text-xs text-red-500'>{errors.email}</span>}
 							</Label>
 							<Input
@@ -173,12 +214,43 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 								value={formData.email}
 								onChange={handleChange}
 								className={errors.email ? 'border-red-500' : ''}
+								placeholder='Enter email address'
 							/>
 						</div>
 
 						<div className='grid gap-2'>
+							<Label htmlFor='password' className='flex items-center justify-between'>
+								Password <span className='text-red-500'>*</span>
+								{errors.password && <span className='text-xs text-red-500'>{errors.password}</span>}
+							</Label>
+							<div className='relative'>
+								<Input
+									id='password'
+									name='password'
+									type={showPassword ? 'text' : 'password'}
+									value={formData.password}
+									onChange={handleChange}
+									className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+									placeholder='Enter password (min. 6 characters)'
+								/>
+								<Button
+									type='button'
+									variant='ghost'
+									size='sm'
+									className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+									onClick={() => setShowPassword(!showPassword)}>
+									{showPassword ? (
+										<EyeOff className='h-4 w-4 text-gray-400' />
+									) : (
+										<Eye className='h-4 w-4 text-gray-400' />
+									)}
+								</Button>
+							</div>
+						</div>
+
+						<div className='grid gap-2'>
 							<Label htmlFor='phone' className='flex items-center justify-between'>
-								Phone Number
+								Phone Number <span className='text-red-500'>*</span>
 								{errors.phone && <span className='text-xs text-red-500'>{errors.phone}</span>}
 							</Label>
 							<Input
@@ -187,12 +259,13 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 								value={formData.phone}
 								onChange={handleChange}
 								className={errors.phone ? 'border-red-500' : ''}
+								placeholder='Enter phone number'
 							/>
 						</div>
 
 						<div className='grid gap-2'>
 							<Label htmlFor='role' className='flex items-center justify-between'>
-								Role
+								Role <span className='text-red-500'>*</span>
 								{errors.role && <span className='text-xs text-red-500'>{errors.role}</span>}
 							</Label>
 							<Select onValueChange={handleRoleChange} value={formData.role}>
@@ -200,7 +273,7 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 									<SelectValue placeholder='Select a role' />
 								</SelectTrigger>
 								<SelectContent>
-									{roleOptions.map((role) => (
+									{getRoleOptions().map((role) => (
 										<SelectItem key={role.value} value={role.value}>
 											{role.label}
 										</SelectItem>
@@ -208,23 +281,53 @@ const AddUserDialog = ({ open, onOpenChange, onAddUser }) => {
 								</SelectContent>
 							</Select>
 						</div>
+
+						{/* Optional Fields */}
+						<div className='border-t pt-4'>
+							<h4 className='text-sm font-medium text-gray-700 mb-3'>Optional Information</h4>
+
+							<div className='grid gap-4'>
+								<div className='grid gap-2'>
+									<Label htmlFor='address'>Address</Label>
+									<Textarea
+										id='address'
+										name='address'
+										value={formData.address}
+										onChange={handleChange}
+										placeholder='Enter address (optional)'
+										rows={2}
+									/>
+								</div>
+
+								<div className='grid gap-2'>
+									<Label htmlFor='passportNumber'>Passport Number</Label>
+									<Input
+										id='passportNumber'
+										name='passportNumber'
+										value={formData.passportNumber}
+										onChange={handleChange}
+										placeholder='Enter passport number (optional)'
+									/>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<DialogFooter>
-						<Button type='button' variant='outline' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+						<Button type='button' variant='outline' onClick={handleClose} disabled={createUserMutation.isPending}>
 							<X className='mr-2 h-4 w-4' />
 							Cancel
 						</Button>
-						<Button type='submit' disabled={isSubmitting}>
-							{isSubmitting ? (
+						<Button type='submit' disabled={createUserMutation.isPending}>
+							{createUserMutation.isPending ? (
 								<>
 									<div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-									Adding...
+									Creating...
 								</>
 							) : (
 								<>
 									<Check className='mr-2 h-4 w-4' />
-									Add User
+									Create {userType === 'staff' ? 'Staff' : 'User'}
 								</>
 							)}
 						</Button>

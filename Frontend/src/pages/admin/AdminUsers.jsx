@@ -90,7 +90,7 @@ const AdminUsers = () => {
 	// Handle adding a new user
 	const handleAddUser = (newUser) => {
 		queryClient.invalidateQueries({ queryKey: ['users'] });
-		toast.success('User added successfully');
+		toast.success('Customer created successfully! They can now login with their credentials.');
 	};
 
 	// Handle deleting a user
@@ -158,14 +158,14 @@ const AdminUsers = () => {
 	return (
 		<div>
 			<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4'>
-				<h1 className='text-3xl font-bold'>Users Management</h1>
+				<h1 className='text-3xl font-bold'>Customer Management</h1>
 
 				<div className='flex flex-col sm:flex-row gap-4'>
 					<div className='relative'>
 						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
 						<Input
 							type='search'
-							placeholder='Search users...'
+							placeholder='Search customers...'
 							className='pl-8 w-full sm:w-[250px]'
 							value={searchQuery}
 							onChange={(e) => {
@@ -177,22 +177,27 @@ const AdminUsers = () => {
 
 					<Button variant='default' className='flex items-center gap-2' onClick={() => setIsAddUserDialogOpen(true)}>
 						<Plus className='h-4 w-4' />
-						Add User
+						Add Customer
 					</Button>
 				</div>
 			</div>
 
 			{/* Add User Dialog */}
-			<AddUserDialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen} onAddUser={handleAddUser} />
+			<AddUserDialog
+				open={isAddUserDialogOpen}
+				onOpenChange={setIsAddUserDialogOpen}
+				onAddUser={handleAddUser}
+				userType='customer'
+			/>
 
 			<Card>
 				<CardHeader className='pb-2'>
-					<CardTitle>Users</CardTitle>
+					<CardTitle>Customers</CardTitle>
 					<CardDescription>
 						Manage your customers and their information.
 						{!isLoading && (
 							<span className='ml-2 text-sm'>
-								Showing {users.length} of {pagination.total} users
+								Showing {users.length} of {pagination.total} customers
 							</span>
 						)}
 					</CardDescription>
@@ -203,9 +208,9 @@ const AdminUsers = () => {
 							<div className='animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full'></div>
 						</div>
 					) : isError ? (
-						<div className='text-center py-8 text-red-500'>Error loading users. Please try again.</div>
+						<div className='text-center py-8 text-red-500'>Error loading customers. Please try again.</div>
 					) : users.length === 0 ? (
-						<div className='text-center py-8 text-muted-foreground'>No users found. Try adjusting your search.</div>
+						<div className='text-center py-8 text-muted-foreground'>No customers found. Try adjusting your search.</div>
 					) : (
 						<div className='overflow-x-auto'>
 							<Table>
@@ -216,7 +221,7 @@ const AdminUsers = () => {
 												variant='outline'
 												className='p-2 font-bold flex items-center rounded'
 												onClick={() => handleSort('name')}>
-												User {getSortIcon('name')}
+												Customer {getSortIcon('name')}
 											</Button>
 										</TableHead>
 										<TableHead>
@@ -326,8 +331,8 @@ const AdminUsers = () => {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete the user account
-							{userToDelete?.name ? ` for ${userToDelete.name}` : ''}.
+							This action cannot be undone. This will permanently delete the customer account
+							{userToDelete?.name ? ` for ${userToDelete.name}` : ''} from both the database and Firebase.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
