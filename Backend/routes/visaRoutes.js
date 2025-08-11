@@ -32,9 +32,17 @@ const transformNestedFields = (data) => {
 	return transformedData;
 };
 
-// ===== ADMIN ROUTES =====
-// IMPORTANT: Place more specific routes BEFORE generic routes with params
+router.get('/featured', async (req, res) => {
+	try {
+		const featured = await Visa.find({ featured: true });
+		res.status(200).json(featured);
+	} catch (error) {
+		console.error('Error fetching featured visas', error);
+		res.status(500).json({ message: 'Server error', error: error.message });
+	}
+});
 
+// ===== ADMIN ROUTES =====
 // Get all visas (admin, including inactive)
 router.get('/admin/all', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {

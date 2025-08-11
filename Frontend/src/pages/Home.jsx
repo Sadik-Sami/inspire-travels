@@ -3,6 +3,7 @@ import FeaturedDestinations from '@/components/Sections/FeaturedDestinations';
 import ValueProposition from '@/components/Sections/ValueProposition';
 import TestimonialSection from '@/components/Sections/TestimonialSection';
 import NewsletterSection from '@/components/Sections/NewsletterSection';
+import FeaturedVisas from '@/components/Sections/FeaturedVisas';
 
 const Home = () => {
 	return (
@@ -19,6 +20,9 @@ const Home = () => {
 
 			{/* Featured Destinations */}
 			<FeaturedDestinations />
+
+			{/* Featured Visas */}
+			<FeaturedVisas />
 
 			{/* Why Choose Us */}
 			<ValueProposition />

@@ -56,11 +56,26 @@ export const useVisaQuery = () => {
 		});
 	};
 
+	const useGetFeaturedVisas = () => {
+		return useQuery({
+			queryKey: ['featured-visas'],
+			queryFn: async () => {
+				const response = await axiosPublic.get('/api/visas/featured');
+				return response.data;
+			},
+			staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
+			cacheTime: 60 * 60 * 1000, // 10 minutes
+			retry: 3,
+			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+		});
+	};
+
 	return {
 		useGetVisas,
 		useGetVisaById,
 		useGetVisaBySlug,
 		useGetAdminVisas,
+		useGetFeaturedVisas,
 	};
 };
 

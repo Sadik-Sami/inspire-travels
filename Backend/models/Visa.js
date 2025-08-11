@@ -42,7 +42,7 @@ const visaSchema = new mongoose.Schema(
 			currency: {
 				type: String,
 				enum: ['USD', 'EUR', 'GBP', 'BDT'],
-				default: 'USD',
+				default: 'BDT',
 			},
 		},
 		images: [
