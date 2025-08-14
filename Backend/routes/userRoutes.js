@@ -1,26 +1,40 @@
 const express = require('express');
 const User = require('../models/User');
-const { verifyRole, verifyUser, verifyFirebaseToken } = require('../middlewares/authMiddleware');
-const { generateAccessToken } = require('../utils/authUtils');
+const { verifyRole, verifyUser, verifyFirebaseToken, verifyRefreshToken } = require('../middlewares/authMiddleware');
+const { generateAccessToken, generateTokenId, generateRefreshToken } = require('../utils/authUtils');
 const { uploadUserImage, deleteImage } = require('../config/cloudinary');
 const upload = require('../middlewares/uploadMiddleware');
 const admin = require('../config/firebase-admin');
 const router = express.Router();
 
-// Helper function to handle token generation and response
+// 🔄 UPDATED: Helper function to handle dual token generation and response
 const createTokenAndRespond = async (user, res) => {
-	const cookieOptions = {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
-		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-		maxAge: 24 * 60 * 60 * 1000,
-	};
 	try {
-		// Generate access token
+		// Generate short-lived access token (1 hour)
 		const accessToken = generateAccessToken(user._id, user.role);
 
-		// Send response with token in cookie and user data
-		res.cookie('token', accessToken, cookieOptions).json({
+		// Generate refresh token ID and token (6 hours)
+		const refreshTokenId = generateTokenId();
+		const refreshToken = generateRefreshToken(user._id, refreshTokenId);
+
+		// Store refresh token in database
+		user.refreshTokens.push({
+			tokenId: refreshTokenId,
+			token: refreshToken,
+		});
+		await user.save();
+
+		// Cookie options for refresh token
+		const refreshCookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+			maxAge: 6 * 60 * 60 * 1000, // 6 hours
+			path: '/',
+		};
+
+		// Send response with refresh token in cookie and access token in response
+		res.cookie('refreshToken', refreshToken, refreshCookieOptions).json({
 			success: true,
 			user: {
 				_id: user._id,
@@ -32,12 +46,63 @@ const createTokenAndRespond = async (user, res) => {
 				profileImage: user.profileImage,
 				role: user.role,
 			},
-			accessToken,
+			accessToken, // Short-lived token for localStorage
 		});
 	} catch (error) {
 		throw error;
 	}
 };
+
+// UPDATED: Refresh token endpoint now uses middleware
+// @route POST /api/users/refresh-token
+// @desc Refresh access token using refresh token from cookie
+// @access Public (but requires valid refresh token)
+router.post('/refresh-token', verifyRefreshToken, async (req, res) => {
+	try {
+		const { user, refreshTokenData } = req;
+		const { storedToken } = refreshTokenData;
+
+		// Mark current token as used (for token rotation)
+		storedToken.isUsed = true;
+
+		// Generate new access token
+		const newAccessToken = generateAccessToken(user._id, user.role);
+
+		// Generate new refresh token (token rotation)
+		const newRefreshTokenId = generateTokenId();
+		const newRefreshToken = generateRefreshToken(user._id, newRefreshTokenId);
+
+		// Store new refresh token
+		user.refreshTokens.push({
+			tokenId: newRefreshTokenId,
+			token: newRefreshToken,
+		});
+
+		await user.save();
+
+		// Set new refresh token cookie
+		const refreshCookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+			maxAge: 6 * 60 * 60 * 1000, // 6 hours
+			path: '/',
+		};
+
+		res.cookie('refreshToken', newRefreshToken, refreshCookieOptions).json({
+			success: true,
+			accessToken: newAccessToken,
+			message: 'Token refreshed successfully',
+		});
+	} catch (error) {
+		console.error('Refresh token error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Server Error',
+			error: error.message,
+		});
+	}
+});
 
 // @route POST /api/users/create-user
 // @desc Create a new user using Firebase Admin SDK
@@ -172,31 +237,35 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 		const { name, phone, address } = req.body;
 		const { uid, email } = req.firebaseUser;
 
-		// Check if user exists
-		let user = await User.findOne({ firebaseUid: uid });
+		// Prepare user data
+		const updateData = {
+			name: name || req.firebaseUser.name || '',
+			email,
+			phone: phone || '',
+			address: address || '',
+			firebaseUid: uid,
+		};
 
-		if (!user) {
-			// Create new user
-			user = new User({
-				name: name || req.firebaseUser.name || '',
-				email,
-				phone: phone || '',
-				address: address || '',
-				firebaseUid: uid,
-			});
-			await user.save();
-		} else {
-			// Update user info if provided
-			if (name) user.name = name;
-			if (phone) user.phone = phone;
-			if (address) user.address = address;
-			await user.save();
-		}
+		// Create or update atomically
+		const user = await User.findOneAndUpdate(
+			{ firebaseUid: uid }, // lookup by Firebase UID (guaranteed unique)
+			{ $set: updateData },
+			{ new: true, upsert: true } // create if not exists
+		);
 
 		// Create token and respond
 		await createTokenAndRespond(user, res);
 	} catch (error) {
 		console.error('Firebase auth error:', error);
+
+		// Handle duplicate key error gracefully (should be rare with upsert)
+		if (error.code === 11000) {
+			return res.status(409).json({
+				success: false,
+				message: 'A user with this email already exists.',
+			});
+		}
+
 		res.status(500).json({
 			success: false,
 			message: 'Server Error',
@@ -205,17 +274,30 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 	}
 });
 
+// UPDATED: Logout user and clear both cookies
 // @route POST /api/users/logout
-// @desc Logout user and clear cookie
+// @desc Logout user and clear cookies
 // @access Private
 router.post('/logout', verifyUser, async (req, res) => {
 	try {
+		// Clear all refresh tokens for this user from database
+		const user = await User.findById(req.user._id);
+		if (user) {
+			user.refreshTokens = [];
+			await user.save();
+		}
+
+		// Clear both cookies
+		const cookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+			path: '/',
+		};
+
 		res
-			.clearCookie('token', {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-			})
+			.clearCookie('token', cookieOptions) // Old cookie (if exists)
+			.clearCookie('refreshToken', cookieOptions) // New refresh token cookie
 			.json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		console.log(error);

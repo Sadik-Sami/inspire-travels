@@ -1,11 +1,41 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-// Generate access token
+// Generate access token (short-lived - 1 hour)
 const generateAccessToken = (userId, role) => {
-	const payload = { user: { id: userId, role } };
-	return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+	return jwt.sign(
+		{
+			user: {
+				id: userId,
+				role: role,
+			},
+			type: 'access',
+		},
+		process.env.JWT_SECRET,
+		{ expiresIn: '1h' }
+	);
+};
+
+// Generate refresh token (long-lived - 6 hours)
+const generateRefreshToken = (userId, tokenId) => {
+	return jwt.sign(
+		{
+			userId: userId,
+			tokenId: tokenId,
+			type: 'refresh',
+		},
+		process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
+		{ expiresIn: '6h' }
+	);
+};
+
+// Generate unique token ID for refresh tokens
+const generateTokenId = () => {
+	return crypto.randomBytes(32).toString('hex');
 };
 
 module.exports = {
 	generateAccessToken,
+	generateRefreshToken,
+	generateTokenId,
 };

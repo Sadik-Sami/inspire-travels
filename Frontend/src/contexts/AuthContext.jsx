@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+	// Memory-only state for full user data (including sensitive info)
 	const [user, setUser] = useState(null);
 	const [firebaseUser, setFirebaseUser] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 	const syncUserWithBackend = async (firebaseUser, additionalData = {}) => {
 		setLoading(true);
 		try {
-			const idToken = await firebaseUser.getIdToken(); // Getting the Firebase ID token using the Firebase user object
+			const idToken = await firebaseUser.getIdToken();
 			const { data } = await axiosPublic.post(
 				'/api/users/firebase-auth',
 				{
@@ -44,8 +45,20 @@ export const AuthProvider = ({ children }) => {
 			);
 
 			if (data.success) {
+				// Store ONLY minimal, non-sensitive data in localStorage
+				const minimalUserData = {
+					_id: data.user._id,
+					name: data.user.name,
+					email: data.user.email,
+					profileImage: data.user.profileImage,
+					// NO sensitive data: role, passportNumber, phone, address
+				};
+
+				// Store minimal data in localStorage and access token
 				localStorage.setItem('accessToken', data.accessToken);
-				localStorage.setItem('user', JSON.stringify(data.user));
+				localStorage.setItem('user', JSON.stringify(minimalUserData));
+
+				// Store FULL user data in memory-only state (secure)
 				setUser(data.user);
 				setAccessToken(data.accessToken);
 
@@ -64,23 +77,70 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
+	// Function to fetch full user data from server (when needed)
+	const fetchUserData = async () => {
+		try {
+			const currentAccessToken = accessToken || localStorage.getItem('accessToken');
+
+			if (!currentAccessToken) {
+				return null;
+			}
+
+			const { data } = await axiosPublic.get('/api/users/profile', {
+				headers: {
+					Authorization: `Bearer ${currentAccessToken}`,
+				},
+				withCredentials: true,
+			});
+
+			if (data) {
+				// Update memory-only state with full user data
+				setUser(data);
+				return data;
+			}
+		} catch (error) {
+			console.error('Error fetching user data:', error);
+			// If token is invalid, clear auth data
+			if (error.response?.status === 401) {
+				clearAuthData();
+			}
+			return null;
+		}
+	};
+
 	// Check if user is already logged in on mount
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 			setLoading(true);
 			setFirebaseUser(currentUser);
+
 			try {
 				if (currentUser?.email) {
-					const userData = JSON.parse(localStorage.getItem('user'));
-					if (userData) {
-						setUser(userData);
+					// Check if we have minimal user data in localStorage
+					const storedUser = localStorage.getItem('user');
+					const storedToken = localStorage.getItem('accessToken');
+
+					if (storedUser && storedToken) {
+						// Set minimal data from localStorage for immediate UI rendering
+						const minimalUser = JSON.parse(storedUser);
+						setUser(minimalUser); // Temporary minimal data
+						setAccessToken(storedToken);
+
+						// Fetch full user data in background (including role, passport, etc.)
+						const fullUserData = await fetchUserData();
+						if (fullUserData) {
+							setUser(fullUserData); // Replace with full data
+						}
+					} else {
+						// No stored data, sync with backend
+						await syncUserWithBackend(currentUser);
 					}
-					await syncUserWithBackend(currentUser);
 				} else {
 					clearAuthData();
 				}
 			} catch (error) {
-				console.error('Error syncing user with backend:', error);
+				console.error('Error in auth state change:', error);
+				clearAuthData();
 			} finally {
 				setLoading(false);
 			}
@@ -104,7 +164,6 @@ export const AuthProvider = ({ children }) => {
 			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 			await updateProfile(userCredential.user, { displayName: name });
 
-			// Sync with backend
 			const result = await syncUserWithBackend(userCredential.user, { name, phone, address });
 
 			if (result.success) {
@@ -170,7 +229,6 @@ export const AuthProvider = ({ children }) => {
 			const provider = new GoogleAuthProvider();
 			const userCredential = await signInWithPopup(auth, provider);
 
-			// Sync with backend
 			const result = await syncUserWithBackend(userCredential.user);
 
 			if (result.success) {
@@ -229,9 +287,18 @@ export const AuthProvider = ({ children }) => {
 			});
 
 			if (data.success) {
-				// Update local storage and state
-				localStorage.setItem('user', JSON.stringify(data.user));
+				// Update memory-only state with full user data
 				setUser(data.user);
+
+				// Update ONLY minimal data in localStorage
+				const minimalUserData = {
+					_id: data.user._id,
+					name: data.user.name,
+					email: data.user.email,
+					profileImage: data.user.profileImage,
+				};
+				localStorage.setItem('user', JSON.stringify(minimalUserData));
+
 				toast.success('Profile updated successfully!');
 				return { success: true, user: data.user };
 			}
@@ -255,7 +322,6 @@ export const AuthProvider = ({ children }) => {
 				throw new Error('No access token available');
 			}
 
-			// Create FormData to send file
 			const formData = new FormData();
 			formData.append('profileImage', imageFile);
 
@@ -268,10 +334,15 @@ export const AuthProvider = ({ children }) => {
 			});
 
 			if (data.success) {
-				// Update user in state and localStorage
+				// Update memory-only state
 				const updatedUser = { ...user, profileImage: data.profileImage };
-				localStorage.setItem('user', JSON.stringify(updatedUser));
 				setUser(updatedUser);
+
+				// Update minimal data in localStorage
+				const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+				const updatedMinimalUser = { ...storedUser, profileImage: data.profileImage };
+				localStorage.setItem('user', JSON.stringify(updatedMinimalUser));
+
 				toast.success('Profile image updated successfully!');
 				return { success: true, profileImage: data.profileImage };
 			}
@@ -303,10 +374,15 @@ export const AuthProvider = ({ children }) => {
 			});
 
 			if (data.success) {
-				// Update user in state and localStorage
+				// Update memory-only state
 				const updatedUser = { ...user, profileImage: { url: '', publicId: '' } };
-				localStorage.setItem('user', JSON.stringify(updatedUser));
 				setUser(updatedUser);
+
+				// Update minimal data in localStorage
+				const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+				const updatedMinimalUser = { ...storedUser, profileImage: { url: '', publicId: '' } };
+				localStorage.setItem('user', JSON.stringify(updatedMinimalUser));
+
 				toast.success('Profile image deleted successfully!');
 				return { success: true };
 			}
@@ -324,7 +400,6 @@ export const AuthProvider = ({ children }) => {
 	// Logout function
 	const logout = async () => {
 		try {
-			// Call logout endpoint to clear cookie
 			const currentAccessToken = accessToken || localStorage.getItem('accessToken');
 
 			if (currentAccessToken) {
@@ -340,13 +415,11 @@ export const AuthProvider = ({ children }) => {
 				);
 			}
 
-			// Sign out from Firebase
 			await signOut(auth);
 			toast.success('Logged out successfully!');
 		} catch (error) {
 			console.error('Logout error:', error);
 		} finally {
-			// Clear local storage and state regardless of server response
 			clearAuthData();
 			navigate('/login');
 		}
@@ -368,6 +441,7 @@ export const AuthProvider = ({ children }) => {
 		updateUserProfile,
 		uploadProfileImage,
 		deleteProfileImage,
+		fetchUserData,
 		isAuthenticated,
 	};
 

@@ -17,7 +17,7 @@ const useAxiosSecure = () => {
 		// REQUEST INTERCEPTOR
 		// This runs before every request is sent
 		const requestInterceptor = axiosSecureInstance.interceptors.request.use(
-			function (config) {
+			(config) => {
 				// Add access token to Authorization header if available
 				// This provides fallback authentication via headers when cookies aren't available
 				const accessToken = localStorage.getItem('accessToken');
@@ -26,27 +26,60 @@ const useAxiosSecure = () => {
 				}
 				return config;
 			},
-			function (error) {
-				return Promise.reject(error);
-			}
+			(error) => Promise.reject(error)
 		);
 
-		// RESPONSE INTERCEPTOR
-		// This runs after every response is received
+		// UPDATED: Response interceptor with automatic token refresh
 		const responseInterceptor = axiosSecureInstance.interceptors.response.use(
-			function (response) {
+			(response) => {
 				// If response is successful, just return it
 				return response;
 			},
-			async function (error) {
+			async (error) => {
+				const originalRequest = error.config;
 				const status = error.response?.status;
 
 				// Handle authentication errors
+				if (status === 401 && !originalRequest._retry) {
+					originalRequest._retry = true;
+
+					try {
+						// Try to refresh the token using the refresh token cookie
+						const refreshResponse = await axiosSecureInstance.post('/api/users/refresh-token');
+
+						if (refreshResponse.data.success) {
+							// Update access token in localStorage
+							localStorage.setItem('accessToken', refreshResponse.data.accessToken);
+
+							// Update the authorization header for the original request
+							originalRequest.headers.authorization = `Bearer ${refreshResponse.data.accessToken}`;
+
+							// Retry the original request with the new token
+							return axiosSecureInstance(originalRequest);
+						}
+					} catch (refreshError) {
+						console.error('Token refresh failed:', refreshError);
+
+						// Check if it's a security breach (forceReLogin flag)
+						if (refreshError.response?.data?.forceReLogin) {
+							console.log('Security breach detected - forcing re-login');
+							localStorage.clear();
+							logout();
+							navigate('/login?reason=security');
+							return Promise.reject(refreshError);
+						}
+
+						// Regular refresh failure - logout and redirect
+						console.log('Refresh token expired - logging out');
+						logout();
+						navigate('/login');
+						return Promise.reject(refreshError);
+					}
+				}
+
+				// Handle other 401/403 errors or if retry already attempted
 				if (status === 401 || status === 403) {
-					// Token is invalid/expired or user doesn't have permission
-					// No refresh token logic - just logout and redirect
-					// TODO: Handle token refresh logic if needed
-					console.log('Authentication failed, logging out...');
+					console.log('Authentication failed - logging out');
 					logout();
 					navigate('/login');
 				}

@@ -45,6 +45,31 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
+		refreshTokens: [
+			{
+				tokenId: {
+					type: String,
+					required: true,
+				},
+				token: {
+					type: String,
+					required: true,
+				},
+				createdAt: {
+					type: Date,
+					default: Date.now,
+				},
+				expiresAt: {
+					type: Date,
+					default: () => new Date(Date.now() + 6 * 60 * 60 * 1000),
+					expires: 0,
+				},
+				isUsed: {
+					type: Boolean,
+					default: false,
+				},
+			},
+		],
 	},
 	{
 		timestamps: true,
@@ -53,11 +78,10 @@ const userSchema = new mongoose.Schema(
 
 // Index for better query performance
 userSchema.index({ name: 1 });
-userSchema.index({ email: 1 });
 userSchema.index({ phone: 1 });
 userSchema.index({ passportNumber: 1 });
-userSchema.index({ firebaseUid: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ createdAt: -1 });
+userSchema.index({ 'refreshTokens.tokenId': 1 });
 
 module.exports = mongoose.model('User', userSchema);
