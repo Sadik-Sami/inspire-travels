@@ -4,7 +4,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const PORT = process.env.PORT || 3000;
-// Routes
 const userRoutes = require('./routes/userRoutes');
 const destinationRoutes = require('./routes/destinationRoutes');
 const blogRoutes = require('./routes/blogRoutes');
@@ -14,35 +13,30 @@ const visaBookingRoutes = require('./routes/visaBookingRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const contactInfoRoutes = require('./routes/contactInfoRoutes');
-
+const cronRoutes = require('./routes/cronRoutes');
 dotenv.config();
 
 const app = express();
 app.set('trust proxy', 1);
 
-const allowedOrigins = [
-	'https://inspire-dev.netlify.app', // production frontend
-	'http://localhost:5173', // local frontend
-];
-
+// Cors Options
+const allowedOrigins = ['https://inspire-dev.netlify.app', 'http://localhost:5173'];
 const corsOptions = {
 	origin: function (origin, callback) {
-		if (!origin) return callback(null, true); // allow non-browser requests
+		if (!origin) return callback(null, true);
 		if (allowedOrigins.includes(origin)) return callback(null, true);
 		return callback(new Error('Not allowed by CORS'));
 	},
-	credentials: true, // allow cookies
+	credentials: true,
 	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
 };
 
+// Middlewares
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
 app.use(express.json());
 app.use(cookieParser());
-
-// Error handling middleware
 app.use((err, req, res, next) => {
 	console.error(err.stack);
 	res.status(500).json({
@@ -54,10 +48,12 @@ app.use((err, req, res, next) => {
 // connect to MongoDB
 connectDB();
 
+// Root Route
 app.get('/', (req, res) => {
 	res.send('Welcome to Inspire API');
 });
 
+// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/blogs', blogRoutes);
@@ -67,6 +63,7 @@ app.use('/api/visa-bookings', visaBookingRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact-info', contactInfoRoutes);
+app.use('/api/cron', cronRoutes);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
