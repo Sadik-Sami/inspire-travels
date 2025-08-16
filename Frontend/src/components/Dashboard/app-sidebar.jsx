@@ -17,11 +17,15 @@ import {
 	SidebarMenuItem,
 	SidebarGroup,
 	SidebarGroupLabel,
+	SidebarMenuSub,
+	SidebarMenuSubItem,
+	SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ThemeToggle } from '../Theme/theme-toggle';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 const data = {
 	navMain: [
