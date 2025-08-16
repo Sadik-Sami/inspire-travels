@@ -17,7 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AddDestination from './pages/admin/AddDestination';
 import EditDestination from './pages/admin/EditDestination';
 import DestinationDetails from './pages/DestinationDetails';
-import AdminRoute from '@/routes/AdminRoute';
+import RoleBasedRoute from '@/components/rbac/RoleBasedRoute';
 import AddBlog from './pages/admin/AddBlog';
 import AdminBlogs from './pages/admin/AdminBlogs';
 import Blogs from './pages/Blogs';
@@ -42,6 +42,7 @@ import AdminContactInfo from './pages/admin/AdminContactInfo';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import AdminStaffs from './pages/admin/AdminStaffs';
+import { PERMISSIONS } from './config/rbac';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -52,6 +53,7 @@ const App = () => {
 			},
 		},
 	});
+
 	return (
 		<QueryClientProvider client={queryClient}>
 			<ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
@@ -59,6 +61,7 @@ const App = () => {
 					<AuthProvider>
 						<Toaster richColors position='top-right' />
 						<Routes>
+							{/* Public Routes */}
 							<Route path='/' element={<UserLayout />}>
 								<Route index element={<Home />} />
 								<Route path='about' element={<About />} />
@@ -73,6 +76,8 @@ const App = () => {
 								<Route path='login' element={<Login />} />
 								<Route path='signup' element={<Signup />} />
 								<Route path='forgot-password' element={<ForgotPassword />} />
+
+								{/* Protected User Routes */}
 								<Route
 									path='/profile'
 									element={
@@ -90,37 +95,171 @@ const App = () => {
 									}
 								/>
 							</Route>
+
+							{/* Admin Routes with Role-Based Protection */}
 							<Route
 								path='/admin'
 								element={
-									<AdminRoute allowedRoles={['admin', 'employee', 'moderator']}>
+									<RoleBasedRoute
+										requiredPermissions={[
+											PERMISSIONS.VIEW_ALL_USERS,
+											PERMISSIONS.MANAGE_INVOICES,
+											PERMISSIONS.MANAGE_DESTINATIONS,
+										]}>
 										<AdminLayout />
-									</AdminRoute>
+									</RoleBasedRoute>
 								}>
 								<Route index element={<AdminHome />} />
-								<Route path='users' element={<AdminUsers />} />
-								<Route path='staffs' element={<AdminStaffs />} />
-								{/* Destination Packages */}
-								<Route path='destinations' element={<AdminDestinations />} />
-								<Route path='destinations/new' element={<AddDestination />} />
-								<Route path='destinations/edit/:id' element={<EditDestination />} />
-								{/* Visa Packages */}
-								<Route path='visas' element={<AdminVisas />} />
-								<Route path='visas/new' element={<AddVisa />} />
-								<Route path='visas/edit/:id' element={<EditVisa />} />
-								{/* Blogs */}
-								<Route path='blogs' element={<AdminBlogs />} />
-								<Route path='blogs/new' element={<AddBlog />} />
-								<Route path='blogs/edit/:id' element={<EditBlog />} />
-								{/* Bookings */}
-								<Route path='bookings' element={<AdminBookings />} />
-								{/* Invoices */}
-								<Route path='invoices' element={<AdminInvoices />} />
-								<Route path='invoices/new' element={<CreateInvoice />} />
-								<Route path='invoices/analytics' element={<InvoiceAnalytics />} />
-								<Route path='invoices/:id' element={<InvoiceDetailsPage />} />
-								<Route path='contact-info' element={<AdminContactInfo />} />
+
+								{/* User Management - Admin Only */}
+								<Route
+									path='users'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ALL_USERS]}>
+											<AdminUsers />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='staffs'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_STAFF]}>
+											<AdminStaffs />
+										</RoleBasedRoute>
+									}
+								/>
+
+								{/* Content Management - Admin & Moderator */}
+								<Route
+									path='destinations'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+											<AdminDestinations />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='destinations/new'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+											<AddDestination />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='destinations/edit/:id'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+											<EditDestination />
+										</RoleBasedRoute>
+									}
+								/>
+
+								{/* Visa Management - Admin & Moderator */}
+								<Route
+									path='visas'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+											<AdminVisas />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='visas/new'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+											<AddVisa />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='visas/edit/:id'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+											<EditVisa />
+										</RoleBasedRoute>
+									}
+								/>
+
+								{/* Blog Management - Admin & Moderator */}
+								<Route
+									path='blogs'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+											<AdminBlogs />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='blogs/new'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+											<AddBlog />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='blogs/edit/:id'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+											<EditBlog />
+										</RoleBasedRoute>
+									}
+								/>
+
+								{/* Financial Management - Admin & Employee */}
+								<Route
+									path='bookings'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_BOOKINGS]}>
+											<AdminBookings />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='invoices'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+											<AdminInvoices />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='invoices/new'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+											<CreateInvoice />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='invoices/analytics'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ANALYTICS]}>
+											<InvoiceAnalytics />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='invoices/:id'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+											<InvoiceDetailsPage />
+										</RoleBasedRoute>
+									}
+								/>
+
+								{/* System Settings - Admin Only */}
+								<Route
+									path='contact-info'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_CONTACT_INFO]}>
+											<AdminContactInfo />
+										</RoleBasedRoute>
+									}
+								/>
 							</Route>
+
 							{/* Error Pages */}
 							<Route path='/access-denied' element={<AccessDeniedPage />} />
 							<Route path='*' element={<NotFoundPage />} />

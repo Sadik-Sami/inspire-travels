@@ -1,81 +1,112 @@
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
+import { Shield, ArrowLeft, Home, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import useRole from '@/hooks/use-Role';
+import RoleIndicator from '@/components/rbac/RoleIndicator';
+import { PERMISSIONS } from '@/config/rbac';
 
-const AccessDeniedPage = () => {
+const AccessDeniedPage = ({ requiredPermissions = [], userRole = null }) => {
 	const navigate = useNavigate();
 	const { user } = useAuth();
+	const { role } = useRole();
+	const currentRole = userRole || role;
+
+	const getPermissionDescription = (permission) => {
+		const descriptions = {
+			[PERMISSIONS.VIEW_ALL_USERS]: 'View all users',
+			[PERMISSIONS.MANAGE_USERS]: 'Manage user accounts',
+			[PERMISSIONS.MANAGE_STAFF]: 'Manage staff members',
+			[PERMISSIONS.MANAGE_DESTINATIONS]: 'Manage destination packages',
+			[PERMISSIONS.MANAGE_VISAS]: 'Manage visa packages',
+			[PERMISSIONS.MANAGE_BLOGS]: 'Manage blog content',
+			[PERMISSIONS.VIEW_BOOKINGS]: 'View booking information',
+			[PERMISSIONS.MANAGE_INVOICES]: 'Manage invoices',
+			[PERMISSIONS.VIEW_ANALYTICS]: 'View analytics and reports',
+			[PERMISSIONS.MANAGE_CONTACT_INFO]: 'Manage contact information',
+			[PERMISSIONS.SYSTEM_SETTINGS]: 'Access system settings',
+		};
+		return descriptions[permission] || permission;
+	};
 
 	return (
-		<div className='min-h-screen flex flex-col items-center justify-center p-4 bg-background'>
+		<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 p-4'>
 			<motion.div
-				className='max-w-md w-full mx-auto text-center space-y-6'
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5 }}>
-				<motion.div
-					initial={{ scale: 0.8, opacity: 0 }}
-					animate={{ scale: 1, opacity: 1 }}
-					transition={{
-						type: 'spring',
-						stiffness: 300,
-						damping: 20,
-						delay: 0.2,
-					}}
-					className='mx-auto'>
-					<div className='bg-danger/10 p-6 rounded-full inline-block'>
-						<ShieldAlert className='h-16 w-16 text-danger' />
-					</div>
-				</motion.div>
+				initial={{ opacity: 0, scale: 0.9 }}
+				animate={{ opacity: 1, scale: 1 }}
+				transition={{ duration: 0.5 }}
+				className='w-full max-w-md'>
+				<Card className='border-red-200 dark:border-red-800'>
+					<CardHeader className='text-center'>
+						<motion.div
+							initial={{ rotate: 0 }}
+							animate={{ rotate: [0, -10, 10, -10, 0] }}
+							transition={{ duration: 0.5, delay: 0.2 }}
+							className='mx-auto mb-4'>
+							<div className='relative'>
+								<Shield className='h-16 w-16 text-red-500 mx-auto' />
+								<AlertTriangle className='h-6 w-6 text-orange-500 absolute -top-1 -right-1' />
+							</div>
+						</motion.div>
 
-				<motion.h1
-					className='text-3xl font-bold text-foreground'
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.3 }}>
-					Access Denied
-				</motion.h1>
+						<CardTitle className='text-2xl font-bold text-red-700 dark:text-red-400'>Access Denied</CardTitle>
 
-				<motion.p
-					className='text-muted-foreground text-lg'
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.4 }}>
-					Oops! You don't have sufficient permissions to access this area.
-				</motion.p>
+						<CardDescription className='text-red-600 dark:text-red-300'>
+							You don't have permission to access this resource
+						</CardDescription>
+					</CardHeader>
 
-				<motion.div
-					className='text-sm text-muted-foreground bg-content1 p-4 rounded-lg'
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.5 }}>
-					{user && (
-						<p>
-							You're logged in as <span className='font-medium text-foreground'>{user.name}</span> with role{' '}
-							<span className='font-medium text-primary'>{user.role || 'customer'}</span>
-						</p>
-					)}
-					<p className='mt-1'>
-						This area requires admin privileges. Please contact your administrator if you believe this is an error.
-					</p>
-				</motion.div>
+					<CardContent className='space-y-6'>
+						{/* Current User Info */}
+						<div className='bg-gray-50 dark:bg-gray-900 rounded-lg p-4'>
+							<div className='flex items-center justify-between mb-2'>
+								<span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Current User:</span>
+								<RoleIndicator role={currentRole} size='sm' />
+							</div>
+							<p className='text-sm text-gray-600 dark:text-gray-400'>
+								{user?.name} ({user?.email})
+							</p>
+						</div>
 
-				<motion.div
-					className='flex flex-col sm:flex-row gap-3 justify-center'
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.6 }}>
-					<Button variant='outline' className='flex items-center gap-2' onClick={() => navigate(-1)}>
-						<ArrowLeft className='h-4 w-4' />
-						Go Back
-					</Button>
-					<Button className='flex items-center gap-2 bg-primary hover:bg-primary/90' onClick={() => navigate('/')}>
-						<Home className='h-4 w-4' />
-						Go to Home
-					</Button>
-				</motion.div>
+						{/* Required Permissions */}
+						{requiredPermissions.length > 0 && (
+							<div className='bg-red-50 dark:bg-red-950/30 rounded-lg p-4'>
+								<h4 className='text-sm font-medium text-red-800 dark:text-red-300 mb-2'>Required Permissions:</h4>
+								<ul className='space-y-1'>
+									{requiredPermissions.map((permission, index) => (
+										<li key={index} className='text-xs text-red-700 dark:text-red-400 flex items-center'>
+											<span className='w-1.5 h-1.5 bg-red-400 rounded-full mr-2'></span>
+											{getPermissionDescription(permission)}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
+
+						{/* Role Information */}
+						<div className='bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4'>
+							<h4 className='text-sm font-medium text-blue-800 dark:text-blue-300 mb-2'>Need Access?</h4>
+							<p className='text-xs text-blue-700 dark:text-blue-400'>
+								Contact your administrator to request the necessary permissions for your role.
+							</p>
+						</div>
+
+						{/* Action Buttons */}
+						<div className='flex flex-col gap-3'>
+							<Button onClick={() => navigate(-1)} variant='outline' className='w-full'>
+								<ArrowLeft className='h-4 w-4 mr-2' />
+								Go Back
+							</Button>
+
+							<Button onClick={() => navigate('/')} className='w-full'>
+								<Home className='h-4 w-4 mr-2' />
+								Return Home
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 			</motion.div>
 		</div>
 	);

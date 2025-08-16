@@ -291,7 +291,6 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 });
 
 // Generate PDF for an invoice
-// NOTE: This is V1.0 and working with broken layout
 router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		const invoice = await Invoice.findById(req.params.id);
@@ -614,7 +613,7 @@ router.get('/export/csv', verifyUser, verifyRole('admin', 'employee'), async (re
 });
 
 // Get invoice analytics
-router.get('/analytics/summary', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/analytics/summary', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		// Get total invoices count
 		const totalInvoices = await Invoice.countDocuments();
@@ -680,7 +679,7 @@ router.get('/analytics/summary', verifyUser, verifyRole('admin'), async (req, re
 });
 
 // Get monthly revenue data
-router.get('/analytics/monthly-revenue', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/analytics/monthly-revenue', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		const { year = new Date().getFullYear() } = req.query;
 
@@ -737,7 +736,7 @@ router.get('/analytics/monthly-revenue', verifyUser, verifyRole('admin'), async 
 });
 
 // Get top customers
-router.get('/analytics/top-customers', verifyUser, verifyRole('admin'), async (req, res) => {
+router.get('/analytics/top-customers', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		const { limit = 5 } = req.query;
 

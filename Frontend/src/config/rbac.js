@@ -195,19 +195,19 @@ export const getAccessibleNavigation = (userRole) => {
 // Role display configuration
 export const ROLE_CONFIG = {
 	[ROLES.ADMIN]: {
-		label: 'Administrator',
+		label: 'Admin',
 		color: 'bg-red-100 text-red-800 border-red-200',
 		description: 'Full system access',
 		badge: '👑',
 	},
 	[ROLES.MODERATOR]: {
-		label: 'Content Moderator',
+		label: 'Moderator',
 		color: 'bg-blue-100 text-blue-800 border-blue-200',
 		description: 'Content management access',
 		badge: '📝',
 	},
 	[ROLES.EMPLOYEE]: {
-		label: 'Financial Staff',
+		label: 'Employee',
 		color: 'bg-green-100 text-green-800 border-green-200',
 		description: 'Invoice and booking access',
 		badge: '💰',

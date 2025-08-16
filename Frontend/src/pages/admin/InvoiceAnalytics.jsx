@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
@@ -27,10 +25,11 @@ import {
 	Loader2,
 	AlertCircle,
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 const InvoiceAnalytics = () => {
 	const axiosSecure = useAxiosSecure();
@@ -45,6 +44,7 @@ const InvoiceAnalytics = () => {
 		queryKey: ['invoiceAnalytics', 'summary'],
 		queryFn: async () => {
 			const response = await axiosSecure.get('/api/invoices/analytics/summary');
+			console.log(response.data.data);
 			return response.data.data;
 		},
 	});
@@ -85,23 +85,56 @@ const InvoiceAnalytics = () => {
 
 	// Status colors for pie chart
 	const STATUS_COLORS = {
-		paid: '#10b981', // green
-		partially_paid: '#f59e0b', // amber
-		draft: '#64748b', // slate
-		sent: '#3b82f6', // blue
-		overdue: '#ef4444', // red
-		cancelled: '#6b7280', // gray
-		void: '#1f2937', // dark gray
+		paid: 'var(--chart-1)',
+		partially_paid: 'var(--chart-2)',
+		overdue: 'var(--chart-3)',
+		draft: 'var(--chart-4)',
+		sent: '#3b82f6',
+		cancelled: '#6b7280',
+		void: '#1f2937',
 	};
 
 	// Prepare data for status distribution pie chart
-	const prepareStatusData = () => {
-		if (!summaryData || !summaryData.statusCounts) return [];
+	// const prepareStatusData = () => {
+	// 	if (!summaryData || !summaryData.statusCounts) return [];
 
-		return Object.entries(summaryData.statusCounts).map(([status, count]) => ({
-			name: status.charAt(0).toUpperCase() + status.slice(1),
-			value: count,
-		}));
+	// 	return Object.entries(summaryData.statusCounts).map(([status, count]) => ({
+	// 		name: status.charAt(0).toUpperCase() + status.slice(1),
+	// 		value: count,
+	// 	}));
+	// };
+
+	const pieChartData =
+		!summaryData || !summaryData.statusCounts
+			? []
+			: Object.entries(summaryData.statusCounts).map(([status, count]) => ({
+					status,
+					value: count,
+					fill: STATUS_COLORS[status] || 'var(--chart-5)',
+			  }));
+
+	const pieChartConfig = {
+		value: { label: 'Invoices' },
+		...(!summaryData || !summaryData.statusCounts
+			? {}
+			: Object.keys(summaryData.statusCounts).reduce((acc, status, idx) => {
+					acc[status] = {
+						label: status.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+						color: STATUS_COLORS[status] || `var(--chart-${idx + 1})`,
+					};
+					return acc;
+			  }, {})),
+	};
+
+	const chartConfig = {
+		totalAmount: {
+			label: 'Total Amount',
+			color: 'var(--chart-1)',
+		},
+		paidAmount: {
+			label: 'Paid Amount',
+			color: 'var(--chart-2)',
+		},
 	};
 
 	// Get status badge
@@ -250,7 +283,10 @@ const InvoiceAnalytics = () => {
 						<CardTitle>Monthly Revenue ({selectedYear})</CardTitle>
 						<CardDescription>Monthly invoice amounts and payments</CardDescription>
 					</CardHeader>
-					<CardContent className='h-80'>
+
+					{/* Change the Graph to nrechart if shadcn Fails  */}
+
+					{/* <CardContent className='h-80'>
 						<ResponsiveContainer width='100%' height='100%'>
 							<BarChart
 								data={monthlyData}
@@ -272,7 +308,35 @@ const InvoiceAnalytics = () => {
 								<Bar dataKey='paidAmount' name='Paid Amount' fill='#10b981' />
 							</BarChart>
 						</ResponsiveContainer>
+					</CardContent> */}
+
+					{/* Change the Graph to nrechart if shadcn Fails  */}
+					<CardContent>
+						<ChartContainer config={chartConfig}>
+							<BarChart accessibilityLayer data={monthlyData}>
+								<CartesianGrid vertical={false} />
+								<XAxis
+									dataKey='monthName'
+									tickLine={false}
+									tickMargin={10}
+									axisLine={false}
+									tickFormatter={(value) => value.slice(0, 3)}
+								/>
+								<ChartTooltip
+									cursor={false}
+									content={<ChartTooltipContent hideLabel={false} formatter={(value) => formatCurrency(value)} />}
+								/>
+								<Bar dataKey='totalAmount' fill='var(--color-totalAmount)' radius={8} />
+								<Bar dataKey='paidAmount' fill='var(--color-paidAmount)' radius={8} />
+							</BarChart>
+						</ChartContainer>
 					</CardContent>
+					<CardFooter className='flex-col items-start gap-2 text-sm'>
+						<div className='flex gap-2 font-medium'>
+							Trending up this year <TrendingUp className='h-4 w-4' />
+						</div>
+						<div className='text-muted-foreground'>Showing totals for {selectedYear}</div>
+					</CardFooter>
 				</Card>
 
 				{/* Invoice Status Distribution */}
@@ -281,7 +345,7 @@ const InvoiceAnalytics = () => {
 						<CardTitle>Invoice Status Distribution</CardTitle>
 						<CardDescription>Breakdown of invoices by status</CardDescription>
 					</CardHeader>
-					<CardContent className='h-80'>
+					{/* <CardContent className='h-80'>
 						<ResponsiveContainer width='100%' height='100%'>
 							<PieChart>
 								<Pie
@@ -300,7 +364,40 @@ const InvoiceAnalytics = () => {
 								<Tooltip formatter={(value, name) => [`${value} invoices`, name]} />
 							</PieChart>
 						</ResponsiveContainer>
+					</CardContent> */}
+					
+					<CardContent>
+						<ChartContainer
+							config={pieChartConfig}
+							className='[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[500px] pb-0'>
+							<PieChart>
+								<ChartTooltip
+									content={
+										<ChartTooltipContent
+											hideLabel={false}
+											formatter={(value) => `${value} invoice${value > 1 ? 's' : ''}`}
+										/>
+									}
+								/>
+								<Pie
+									data={pieChartData}
+									dataKey='value'
+									nameKey='status'
+									label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+									outerRadius={80}>
+									{pieChartData.map((entry, index) => (
+										<Cell key={`cell-${index}`} fill={entry.fill} />
+									))}
+								</Pie>
+							</PieChart>
+						</ChartContainer>
 					</CardContent>
+					<CardFooter className='flex-col gap-2 text-sm'>
+						<div className='flex items-center gap-2 font-medium'>
+							Collection rate {summaryData?.collectionRate?.toFixed(1)}% <TrendingUp className='h-4 w-4' />
+						</div>
+						<div className='text-muted-foreground'>Showing invoice status breakdown</div>
+					</CardFooter>
 				</Card>
 			</div>
 
