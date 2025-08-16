@@ -99,7 +99,7 @@ router.post('/cleanup-tokens', async (req, res) => {
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error) {
-		console.error('❌ Token cleanup job failed:', error);
+		console.error('Token cleanup job failed:', error);
 
 		// Return error response (Vercel will log this)
 		res.status(500).json({
