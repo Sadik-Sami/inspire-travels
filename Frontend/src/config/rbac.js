@@ -12,6 +12,10 @@ export const PERMISSIONS = {
 	MANAGE_USERS: 'manage_users',
 	MANAGE_STAFF: 'manage_staff',
 
+	// Customer Management
+	VIEW_CUSTOMERS: 'view_customers',
+	MANAGE_CUSTOMERS: 'manage_customers',
+
 	// Content Management
 	MANAGE_DESTINATIONS: 'manage_destinations',
 	MANAGE_VISAS: 'manage_visas',
@@ -33,6 +37,8 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_ALL_USERS,
 		PERMISSIONS.MANAGE_USERS,
 		PERMISSIONS.MANAGE_STAFF,
+		PERMISSIONS.VIEW_CUSTOMERS,
+		PERMISSIONS.MANAGE_CUSTOMERS,
 		PERMISSIONS.MANAGE_DESTINATIONS,
 		PERMISSIONS.MANAGE_VISAS,
 		PERMISSIONS.MANAGE_BLOGS,
@@ -52,14 +58,16 @@ export const ROLE_PERMISSIONS = {
 	],
 
 	[ROLES.EMPLOYEE]: [
-		// Financial operations focused
+		// Financial operations and customer management focused
+		PERMISSIONS.VIEW_CUSTOMERS,
+		PERMISSIONS.MANAGE_CUSTOMERS,
 		PERMISSIONS.VIEW_BOOKINGS,
 		PERMISSIONS.MANAGE_INVOICES,
 		PERMISSIONS.VIEW_ANALYTICS,
 	],
 
 	[ROLES.CUSTOMER]: [
-		// No admin permissions
+		
 	],
 };
 
@@ -69,7 +77,7 @@ export const NAVIGATION_CONFIG = {
 		{
 			title: 'Users & Management',
 			icon: 'PiUsersThreeFill',
-			requiredPermissions: [PERMISSIONS.VIEW_ALL_USERS],
+			requiredPermissions: [PERMISSIONS.VIEW_ALL_USERS, PERMISSIONS.MANAGE_STAFF],
 			items: [
 				{
 					title: 'All Users',
@@ -80,6 +88,18 @@ export const NAVIGATION_CONFIG = {
 					title: 'Staff Management',
 					url: '/admin/staffs',
 					requiredPermissions: [PERMISSIONS.MANAGE_STAFF],
+				},
+			],
+		},
+		{
+			title: 'Customer Management',
+			icon: 'FaUserGroup',
+			requiredPermissions: [PERMISSIONS.VIEW_CUSTOMERS],
+			items: [
+				{
+					title: 'All Customers',
+					url: '/admin/customers',
+					requiredPermissions: [PERMISSIONS.VIEW_CUSTOMERS],
 				},
 			],
 		},
@@ -195,21 +215,21 @@ export const getAccessibleNavigation = (userRole) => {
 // Role display configuration
 export const ROLE_CONFIG = {
 	[ROLES.ADMIN]: {
-		label: 'Admin',
+		label: 'Administrator',
 		color: 'bg-red-100 text-red-800 border-red-200',
 		description: 'Full system access',
 		badge: '👑',
 	},
 	[ROLES.MODERATOR]: {
-		label: 'Moderator',
+		label: 'Content Moderator',
 		color: 'bg-blue-100 text-blue-800 border-blue-200',
 		description: 'Content management access',
 		badge: '📝',
 	},
 	[ROLES.EMPLOYEE]: {
-		label: 'Employee',
+		label: 'Financial Staff',
 		color: 'bg-green-100 text-green-800 border-green-200',
-		description: 'Invoice and booking access',
+		description: 'Invoice and customer management access',
 		badge: '💰',
 	},
 	[ROLES.CUSTOMER]: {

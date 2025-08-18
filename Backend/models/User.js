@@ -77,7 +77,6 @@ const userSchema = new mongoose.Schema(
 
 // Index for better query performance
 userSchema.index({ name: 1 });
-userSchema.index({ phone: 1 });
 userSchema.index({ passportNumber: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ createdAt: -1 });

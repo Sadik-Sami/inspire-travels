@@ -14,6 +14,7 @@ const invoiceRoutes = require('./routes/invoiceRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const contactInfoRoutes = require('./routes/contactInfoRoutes');
 const cronRoutes = require('./routes/cronRoutes');
+const customerRoutes = require('./routes/customerRoutes');
 dotenv.config();
 
 const app = express();
@@ -53,6 +54,15 @@ app.get('/', (req, res) => {
 	res.send('Welcome to Inspire API');
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+	res.json({
+		status: 'OK',
+		timestamp: new Date().toISOString(),
+		environment: process.env.NODE_ENV || 'development',
+	});
+});
+
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/destinations', destinationRoutes);
@@ -63,6 +73,7 @@ app.use('/api/visa-bookings', visaBookingRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact-info', contactInfoRoutes);
+app.use('/api/customers', customerRoutes);
 app.use('/api/cron', cronRoutes);
 
 app.listen(PORT, () => {
