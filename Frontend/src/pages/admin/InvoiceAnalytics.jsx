@@ -2,19 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
 import { format } from 'date-fns';
-import {
-	BarChart,
-	Bar,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
-	PieChart,
-	Pie,
-	Cell,
-} from 'recharts';
+import { BarChart, Bar, XAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 import {
 	DollarSign,
 	FileText,
@@ -93,16 +81,6 @@ const InvoiceAnalytics = () => {
 		cancelled: '#6b7280',
 		void: '#1f2937',
 	};
-
-	// Prepare data for status distribution pie chart
-	// const prepareStatusData = () => {
-	// 	if (!summaryData || !summaryData.statusCounts) return [];
-
-	// 	return Object.entries(summaryData.statusCounts).map(([status, count]) => ({
-	// 		name: status.charAt(0).toUpperCase() + status.slice(1),
-	// 		value: count,
-	// 	}));
-	// };
 
 	const pieChartData =
 		!summaryData || !summaryData.statusCounts
@@ -283,34 +261,6 @@ const InvoiceAnalytics = () => {
 						<CardTitle>Monthly Revenue ({selectedYear})</CardTitle>
 						<CardDescription>Monthly invoice amounts and payments</CardDescription>
 					</CardHeader>
-
-					{/* Change the Graph to nrechart if shadcn Fails  */}
-
-					{/* <CardContent className='h-80'>
-						<ResponsiveContainer width='100%' height='100%'>
-							<BarChart
-								data={monthlyData}
-								margin={{
-									top: 20,
-									right: 30,
-									left: 20,
-									bottom: 5,
-								}}>
-								<CartesianGrid strokeDasharray='3 3' />
-								<XAxis dataKey='monthName' />
-								<YAxis />
-								<Tooltip
-									formatter={(value) => formatCurrency(value)}
-									labelFormatter={(label) => `${label} ${selectedYear}`}
-								/>
-								<Legend />
-								<Bar dataKey='totalAmount' name='Total Amount' fill='#3b82f6' />
-								<Bar dataKey='paidAmount' name='Paid Amount' fill='#10b981' />
-							</BarChart>
-						</ResponsiveContainer>
-					</CardContent> */}
-
-					{/* Change the Graph to nrechart if shadcn Fails  */}
 					<CardContent>
 						<ChartContainer config={chartConfig}>
 							<BarChart accessibilityLayer data={monthlyData}>
@@ -326,8 +276,8 @@ const InvoiceAnalytics = () => {
 									cursor={false}
 									content={<ChartTooltipContent hideLabel={false} formatter={(value) => formatCurrency(value)} />}
 								/>
-								<Bar dataKey='totalAmount' fill='var(--color-totalAmount)' radius={8} />
-								<Bar dataKey='paidAmount' fill='var(--color-paidAmount)' radius={8} />
+								<Bar dataKey='totalAmount' fill='var(--color-totalAmount)' radius={[8, 8, 0, 0]} />
+								<Bar dataKey='paidAmount' fill='var(--color-paidAmount)' radius={[8, 8, 0, 0]} />
 							</BarChart>
 						</ChartContainer>
 					</CardContent>
@@ -365,11 +315,9 @@ const InvoiceAnalytics = () => {
 							</PieChart>
 						</ResponsiveContainer>
 					</CardContent> */}
-					
-					<CardContent>
-						<ChartContainer
-							config={pieChartConfig}
-							className='[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[500px] pb-0'>
+
+					<CardContent className='flex justify-center'>
+						<ChartContainer config={pieChartConfig}>
 							<PieChart>
 								<ChartTooltip
 									content={
@@ -383,8 +331,7 @@ const InvoiceAnalytics = () => {
 									data={pieChartData}
 									dataKey='value'
 									nameKey='status'
-									label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-									outerRadius={80}>
+									label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
 									{pieChartData.map((entry, index) => (
 										<Cell key={`cell-${index}`} fill={entry.fill} />
 									))}
