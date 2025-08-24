@@ -58,18 +58,6 @@ const useAxiosSecure = () => {
 							return axiosSecureInstance(originalRequest);
 						}
 					} catch (refreshError) {
-						console.error('Token refresh failed:', refreshError);
-
-						// Check if it's a security breach (forceReLogin flag)
-						if (refreshError.response?.data?.forceReLogin) {
-							console.log('Security breach detected - forcing re-login');
-							localStorage.clear();
-							logout();
-							navigate('/login?reason=security');
-							return Promise.reject(refreshError);
-						}
-
-						// Regular refresh failure - logout and redirect
 						console.log('Refresh token expired - logging out');
 						logout();
 						navigate('/login');

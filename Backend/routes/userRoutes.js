@@ -13,7 +13,7 @@ const createTokenAndRespond = async (user, res) => {
 		// Generate short-lived access token (1 hour)
 		const accessToken = generateAccessToken(user._id, user.role);
 
-		// Generate refresh token ID and token (6 hours)
+		// Generate refresh token ID and token (7 days)
 		const refreshTokenId = generateTokenId();
 		const refreshToken = generateRefreshToken(user._id, refreshTokenId);
 
@@ -29,7 +29,7 @@ const createTokenAndRespond = async (user, res) => {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-			maxAge: 6 * 60 * 60 * 1000, // 6 hours
+			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			path: '/',
 		};
 
@@ -106,7 +106,7 @@ router.post('/refresh-token', verifyRefreshToken, async (req, res) => {
 // @route POST /api/users/create-user
 // @desc Create a new user using Firebase Admin SDK
 // @access Private (Admin only)
-router.post('/create-user', verifyUser, verifyRole('admin'), async (req, res) => {
+router.post('/create-user', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
 	try {
 		const { name, email, password, phone, address, passportNumber, role } = req.body;
 

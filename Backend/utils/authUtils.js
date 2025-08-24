@@ -24,8 +24,8 @@ const generateRefreshToken = (userId, tokenId) => {
 			tokenId: tokenId,
 			type: 'refresh',
 		},
-		process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
-		{ expiresIn: '6h' }
+		process.env.JWT_SECRET,
+		{ expiresIn: '7d' }
 	);
 };
 

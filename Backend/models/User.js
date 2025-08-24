@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
 				},
 				expiresAt: {
 					type: Date,
-					default: () => new Date(Date.now() + 6 * 60 * 60 * 1000),
+					default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
 				},
 				isUsed: {
 					type: Boolean,
