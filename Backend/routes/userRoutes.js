@@ -7,7 +7,7 @@ const upload = require('../middlewares/uploadMiddleware');
 const admin = require('../config/firebase-admin');
 const router = express.Router();
 
-// 🔄 UPDATED: Helper function to handle dual token generation and response
+// Helper function to handle dual token generation and response
 const createTokenAndRespond = async (user, res) => {
 	try {
 		// Generate short-lived access token (1 hour)
@@ -53,7 +53,6 @@ const createTokenAndRespond = async (user, res) => {
 	}
 };
 
-// UPDATED: Refresh token endpoint now uses middleware
 // @route POST /api/users/refresh-token
 // @desc Refresh access token using refresh token from cookie
 // @access Public (but requires valid refresh token)
@@ -144,7 +143,7 @@ router.post('/create-user', verifyUser, verifyRole('admin'), async (req, res) =>
 				email: email.toLowerCase(),
 				password: password,
 				displayName: name,
-				emailVerified: true, // Auto-verify email for admin-created users
+				emailVerified: true,
 			});
 		} catch (firebaseError) {
 			console.error('Firebase user creation error:', firebaseError);
@@ -237,35 +236,42 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 		const { name, phone, address } = req.body;
 		const { uid, email } = req.firebaseUser;
 
-		// Prepare user data
-		const updateData = {
-			name: name || req.firebaseUser.name || '',
-			email,
-			phone: phone || '',
-			address: address || '',
-			firebaseUid: uid,
-		};
+		let user = await User.findOne({ firebaseUid: uid });
 
-		// Create or update atomically
-		const user = await User.findOneAndUpdate(
-			{ firebaseUid: uid }, // lookup by Firebase UID (guaranteed unique)
-			{ $set: updateData },
-			{ new: true, upsert: true } // create if not exists
-		);
+		if (user) {
+			const updateData = {};
+			if (name) updateData.name = name;
+			if (phone) updateData.phone = phone;
+			if (address) updateData.address = address;
 
-		// Create token and respond
+			if (Object.keys(updateData).length > 0) {
+				user = await User.findOneAndUpdate({ firebaseUid: uid }, { $set: updateData }, { new: true });
+				console.log(`Updated user ${uid}:`, updateData);
+			} else {
+				console.log(`No fields to update for user ${uid}`);
+			}
+		} else {
+			user = await User.create({
+				name: name || req.firebaseUser.name || '',
+				email,
+				phone: phone || '',
+				address: address || '',
+				firebaseUid: uid,
+				role: 'customer',
+			});
+			console.log(`Created new user ${uid}:`, user);
+		}
+
+		// Generate tokens and respond
 		await createTokenAndRespond(user, res);
 	} catch (error) {
 		console.error('Firebase auth error:', error);
-
-		// Handle duplicate key error gracefully (should be rare with upsert)
 		if (error.code === 11000) {
 			return res.status(409).json({
 				success: false,
 				message: 'A user with this email already exists.',
 			});
 		}
-
 		res.status(500).json({
 			success: false,
 			message: 'Server Error',
@@ -274,13 +280,11 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 	}
 });
 
-// UPDATED: Logout user and clear both cookies
 // @route POST /api/users/logout
 // @desc Logout user and clear cookies
 // @access Private
 router.post('/logout', verifyUser, async (req, res) => {
 	try {
-		// Clear all refresh tokens for this user from database
 		const user = await User.findById(req.user._id);
 		if (user) {
 			user.refreshTokens = [];
@@ -295,10 +299,7 @@ router.post('/logout', verifyUser, async (req, res) => {
 			path: '/',
 		};
 
-		res
-			.clearCookie('token', cookieOptions) // Old cookie (if exists)
-			.clearCookie('refreshToken', cookieOptions) // New refresh token cookie
-			.json({ success: true, message: 'Logged out successfully' });
+		res.clearCookie('refreshToken', cookieOptions).json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ message: 'Server Error' });

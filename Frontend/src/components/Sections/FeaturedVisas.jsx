@@ -298,7 +298,7 @@ const FeaturedVisas = () => {
 												asChild
 												variant='outline'
 												className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium'>
-												<Link to={`/visas/${visa?.slug || visa?._id}`}>Apply Now</Link>
+												<Link to={`/visas/details/${visa.slug}`}>Read More</Link>
 											</AnimatedButton>
 										</div>
 									</div>

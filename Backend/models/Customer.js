@@ -68,7 +68,6 @@ const customerSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-customerSchema.index({ phone: 1 });
 customerSchema.index({ email: 1 });
 customerSchema.index({ name: 1 });
 customerSchema.index({ createdAt: -1 });

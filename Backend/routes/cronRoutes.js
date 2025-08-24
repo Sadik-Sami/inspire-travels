@@ -39,7 +39,7 @@ router.post('/cleanup-tokens', async (req, res) => {
 		);
 		stats.usedTokensRemoved = usedTokensResult.modifiedCount;
 
-		// 2. Remove expired tokens (backup for TTL, in case it fails)
+		// 2. Remove expired tokens
 		console.log('Removing expired tokens...');
 		const expiredTokensResult = await User.updateMany(
 			{
