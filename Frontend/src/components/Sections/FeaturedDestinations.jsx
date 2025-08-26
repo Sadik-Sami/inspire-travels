@@ -20,6 +20,20 @@ const FeaturedDestinations = () => {
 		}));
 	};
 
+	const formatPrice = (price, currency) => {
+		const currencySymbols = {
+			USD: '$',
+			EUR: '€',
+			GBP: '£',
+			JPY: '¥',
+			AUD: 'A$',
+			CAD: 'C$',
+			BDT: '৳',
+		};
+
+		return `${currencySymbols[currency] || '$'}${price.toLocaleString()}`;
+	};
+
 	const containerVariants = {
 		hidden: { opacity: 0 },
 		show: {
@@ -263,7 +277,7 @@ const FeaturedDestinations = () => {
 											<div>
 												<div className='flex items-baseline gap-1'>
 													<span className='font-bold text-2xl text-foreground'>
-														${destination?.pricing?.basePrice || '299'}
+														{formatPrice(destination.pricing?.basePrice || 0, destination.pricing?.currency || 'BDT')}
 													</span>
 													<span className='text-sm text-muted-foreground'>
 														/ {destination?.pricing?.priceType || 'person'}

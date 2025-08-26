@@ -50,8 +50,8 @@ const destinationSchema = new mongoose.Schema(
 			},
 			currency: {
 				type: String,
-				default: 'USD',
-				enum: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD'],
+				default: 'BDT',
+				enum: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'BDT'],
 			},
 			priceType: {
 				type: String,

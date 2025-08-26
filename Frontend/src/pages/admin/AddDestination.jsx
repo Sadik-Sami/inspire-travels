@@ -37,7 +37,7 @@ const AddDestination = () => {
 		pricing: {
 			basePrice: '',
 			discountedPrice: '',
-			currency: 'USD',
+			currency: 'BDT',
 			priceType: 'perPerson', // perPerson, perCouple, perGroup
 		},
 		duration: {
@@ -111,6 +111,20 @@ const AddDestination = () => {
 		{ id: 'historical', label: 'Historical' },
 		{ id: 'foodie', label: 'Food & Wine' },
 	];
+
+	// Get currency symbol
+	const getCurrencySymbol = (currency) => {
+		const symbols = {
+			USD: '$',
+			EUR: '€',
+			GBP: '£',
+			JPY: '¥',
+			AUD: 'A$',
+			CAD: 'C$',
+			BDT: '৳',
+		};
+		return symbols[currency] || '৳';
+	};
 
 	// Handle form input changes
 	const handleChange = (e) => {
@@ -870,7 +884,7 @@ const AddDestination = () => {
 												className='pl-8'
 											/>
 											<div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
-												<span className='text-muted-foreground'>$</span>
+												<span className='text-muted-foreground'>{getCurrencySymbol(formData.pricing.currency)}</span>
 											</div>
 										</div>
 									</div>
@@ -890,7 +904,7 @@ const AddDestination = () => {
 												className='pl-8'
 											/>
 											<div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
-												<span className='text-muted-foreground'>$</span>
+												<span className='text-muted-foreground'>{getCurrencySymbol(formData.pricing.currency)}</span>
 											</div>
 										</div>
 									</div>
@@ -905,6 +919,7 @@ const AddDestination = () => {
 											<SelectValue placeholder='Select currency' />
 										</SelectTrigger>
 										<SelectContent>
+											<SelectItem value='BDT'>BDT - Bangladesh Taka</SelectItem>
 											<SelectItem value='USD'>USD - US Dollar</SelectItem>
 											<SelectItem value='EUR'>EUR - Euro</SelectItem>
 											<SelectItem value='GBP'>GBP - British Pound</SelectItem>

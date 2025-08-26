@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Edit, Trash, Eye, Star, TrendingUp } from 'lucide-react';
@@ -174,13 +172,18 @@ const AdminDestinations = () => {
 			day: 'numeric',
 		}).format(date);
 	};
+	const formatPrice = (price, currency) => {
+		const currencySymbols = {
+			USD: '$',
+			EUR: '€',
+			GBP: '£',
+			JPY: '¥',
+			AUD: 'A$',
+			CAD: 'C$',
+			BDT: '৳',
+		};
 
-	// Format price
-	const formatPrice = (price) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-		}).format(price);
+		return `${currencySymbols[currency] || '$'}${price.toLocaleString()}`;
 	};
 
 	// Extract destinations array safely
@@ -272,7 +275,9 @@ const AdminDestinations = () => {
 													</div>
 												</div>
 											</TableCell>
-											<TableCell>{formatPrice(destination.pricing?.basePrice || 0)}</TableCell>
+											<TableCell>
+												{formatPrice(destination.pricing?.basePrice || 0, destination.pricing?.currency || 'BDT')}
+											</TableCell>
 											<TableCell>{destination.duration?.days} days</TableCell>
 											<TableCell>
 												<Badge
