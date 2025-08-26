@@ -109,7 +109,7 @@ export const NAVIGATION_CONFIG = {
 			requiredPermissions: [PERMISSIONS.MANAGE_DESTINATIONS, PERMISSIONS.MANAGE_VISAS, PERMISSIONS.MANAGE_BLOGS],
 			items: [
 				{
-					title: 'Destination Packages',
+					title: 'Group Packages',
 					url: '/admin/destinations',
 					requiredPermissions: [PERMISSIONS.MANAGE_DESTINATIONS],
 				},
