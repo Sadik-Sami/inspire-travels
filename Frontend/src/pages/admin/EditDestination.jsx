@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -423,7 +425,7 @@ const EditDestination = () => {
 		}
 	};
 
-	// Fix the date picker timezone issue by ensuring we preserve the local date
+	// Handle date changes
 	const handleDateChange = (date, field) => {
 		if (!date) {
 			if (field.includes('.')) {
@@ -988,6 +990,7 @@ const EditDestination = () => {
 							</CardContent>
 						</Card>
 					</TabsContent>
+
 					{/* Pricing & Dates Tab */}
 					<TabsContent value='pricing' className='space-y-6'>
 						<Card>
@@ -1092,7 +1095,7 @@ const EditDestination = () => {
 							<CardContent className='space-y-4'>
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
-										<Label htmlFor='dates.startDate'>Start Date</Label>
+										<Label>Start Date</Label>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -1100,7 +1103,7 @@ const EditDestination = () => {
 													{formData.dates.startDate ? formatDate(formData.dates.startDate) : <span>Pick a date</span>}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={formData.dates.startDate ? new Date(formData.dates.startDate) : undefined}
@@ -1112,7 +1115,7 @@ const EditDestination = () => {
 									</div>
 
 									<div className='space-y-2'>
-										<Label htmlFor='dates.endDate'>End Date</Label>
+										<Label>End Date</Label>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -1120,7 +1123,7 @@ const EditDestination = () => {
 													{formData.dates.endDate ? formatDate(formData.dates.endDate) : <span>Pick a date</span>}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={formData.dates.endDate ? new Date(formData.dates.endDate) : undefined}
@@ -1133,7 +1136,7 @@ const EditDestination = () => {
 								</div>
 
 								<div className='space-y-2'>
-									<Label htmlFor='dates.bookingDeadline'>Booking Deadline</Label>
+									<Label>Booking Deadline</Label>
 									<Popover>
 										<PopoverTrigger asChild>
 											<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -1145,7 +1148,7 @@ const EditDestination = () => {
 												)}
 											</Button>
 										</PopoverTrigger>
-										<PopoverContent className='w-auto p-0'>
+										<PopoverContent className='w-auto p-0' align='start'>
 											<CalendarComponent
 												mode='single'
 												selected={formData.dates.bookingDeadline ? new Date(formData.dates.bookingDeadline) : undefined}
@@ -1187,7 +1190,7 @@ const EditDestination = () => {
 													{newAvailableDate ? formatDate(newAvailableDate) : <span>Select date to add</span>}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={newAvailableDate}
@@ -1453,6 +1456,7 @@ const EditDestination = () => {
 							</CardContent>
 						</Card>
 					</TabsContent>
+
 					{/* Media Tab */}
 					<TabsContent value='media' className='space-y-6'>
 						<Card>

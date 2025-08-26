@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -148,8 +150,7 @@ const AddDestination = () => {
 		}
 	};
 
-	// Fix the date picker timezone issue by ensuring we preserve the local date
-	// Update the handleDateChange function to fix the date selection issue
+	// Handle date changes
 	const handleDateChange = (date, field) => {
 		if (!date) {
 			if (field.includes('.')) {
@@ -190,7 +191,7 @@ const AddDestination = () => {
 		}
 	};
 
-	// Fix the handleAddAvailableDate function to use the formatted date
+	// Handle adding available dates
 	const handleAddAvailableDate = () => {
 		if (!newAvailableDate) return;
 
@@ -214,7 +215,7 @@ const AddDestination = () => {
 		setNewAvailableDate(null);
 	};
 
-	// Fix the handleRemoveAvailableDate function to ensure it works properly
+	// Handle removing available dates
 	const handleRemoveAvailableDate = (dateToRemove) => {
 		setFormData((prev) => ({
 			...prev,
@@ -961,7 +962,7 @@ const AddDestination = () => {
 							<CardContent className='space-y-4'>
 								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
-										<Label htmlFor='dates.startDate'>Start Date</Label>
+										<Label>Start Date</Label>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -973,7 +974,7 @@ const AddDestination = () => {
 													)}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={formData.dates.startDate ? new Date(formData.dates.startDate) : undefined}
@@ -985,7 +986,7 @@ const AddDestination = () => {
 									</div>
 
 									<div className='space-y-2'>
-										<Label htmlFor='dates.endDate'>End Date</Label>
+										<Label>End Date</Label>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -997,7 +998,7 @@ const AddDestination = () => {
 													)}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={formData.dates.endDate ? new Date(formData.dates.endDate) : undefined}
@@ -1010,7 +1011,7 @@ const AddDestination = () => {
 								</div>
 
 								<div className='space-y-2'>
-									<Label htmlFor='dates.bookingDeadline'>Booking Deadline</Label>
+									<Label>Booking Deadline</Label>
 									<Popover>
 										<PopoverTrigger asChild>
 											<Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -1022,7 +1023,7 @@ const AddDestination = () => {
 												)}
 											</Button>
 										</PopoverTrigger>
-										<PopoverContent className='w-auto p-0'>
+										<PopoverContent className='w-auto p-0' align='start'>
 											<CalendarComponent
 												mode='single'
 												selected={formData.dates.bookingDeadline ? new Date(formData.dates.bookingDeadline) : undefined}
@@ -1037,8 +1038,6 @@ const AddDestination = () => {
 								<div className='space-y-2 mt-4'>
 									<Label>Available Dates</Label>
 									<div className='flex flex-wrap gap-2 mb-2'>
-										{/* Update the Badge component to ensure the onClick handler works properly */}
-										{/* Replace the Badge component in the Available Dates section with this: */}
 										{formData.dates.availableDates.map((date) => (
 											<Badge key={date} variant='secondary' className='flex items-center gap-1'>
 												{format(new Date(date), 'MMM d, yyyy')}
@@ -1066,7 +1065,7 @@ const AddDestination = () => {
 													{newAvailableDate ? format(newAvailableDate, 'PPP') : <span>Select date to add</span>}
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className='w-auto p-0'>
+											<PopoverContent className='w-auto p-0' align='start'>
 												<CalendarComponent
 													mode='single'
 													selected={newAvailableDate}
