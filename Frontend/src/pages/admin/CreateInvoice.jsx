@@ -228,7 +228,7 @@ const CreateInvoice = () => {
 		e.preventDefault();
 
 		// Validate customer data
-		if (!invoiceData.customer.name || !invoiceData.customer.email || !invoiceData.customer.phone) {
+		if (!invoiceData.customer.name || !invoiceData.customer.phone) {
 			toast.error('Please fill in all required customer fields');
 			return;
 		}
@@ -309,9 +309,7 @@ const CreateInvoice = () => {
 									/>
 								</div>
 								<div className='space-y-2'>
-									<Label htmlFor='email'>
-										Email <span className='text-red-500'>*</span>
-									</Label>
+									<Label htmlFor='email'>Email</Label>
 									<Input
 										id='email'
 										name='email'
@@ -319,7 +317,6 @@ const CreateInvoice = () => {
 										value={invoiceData.customer.email}
 										onChange={handleCustomerChange}
 										placeholder='Enter customer email'
-										required
 									/>
 								</div>
 							</div>

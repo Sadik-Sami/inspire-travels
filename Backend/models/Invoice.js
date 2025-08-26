@@ -14,7 +14,6 @@ const InvoiceSchema = new mongoose.Schema(
 			},
 			email: {
 				type: String,
-				required: true,
 			},
 			phone: {
 				type: String,
@@ -117,7 +116,7 @@ const InvoiceSchema = new mongoose.Schema(
 		currency: {
 			type: String,
 			enum: ['USD', 'EUR', 'GBP', 'BDT'],
-			default: 'USD',
+			default: 'BDT',
 		},
 		relatedTo: {
 			type: {
