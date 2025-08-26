@@ -166,11 +166,11 @@ const InvoiceDetails = ({ invoiceId, onRecordPayment, onDownloadPdf, onCancel })
 					</CardHeader>
 					<CardContent>
 						<div className='space-y-1'>
-							<h3 className='font-bold'>Travel Agency</h3>
-							<p>123 Travel Street</p>
-							<p>City, Country</p>
-							<p>Phone: +1 234 567 890</p>
-							<p>Email: info@travelagency.com</p>
+							<h3 className='font-bold'>Inspire Travels Ltd.</h3>
+							<p>Head Office : F - 43, Mohakhali C/A, Dhaka - 1213</p>
+							<p>Corporate Office : House 7, Road 5, Block I, Banani, Dhaka - 1217</p>
+							<p>Phone : 01796266222, 01319633324</p>
+							<p>Email: inspiretravelsltd@gmail.com, info.inspireinttravelsltd@gmail.com </p>
 						</div>
 					</CardContent>
 				</Card>

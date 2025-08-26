@@ -327,10 +327,10 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		}
 
 		doc.fontSize(20).text('Inspite Travels Ltd.', { align: 'right' });
-		doc.fontSize(10).text('Mirpur 1', { align: 'right' });
-		doc.text('Dhaka, Bangladesh', { align: 'right' });
-		doc.text('Phone: +880 1318 446398', { align: 'right' });
-		doc.text('Email: info@inspire.com', { align: 'right' });
+		doc.fontSize(10).text('Head Office : F - 43, Mohakhali C/A, Dhaka - 1213', { align: 'right' });
+		doc.fontSize(10).text('Corporate Office : House 7, Road 5, Block I, Banani, Dhaka - 1217', { align: 'right' });
+		doc.text('Phone : 01796266222, 01319633324', { align: 'right' });
+		doc.text('Email: inspiretravelsltd@gmail.com, info.inspireinttravelsltd@gmail.com ', { align: 'right' });
 
 		doc.moveDown();
 

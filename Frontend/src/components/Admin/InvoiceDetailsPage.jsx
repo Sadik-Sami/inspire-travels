@@ -44,6 +44,10 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { PiBuildingOfficeBold } from 'react-icons/pi';
+import { Building } from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { Contact } from 'lucide-react';
 
 const InvoiceDetailsPage = () => {
 	const { id } = useParams();
@@ -339,12 +343,23 @@ const InvoiceDetailsPage = () => {
 						<CardTitle className='text-lg'>From</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className='space-y-1'>
-							<h3 className='font-bold'>Travel Agency</h3>
-							<p>123 Travel Street</p>
-							<p>City, Country</p>
-							<p>Phone: +1 234 567 890</p>
-							<p>Email: info@travelagency.com</p>
+						<div className='space-y-1 text-base'>
+							<h3 className='font-bold text-4xl'>Inspire Travels Ltd.</h3>
+							<div className='flex items-center gap-2'>
+								<Building2 size={16} /> <p>F - 43, Mohakhali C/A, Dhaka - 1213</p>
+							</div>
+							<div className='flex items-center gap-2'>
+								<Building size={16} /> <p>House 7, Road 5, Block I, Banani, Dhaka - 1217</p>
+							</div>
+							<div className='flex items-center gap-2'>
+								<Phone size={16} /> <p>01796266222, 01319633324</p>
+							</div>
+							<div className='flex items-center gap-2'>
+								<Mail size={16} /> <p>inspiretravelsltd@gmail.com</p>
+							</div>
+							<div className='flex items-center gap-2'>
+								<Mail size={16} /> <p>info.inspireinttravelsltd@gmail.com</p>
+							</div>
 						</div>
 					</CardContent>
 				</Card>
@@ -356,14 +371,14 @@ const InvoiceDetailsPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div className='space-y-1'>
-							<h3 className='font-bold'>{invoice.customer.name}</h3>
+							<h3 className='font-bold text-4xl'>{invoice.customer.name}</h3>
 							<div className='flex items-center gap-2'>
 								<Mail className='h-4 w-4 text-muted-foreground' />
-								<span>{invoice.customer.email}</span>
+								<span>{invoice.customer?.email ? invoice.customer.email : 'N/A'}</span>
 							</div>
 							<div className='flex items-center gap-2'>
 								<Phone className='h-4 w-4 text-muted-foreground' />
-								<span>{invoice.customer.phone}</span>
+								<span>{invoice.customer?.phone ? invoice.customer.phone : 'N/A'}</span>
 							</div>
 							{invoice.customer.address && (
 								<div className='flex items-center gap-2'>
