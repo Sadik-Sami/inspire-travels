@@ -2,7 +2,18 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
 import { format } from 'date-fns';
-import { BarChart, Bar, XAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	CartesianGrid,
+	PieChart,
+	Pie,
+	Cell,
+	ResponsiveContainer,
+	Legend,
+	LabelList,
+} from 'recharts';
 import {
 	DollarSign,
 	FileText,
@@ -18,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Tooltip } from '@radix-ui/react-tooltip';
 
 const InvoiceAnalytics = () => {
 	const axiosSecure = useAxiosSecure();
@@ -103,7 +115,14 @@ const InvoiceAnalytics = () => {
 					return acc;
 			  }, {})),
 	};
+	const prepareStatusData = () => {
+		if (!summaryData || !summaryData.statusCounts) return [];
 
+		return Object.entries(summaryData.statusCounts).map(([status, count]) => ({
+			name: status.charAt(0).toUpperCase() + status.slice(1),
+			value: count,
+		}));
+	};
 	const chartConfig = {
 		totalAmount: {
 			label: 'Total Amount',
@@ -295,8 +314,8 @@ const InvoiceAnalytics = () => {
 						<CardTitle>Invoice Status Distribution</CardTitle>
 						<CardDescription>Breakdown of invoices by status</CardDescription>
 					</CardHeader>
-					{/* <CardContent className='h-80'>
-						<ResponsiveContainer width='100%' height='100%'>
+					{/* <CardContent className='flex justify-center'>
+						<ChartContainer className='w-full h-fit' config={pieChartConfig}>
 							<PieChart>
 								<Pie
 									data={prepareStatusData()}
@@ -304,38 +323,39 @@ const InvoiceAnalytics = () => {
 									cy='50%'
 									labelLine={false}
 									label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-									outerRadius={80}
 									fill='#8884d8'
-									dataKey='value'>
+									dataKey='value'
+									nameKey='name'>
 									{prepareStatusData().map((entry, index) => (
 										<Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name.toLowerCase()] || '#8884d8'} />
 									))}
 								</Pie>
 								<Tooltip formatter={(value, name) => [`${value} invoices`, name]} />
 							</PieChart>
-						</ResponsiveContainer>
+						</ChartContainer>
 					</CardContent> */}
 
 					<CardContent className='flex justify-center'>
-						<ChartContainer config={pieChartConfig}>
+						<ChartContainer config={pieChartConfig} className='w-full h-full'>
 							<PieChart>
 								<ChartTooltip
 									content={
 										<ChartTooltipContent
 											hideLabel={false}
-											formatter={(value) => `${value} invoice${value > 1 ? 's' : ''}`}
+											formatter={(value, name) =>
+												`${name.indexOf('_') === -1 ? name : name.split('_').join(' ')}: ${value}`
+											}
 										/>
 									}
 								/>
 								<Pie
 									data={pieChartData}
+									cx='50%'
+									cy='50%'
 									dataKey='value'
 									nameKey='status'
-									label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
-									{pieChartData.map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={entry.fill} />
-									))}
-								</Pie>
+									labelLine={false}
+									label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}></Pie>
 							</PieChart>
 						</ChartContainer>
 					</CardContent>
