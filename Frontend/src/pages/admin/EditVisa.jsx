@@ -1,16 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import useVisaQuery from '@/hooks/useVisaQuery';
 import useVisaMutation from '@/hooks/useVisaMutation';
 import { toast } from 'sonner';
-import { Upload, X, ImageIcon, ArrowLeft } from 'lucide-react';
+import { Upload, X, ImageIcon, ArrowLeft, Star, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const EditVisa = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const { useGetVisaById } = useVisaQuery();
 	const { data: visa, isLoading } = useGetVisaById(id);
-	console.log(visa)
 	const { updateVisa } = useVisaMutation();
 
 	const [formData, setFormData] = useState({
@@ -18,7 +26,7 @@ const EditVisa = () => {
 		shortDescription: '',
 		longDescription: '',
 		price: '',
-		currency: 'USD',
+		currency: 'BDT',
 		from: '',
 		to: '',
 		requirements: '',
@@ -31,6 +39,8 @@ const EditVisa = () => {
 	const [newPhotoUrls, setNewPhotoUrls] = useState([]);
 	const [existingPhotos, setExistingPhotos] = useState([]);
 	const [photosToRemove, setPhotosToRemove] = useState([]);
+	const [coverImageIndex, setCoverImageIndex] = useState(null);
+	const [newCoverImageIndex, setNewCoverImageIndex] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	useEffect(() => {
@@ -38,9 +48,9 @@ const EditVisa = () => {
 			setFormData({
 				title: visa.title || '',
 				shortDescription: visa.shortDescription || '',
-				longDescription: visa.description || '', // Map description to longDescription
+				longDescription: visa.description || '',
 				price: visa.pricing?.basePrice.toString() || '',
-				currency: visa.pricing?.currency || 'USD',
+				currency: visa.pricing?.currency || 'BDT',
 				from: visa.from || '',
 				to: visa.to || '',
 				requirements: visa.requirements || '',
@@ -51,6 +61,11 @@ const EditVisa = () => {
 
 			if (visa.images && visa.images.length > 0) {
 				setExistingPhotos(visa.images);
+			}
+
+			// Set cover image if it exists
+			if (visa.coverImage && visa.coverImage.publicId) {
+				setCoverImageIndex(visa.coverImage.publicId);
 			}
 		}
 	}, [visa]);
@@ -63,15 +78,33 @@ const EditVisa = () => {
 		});
 	};
 
+	const handleSelectChange = (value, name) => {
+		setFormData({
+			...formData,
+			[name]: value,
+		});
+	};
+
+	const handleSwitchChange = (name, checked) => {
+		setFormData({
+			...formData,
+			[name]: checked,
+		});
+	};
+
 	const handleNewPhotoChange = (e) => {
 		const selectedFiles = Array.from(e.target.files);
 
 		if (selectedFiles.length > 0) {
-			// Create preview URLs for the selected images
 			const newUrls = selectedFiles.map((file) => URL.createObjectURL(file));
 
 			setNewPhotos([...newPhotos, ...selectedFiles]);
 			setNewPhotoUrls([...newPhotoUrls, ...newUrls]);
+
+			// Set the first new image as cover if no cover is selected yet
+			if (coverImageIndex === null && newCoverImageIndex === null && existingPhotos.length === 0) {
+				setNewCoverImageIndex(0);
+			}
 		}
 	};
 
@@ -79,7 +112,6 @@ const EditVisa = () => {
 		const updatedPhotos = [...newPhotos];
 		const updatedUrls = [...newPhotoUrls];
 
-		// Revoke the object URL to avoid memory leaks
 		URL.revokeObjectURL(newPhotoUrls[index]);
 
 		updatedPhotos.splice(index, 1);
@@ -87,11 +119,40 @@ const EditVisa = () => {
 
 		setNewPhotos(updatedPhotos);
 		setNewPhotoUrls(updatedUrls);
+
+		if (newCoverImageIndex === index) {
+			setNewCoverImageIndex(null);
+		} else if (newCoverImageIndex > index) {
+			setNewCoverImageIndex(newCoverImageIndex - 1);
+		}
 	};
 
 	const removeExistingPhoto = (photo) => {
 		setExistingPhotos(existingPhotos.filter((p) => p.publicId !== photo.publicId));
 		setPhotosToRemove([...photosToRemove, photo.publicId]);
+
+		if (coverImageIndex === photo.publicId) {
+			setCoverImageIndex(null);
+
+			if (existingPhotos.length > 1) {
+				const nextPhoto = existingPhotos.find((p) => p.publicId !== photo.publicId);
+				if (nextPhoto) {
+					setCoverImageIndex(nextPhoto.publicId);
+				}
+			} else if (newPhotos.length > 0) {
+				setNewCoverImageIndex(0);
+			}
+		}
+	};
+
+	const setExistingAsCover = (photo) => {
+		setCoverImageIndex(photo.publicId);
+		setNewCoverImageIndex(null);
+	};
+
+	const setNewAsCover = (index) => {
+		setNewCoverImageIndex(index);
+		setCoverImageIndex(null);
 	};
 
 	const handleSubmit = async (e) => {
@@ -114,6 +175,18 @@ const EditVisa = () => {
 			return;
 		}
 
+		// Ensure there's a cover image selected
+		if (coverImageIndex === null && newCoverImageIndex === null) {
+			if (existingPhotos.length > 0) {
+				setCoverImageIndex(existingPhotos[0].publicId);
+			} else if (newPhotos.length > 0) {
+				setNewCoverImageIndex(0);
+			} else {
+				toast.error('Please select a cover image');
+				return;
+			}
+		}
+
 		setIsSubmitting(true);
 
 		try {
@@ -123,10 +196,11 @@ const EditVisa = () => {
 					...formData,
 					newPhotos,
 					removedPhotos: photosToRemove,
+					coverImageId: coverImageIndex,
+					newCoverImageIndex,
 				},
 			});
 
-			// Cleanup preview URLs
 			newPhotoUrls.forEach((url) => URL.revokeObjectURL(url));
 
 			navigate('/admin/visas');
@@ -139,297 +213,395 @@ const EditVisa = () => {
 
 	if (isLoading) {
 		return (
-			<div className='container mx-auto px-4 py-8'>
-				<div className='flex justify-center items-center h-64'>
-					<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500'></div>
-				</div>
+			<div className='flex justify-center items-center h-96'>
+				<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary'></div>
 			</div>
 		);
 	}
 
 	if (!visa) {
 		return (
-			<div className='container mx-auto px-4 py-8'>
-				<div className='bg-white shadow rounded-lg p-8 text-center'>
-					<p className='text-gray-500 mb-4'>Visa not found</p>
-					<button
-						onClick={() => navigate('/admin/visas')}
-						className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center gap-2'>
-						<ArrowLeft size={18} /> Back to Visas
-					</button>
-				</div>
+			<div className='text-center py-10'>
+				<h3 className='text-lg font-medium text-red-500'>Visa not found</h3>
+				<p className='mt-2 text-sm text-muted-foreground'>Please try again later</p>
+				<Button className='mt-4' onClick={() => navigate('/admin/visas')}>
+					<ArrowLeft className='mr-2 h-4 w-4' />
+					Back to Visas
+				</Button>
 			</div>
 		);
 	}
 
 	return (
-		<div className='container mx-auto px-4 py-8'>
-			<div className='mb-6'>
-				<h1 className='text-2xl font-bold'>Edit Visa</h1>
-				<p className='text-gray-600'>Update visa details and information</p>
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.3 }}
+			className='px-2 sm:px-4 md:px-6'>
+			<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
+				<div>
+					<h1 className='text-2xl sm:text-3xl font-bold'>Edit Visa Package</h1>
+					<p className='text-muted-foreground'>Update visa details and information</p>
+				</div>
+				<Button variant='outline' onClick={() => navigate('/admin/visas')}>
+					Cancel
+				</Button>
 			</div>
 
-			<form onSubmit={handleSubmit} className='bg-white shadow-md rounded-lg p-6'>
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-					<div className='col-span-2'>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='title'>
-							Title <span className='text-red-500'>*</span>
-						</label>
-						<input
-							type='text'
-							id='title'
-							name='title'
-							value={formData.title}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							required
-						/>
-					</div>
+			<form onSubmit={handleSubmit}>
+				<Tabs defaultValue='basic' className='mb-6'>
+					<TabsList className='w-full overflow-x-auto flex flex-nowrap sm:grid sm:grid-cols-2 md:grid-cols-3 mb-4 no-scrollbar'>
+						<TabsTrigger value='basic' className='whitespace-nowrap'>
+							Basic Info
+						</TabsTrigger>
+						<TabsTrigger value='details' className='whitespace-nowrap'>
+							Details
+						</TabsTrigger>
+						<TabsTrigger value='media' className='whitespace-nowrap'>
+							Media
+						</TabsTrigger>
+					</TabsList>
 
-					<div className='col-span-2'>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='shortDescription'>
-							Short Description <span className='text-red-500'>*</span>
-						</label>
-						<input
-							type='text'
-							id='shortDescription'
-							name='shortDescription'
-							value={formData.shortDescription}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							required
-						/>
-					</div>
+					{/* Basic Info Tab */}
+					<TabsContent value='basic' className='space-y-6'>
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Visa Package Details</CardTitle>
+								<CardDescription>Enter the basic information about this visa package.</CardDescription>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='title'>
+										Title <span className='text-red-500'>*</span>
+									</Label>
+									<Input
+										id='title'
+										name='title'
+										placeholder='e.g. USA Tourist Visa'
+										value={formData.title}
+										onChange={handleChange}
+										required
+									/>
+								</div>
 
-					<div className='col-span-2'>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='longDescription'>
-							Long Description <span className='text-red-500'>*</span>
-						</label>
-						<textarea
-							id='longDescription'
-							name='longDescription'
-							value={formData.longDescription}
-							onChange={handleChange}
-							rows={6}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							required
-						/>
-					</div>
+								<div className='space-y-2'>
+									<Label htmlFor='shortDescription'>
+										Short Description <span className='text-red-500'>*</span>
+									</Label>
+									<Input
+										id='shortDescription'
+										name='shortDescription'
+										placeholder='Brief description of the visa package'
+										value={formData.shortDescription}
+										onChange={handleChange}
+										required
+									/>
+								</div>
 
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='price'>
-							Price <span className='text-red-500'>*</span>
-						</label>
-						<input
-							type='number'
-							id='price'
-							name='price'
-							value={formData.price}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							min='0'
-							step='0.01'
-							required
-						/>
-					</div>
+								<div className='space-y-2'>
+									<Label htmlFor='longDescription'>
+										Long Description <span className='text-red-500'>*</span>
+									</Label>
+									<Textarea
+										id='longDescription'
+										name='longDescription'
+										placeholder='Detailed description of the visa package'
+										value={formData.longDescription}
+										onChange={handleChange}
+										required
+										className='min-h-[150px] sm:min-h-[200px]'
+									/>
+								</div>
+							</CardContent>
+						</Card>
 
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='currency'>
-							Currency
-						</label>
-						<select
-							id='currency'
-							name='currency'
-							value={formData.currency}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'>
-							<option value='USD'>USD</option>
-							<option value='EUR'>EUR</option>
-							<option value='BDT'>BDT</option>
-						</select>
-					</div>
-
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='from'>
-							From <span className='text-red-500'>*</span>
-						</label>
-						<input
-							type='text'
-							id='from'
-							name='from'
-							value={formData.from}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							required
-						/>
-					</div>
-
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='to'>
-							To <span className='text-red-500'>*</span>
-						</label>
-						<input
-							type='text'
-							id='to'
-							name='to'
-							value={formData.to}
-							onChange={handleChange}
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-							required
-						/>
-					</div>
-
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='processingTime'>
-							Processing Time
-						</label>
-						<input
-							type='text'
-							id='processingTime'
-							name='processingTime'
-							value={formData.processingTime}
-							onChange={handleChange}
-							placeholder='e.g. 7-14 business days'
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-						/>
-					</div>
-
-					<div>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='specialRequests'>
-							Special Requests
-						</label>
-						<input
-							type='text'
-							id='specialRequests'
-							name='specialRequests'
-							value={formData.specialRequests}
-							onChange={handleChange}
-							placeholder='e.g. Medical certificate, Travel insurance'
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-						/>
-					</div>
-
-					<div className='col-span-2'>
-						<label className='block text-gray-700 font-medium mb-2' htmlFor='requirements'>
-							Requirements (comma separated)
-						</label>
-						<textarea
-							id='requirements'
-							name='requirements'
-							value={formData.requirements}
-							onChange={handleChange}
-							rows={3}
-							placeholder='e.g. Valid passport, 2 passport-sized photos, Completed application form'
-							className='w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-						/>
-					</div>
-
-					<div className='col-span-2'>
-						<div className='flex items-center'>
-							<input
-								type='checkbox'
-								id='featured'
-								name='featured'
-								checked={formData.featured}
-								onChange={handleChange}
-								className='w-4 h-4 text-blue-600 border rounded focus:ring-blue-500'
-							/>
-							<label className='ml-2 text-gray-700' htmlFor='featured'>
-								Featured Visa
-							</label>
-						</div>
-					</div>
-
-					<div className='col-span-2'>
-						<label className='block text-gray-700 font-medium mb-2'>Current Photos</label>
-
-						<div className='flex flex-wrap gap-4 mb-6'>
-							{existingPhotos.length > 0 ? (
-								existingPhotos.map((photo, index) => (
-									<div key={index} className='relative group'>
-										<img
-											src={photo.url || '/placeholder.svg'}
-											alt={`Visa photo ${index}`}
-											className='h-24 w-24 object-cover rounded-lg'
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Location & Pricing</CardTitle>
+								<CardDescription>Specify the origin, destination, and pricing details</CardDescription>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+									<div className='space-y-2'>
+										<Label htmlFor='from'>
+											From <span className='text-red-500'>*</span>
+										</Label>
+										<Input
+											id='from'
+											name='from'
+											placeholder='e.g. Bangladesh'
+											value={formData.from}
+											onChange={handleChange}
+											required
 										/>
-										<button
-											type='button'
-											onClick={() => removeExistingPhoto(photo)}
-											className='absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-											<X size={16} />
-										</button>
 									</div>
-								))
-							) : (
-								<div className='text-gray-400'>No current photos</div>
-							)}
-						</div>
 
-						<label className='block text-gray-700 font-medium mb-2'>Add New Photos</label>
-
-						<div className='border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4'>
-							<div className='flex flex-wrap gap-4 mb-3'>
-								{newPhotoUrls.map((url, index) => (
-									<div key={index} className='relative group'>
-										<img
-											src={url || '/placeholder.svg'}
-											alt={`New photo ${index}`}
-											className='h-24 w-24 object-cover rounded-lg'
+									<div className='space-y-2'>
+										<Label htmlFor='to'>
+											To <span className='text-red-500'>*</span>
+										</Label>
+										<Input
+											id='to'
+											name='to'
+											placeholder='e.g. United States'
+											value={formData.to}
+											onChange={handleChange}
+											required
 										/>
-										<button
-											type='button'
-											onClick={() => removeNewPhoto(index)}
-											className='absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-											<X size={16} />
-										</button>
 									</div>
-								))}
+								</div>
 
-								{newPhotoUrls.length === 0 && (
-									<div className='flex flex-col items-center justify-center text-gray-400 h-24 w-full'>
-										<ImageIcon size={32} />
-										<span className='text-sm mt-2'>No new photos selected</span>
+								<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+									<div className='space-y-2'>
+										<Label htmlFor='price'>
+											Price <span className='text-red-500'>*</span>
+										</Label>
+										<Input
+											id='price'
+											name='price'
+											type='number'
+											min='0'
+											step='0.01'
+											placeholder='e.g. 15000'
+											value={formData.price}
+											onChange={handleChange}
+											required
+										/>
 									</div>
-								)}
-							</div>
 
-							<label className='flex items-center justify-center gap-2 cursor-pointer py-3 px-4 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors'>
-								<Upload size={20} />
-								<span>Select New Photos</span>
-								<input type='file' multiple accept='image/*' onChange={handleNewPhotoChange} className='hidden' />
-							</label>
-							<p className='text-xs text-gray-500 mt-2'>
-								Upload up to 5 high-quality images. Maximum size: 5MB per image.
-							</p>
-						</div>
-					</div>
-				</div>
+									<div className='space-y-2'>
+										<Label htmlFor='currency'>Currency</Label>
+										<Select value={formData.currency} onValueChange={(value) => handleSelectChange(value, 'currency')}>
+											<SelectTrigger>
+												<SelectValue placeholder='Select currency' />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value='BDT'>BDT - Bangladesh Taka</SelectItem>
+												<SelectItem value='USD'>USD - US Dollar</SelectItem>
+												<SelectItem value='EUR'>EUR - Euro</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-				<div className='flex justify-end gap-3 mt-6'>
-					<button
-						type='button'
-						onClick={() => navigate('/admin/visas')}
-						className='px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50'>
+					{/* Details Tab */}
+					<TabsContent value='details' className='space-y-6'>
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Processing Information</CardTitle>
+								<CardDescription>Specify processing time and special requirements</CardDescription>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='processingTime'>Processing Time</Label>
+									<Input
+										id='processingTime'
+										name='processingTime'
+										placeholder='e.g. 7-14 business days'
+										value={formData.processingTime}
+										onChange={handleChange}
+									/>
+								</div>
+
+								<div className='space-y-2'>
+									<Label htmlFor='specialRequests'>Special Requests</Label>
+									<Input
+										id='specialRequests'
+										name='specialRequests'
+										placeholder='e.g. Medical certificate, Travel insurance'
+										value={formData.specialRequests}
+										onChange={handleChange}
+									/>
+								</div>
+
+								<div className='space-y-2'>
+									<Label htmlFor='requirements'>Requirements (comma separated)</Label>
+									<Textarea
+										id='requirements'
+										name='requirements'
+										placeholder='e.g. Valid passport, 2 passport-sized photos, Completed application form'
+										value={formData.requirements}
+										onChange={handleChange}
+										className='min-h-[100px]'
+									/>
+								</div>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Visibility Settings</CardTitle>
+								<CardDescription>Control how this visa package appears on the website</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className='flex items-center justify-between'>
+									<div className='space-y-0.5'>
+										<Label htmlFor='featured'>Featured Visa</Label>
+										<p className='text-sm text-muted-foreground'>Display this visa in featured sections</p>
+									</div>
+									<Switch
+										id='featured'
+										checked={formData.featured}
+										onCheckedChange={(checked) => handleSwitchChange('featured', checked)}
+									/>
+								</div>
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					{/* Media Tab */}
+					<TabsContent value='media' className='space-y-6'>
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Current Photos</CardTitle>
+								<CardDescription>Manage existing photos for your visa package</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className='flex flex-wrap gap-4 mb-6'>
+									{existingPhotos.length > 0 ? (
+										existingPhotos.map((photo, index) => (
+											<div key={index} className='relative group'>
+												<img
+													src={photo.url || '/placeholder.svg'}
+													alt={`Visa photo ${index}`}
+													className={`h-24 w-24 object-cover rounded-lg ${
+														coverImageIndex === photo.publicId ? 'ring-2 ring-yellow-400' : ''
+													}`}
+												/>
+												<div className='absolute top-1 right-1 flex gap-1'>
+													<Button
+														type='button'
+														size='icon'
+														variant='secondary'
+														className={`h-6 w-6 bg-yellow-400 text-white hover:bg-yellow-500 ${
+															coverImageIndex === photo.publicId ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+														} transition-opacity`}
+														onClick={() => setExistingAsCover(photo)}
+														title='Set as cover image'>
+														<Star size={12} />
+													</Button>
+													<Button
+														type='button'
+														size='icon'
+														variant='destructive'
+														className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
+														onClick={() => removeExistingPhoto(photo)}
+														title='Remove image'>
+														<X size={12} />
+													</Button>
+												</div>
+												{coverImageIndex === photo.publicId && (
+													<div className='absolute bottom-1 left-1 bg-yellow-400 text-xs text-white px-1.5 py-0.5 rounded'>
+														Cover
+													</div>
+												)}
+											</div>
+										))
+									) : (
+										<div className='text-muted-foreground'>No current photos</div>
+									)}
+								</div>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className='pb-3'>
+								<CardTitle>Add New Photos</CardTitle>
+								<CardDescription>Upload additional photos for your visa package</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className='border-2 border-dashed border-border rounded-lg p-4 mb-4'>
+									<div className='flex flex-wrap gap-4 mb-3'>
+										{newPhotoUrls.map((url, index) => (
+											<div key={index} className='relative group'>
+												<img
+													src={url || '/placeholder.svg'}
+													alt={`New photo ${index}`}
+													className={`h-24 w-24 object-cover rounded-lg ${
+														newCoverImageIndex === index ? 'ring-2 ring-yellow-400' : ''
+													}`}
+												/>
+												<div className='absolute top-1 right-1 flex gap-1'>
+													<Button
+														type='button'
+														size='icon'
+														variant='secondary'
+														className={`h-6 w-6 bg-yellow-400 text-white hover:bg-yellow-500 ${
+															newCoverImageIndex === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+														} transition-opacity`}
+														onClick={() => setNewAsCover(index)}
+														title='Set as cover image'>
+														<Star size={12} />
+													</Button>
+													<Button
+														type='button'
+														size='icon'
+														variant='destructive'
+														className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
+														onClick={() => removeNewPhoto(index)}
+														title='Remove image'>
+														<X size={12} />
+													</Button>
+												</div>
+												{newCoverImageIndex === index && (
+													<div className='absolute bottom-1 left-1 bg-yellow-400 text-xs text-white px-1.5 py-0.5 rounded'>
+														Cover
+													</div>
+												)}
+											</div>
+										))}
+
+										{newPhotoUrls.length === 0 && (
+											<div className='flex flex-col items-center justify-center text-muted-foreground h-24 w-full'>
+												<ImageIcon size={32} />
+												<span className='text-sm mt-2'>No new photos selected</span>
+											</div>
+										)}
+									</div>
+
+									<Label htmlFor='new-photo-upload' className='cursor-pointer'>
+										<div className='flex items-center justify-center gap-2 py-3 px-4 bg-muted hover:bg-muted/80 rounded-md transition-colors'>
+											<Upload size={20} />
+											<span>Select New Photos</span>
+										</div>
+										<Input
+											id='new-photo-upload'
+											type='file'
+											multiple
+											accept='image/*'
+											onChange={handleNewPhotoChange}
+											className='hidden'
+										/>
+									</Label>
+									<p className='text-xs text-muted-foreground mt-2'>
+										Upload up to 5 high-quality images. Maximum size: 5MB per image.
+									</p>
+								</div>
+							</CardContent>
+						</Card>
+					</TabsContent>
+				</Tabs>
+
+				<div className='flex flex-col sm:flex-row justify-end gap-4 mt-6'>
+					<Button type='button' variant='outline' onClick={() => navigate('/admin/visas')} className='w-full sm:w-auto'>
 						Cancel
-					</button>
-					<button
-						type='submit'
-						disabled={isSubmitting}
-						className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 ${
-							isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-						}`}>
+					</Button>
+					<Button type='submit' disabled={isSubmitting} className='w-full sm:w-auto min-w-[120px]'>
 						{isSubmitting ? (
-							<>
-								<div className='animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full'></div>
+							<div className='flex items-center justify-center'>
+								<Loader2 className='mr-2 h-4 w-4 animate-spin' />
 								<span>Updating...</span>
-							</>
+							</div>
 						) : (
-							'Update Visa'
+							<span>Update Visa</span>
 						)}
-					</button>
+					</Button>
 				</div>
 			</form>
-		</div>
+		</motion.div>
 	);
 };
 

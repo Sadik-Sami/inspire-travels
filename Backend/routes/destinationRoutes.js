@@ -299,8 +299,8 @@ router.get('/:id', async (req, res) => {
 
 // @route POST /api/destinations
 // @desc Create a new destination
-// @access Private (Admin only)
-router.post('/', verifyUser, verifyRole('admin'), upload.array('images', 5), async (req, res) => {
+// @access Private (Admin and Moderator)
+router.post('/', verifyUser, verifyRole('admin', 'moderator'), upload.array('images', 5), async (req, res) => {
 	try {
 		const { title, description, price, location, duration, category, transportation, accommodation, featured, status } =
 			req.body;
@@ -333,7 +333,7 @@ router.post('/', verifyUser, verifyRole('admin'), upload.array('images', 5), asy
 	}
 });
 
-router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), async (req, res) => {
+router.put('/:id', verifyUser, verifyRole('admin', 'moderator'), upload.array('images', 5), async (req, res) => {
 	try {
 		const destination = await Destination.findById(req.params.id);
 
@@ -382,7 +382,7 @@ router.put('/:id', verifyUser, verifyRole('admin'), upload.array('images', 5), a
 // @route DELETE /api/destinations/:id
 // @desc Delete destination
 // @access Private (Admin only)
-router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
+router.delete('/:id', verifyUser, verifyRole('admin', 'moderator'), async (req, res) => {
 	try {
 		const destination = await Destination.findById(req.params.id);
 
@@ -409,7 +409,7 @@ router.delete('/:id', verifyUser, verifyRole('admin'), async (req, res) => {
 // @route DELETE /api/destinations/:destinationId/images/:imageId
 // @desc Delete an image from a destination
 // @access Private (Admin only)
-router.delete('/:destinationId/images/:imageId', verifyUser, verifyRole('admin'), async (req, res) => {
+router.delete('/:destinationId/images/:imageId', verifyUser, verifyRole('admin', 'moderator'), async (req, res) => {
 	try {
 		const { destinationId, imageId } = req.params;
 
@@ -442,7 +442,7 @@ router.delete('/:destinationId/images/:imageId', verifyUser, verifyRole('admin')
 // @route PATCH /api/destinations/:id/status
 // @desc Update destination status
 // @access Private (Admin only)
-router.patch('/:id/status', verifyUser, verifyRole('admin'), async (req, res) => {
+router.patch('/:id/status', verifyUser, verifyRole('admin', 'moderator'), async (req, res) => {
 	try {
 		const { status } = req.body;
 
@@ -468,7 +468,7 @@ router.patch('/:id/status', verifyUser, verifyRole('admin'), async (req, res) =>
 // @route PATCH /api/destinations/:id/feature
 // @desc Toggle featured status
 // @access Private (Admin only)
-router.patch('/:id/feature', verifyUser, verifyRole('admin'), async (req, res) => {
+router.patch('/:id/feature', verifyUser, verifyRole('admin', 'moderator'), async (req, res) => {
 	try {
 		const destination = await Destination.findById(req.params.id);
 
@@ -488,7 +488,7 @@ router.patch('/:id/feature', verifyUser, verifyRole('admin'), async (req, res) =
 // @route PATCH /api/destinations/:id/popular
 // @desc Toggle popular status
 // @access Private (Admin only)
-router.patch('/:id/popular', verifyUser, verifyRole('admin'), async (req, res) => {
+router.patch('/:id/popular', verifyUser, verifyRole('admin', 'moderator'), async (req, res) => {
 	try {
 		const destination = await Destination.findById(req.params.id);
 
