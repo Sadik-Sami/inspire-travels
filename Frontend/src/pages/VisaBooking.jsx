@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -37,17 +35,16 @@ const VisaBooking = () => {
 	const navigate = useNavigate();
 	const { useGetVisaBySlug } = useVisaQuery();
 	const { data: visa, isLoading, isError } = useGetVisaBySlug(slug);
-	const { user, isAuthenticated } = useAuth();
+	const { user } = useAuth();
 	const axiosSecure = useAxiosSecure();
 
 	// Form state
 	const [formData, setFormData] = useState({
-		firstName: user?.firstName || '',
-		lastName: user?.lastName || '',
+		name: user?.name || '',
 		email: user?.email || '',
 		phone: user?.phone || '',
-		nationality: '',
-		passportNumber: '',
+		nationality: 'Bangladeshi',
+		passportNumber: user?.passportNumber || '',
 		travelDate: null,
 		specialRequests: '',
 		agreeToTerms: false,
@@ -70,7 +67,7 @@ const VisaBooking = () => {
 			case 'BDT':
 				return '৳';
 			default:
-				return '$';
+				return '৳';
 		}
 	};
 
@@ -93,8 +90,8 @@ const VisaBooking = () => {
 	const goToNextStep = () => {
 		if (currentStep === 1) {
 			// Validate personal information
-			if (!formData.firstName.trim() || !formData.lastName.trim()) {
-				toast.error('Please enter your full name');
+			if (!formData.name.trim()) {
+				toast.error('Please enter your name');
 				return;
 			}
 			if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) {
@@ -149,6 +146,7 @@ const VisaBooking = () => {
 
 			const bookingData = {
 				visaId: visa._id,
+				name: formData.name,
 				firstName: formData.firstName,
 				lastName: formData.lastName,
 				email: formData.email,
@@ -330,28 +328,10 @@ const VisaBooking = () => {
 
 												<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 													<div className='space-y-2'>
-														<Label htmlFor='firstName'>
-															First Name <span className='text-red-500'>*</span>
+														<Label htmlFor='name'>
+															Name <span className='text-red-500'>*</span>
 														</Label>
-														<Input
-															id='firstName'
-															name='firstName'
-															value={formData.firstName}
-															onChange={handleChange}
-															required
-														/>
-													</div>
-													<div className='space-y-2'>
-														<Label htmlFor='lastName'>
-															Last Name <span className='text-red-500'>*</span>
-														</Label>
-														<Input
-															id='lastName'
-															name='lastName'
-															value={formData.lastName}
-															onChange={handleChange}
-															required
-														/>
+														<Input id='name' name='name' value={formData.name} onChange={handleChange} required />
 													</div>
 												</div>
 
@@ -568,19 +548,19 @@ const VisaBooking = () => {
 
 													<div className='space-y-3'>
 														<h3 className='font-medium'>Payment Method</h3>
-														<RadioGroup defaultValue='card' className='space-y-2'>
+														<RadioGroup defaultValue='cod' className='space-y-2'>
 															<div className='flex items-center space-x-2 border rounded-md p-3'>
-																<RadioGroupItem value='card' id='card' />
-																<Label htmlFor='card' className='flex items-center gap-2 cursor-pointer'>
+																<RadioGroupItem value='cod' id='cod' />
+																<Label htmlFor='cod' className='flex items-center gap-2 cursor-pointer'>
 																	<CreditCard className='h-4 w-4' />
-																	<span>Credit/Debit Card</span>
+																	<span>Contact and Pay</span>
 																</Label>
 															</div>
 
 															<div className='flex items-center space-x-2 border rounded-md p-3'>
-																<RadioGroupItem value='paypal' id='paypal' disabled />
-																<Label htmlFor='paypal' className='flex items-center gap-2 cursor-pointer opacity-50'>
-																	<span>PayPal</span>
+																<RadioGroupItem value='card' id='card' disabled />
+																<Label htmlFor='card' className='flex items-center gap-2 cursor-pointer opacity-50'>
+																	<span>Credit/Debit Card</span>
 																	<Badge variant='outline' className='ml-2'>
 																		Coming Soon
 																	</Badge>

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -504,33 +502,10 @@ const DestinationDetails = () => {
 											selected={selectedDate}
 											onSelect={handleDateSelect}
 											initialFocus
-											disabled={(date) => {
-												// Disable dates that are not in availableDates
-												if (!destination.dates?.availableDates || destination.dates.availableDates.length === 0) {
-													return false;
-												}
-												return !destination.dates.availableDates.some((availableDate) => {
-													const dateObj = new Date(availableDate);
-													return (
-														date.getDate() === dateObj.getDate() &&
-														date.getMonth() === dateObj.getMonth() &&
-														date.getFullYear() === dateObj.getFullYear()
-													);
-												});
-											}}
+											disabled={(date) => date < new Date()}
 										/>
 									</PopoverContent>
 								</Popover>
-								{destination.dates?.availableDates && destination.dates.availableDates.length > 0 && (
-									<p className='text-xs text-muted-foreground'>Only highlighted dates are available for booking</p>
-								)}
-
-								{destination.dates?.bookingDeadline && (
-									<p className='text-xs text-amber-600 flex items-center'>
-										<CalendarIcon className='h-3 w-3 mr-1' />
-										Book by {formatDate(destination.dates.bookingDeadline)}
-									</p>
-								)}
 							</div>
 
 							{/* Trip Details Summary */}

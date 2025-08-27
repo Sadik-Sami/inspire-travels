@@ -7,11 +7,10 @@ const { verifyUser, verifyRole } = require('../middlewares/authMiddleware');
 // Create a new visa booking
 router.post('/', verifyUser, async (req, res) => {
 	try {
-		const { visaId, firstName, lastName, email, phone, nationality, passportNumber, travelDate, specialRequests } =
-			req.body;
+		const { visaId, name, email, phone, nationality, passportNumber, travelDate, specialRequests } = req.body;
 
 		// Validate required fields
-		if (!visaId || !firstName || !lastName || !email || !phone || !nationality || !passportNumber || !travelDate) {
+		if (!visaId || !name || !email || !phone || !nationality || !passportNumber || !travelDate) {
 			return res.status(400).json({ message: 'Missing required fields' });
 		}
 
@@ -25,8 +24,7 @@ router.post('/', verifyUser, async (req, res) => {
 		const newVisaBooking = new VisaBooking({
 			visa: visaId,
 			user: req.user._id,
-			firstName,
-			lastName,
+			name,
 			email,
 			phone,
 			nationality,
@@ -155,8 +153,7 @@ router.get('/', verifyUser, verifyRole('admin', 'employee'), async (req, res) =>
 		// Search by name or email
 		if (req.query.search) {
 			filter.$or = [
-				{ firstName: { $regex: req.query.search, $options: 'i' } },
-				{ lastName: { $regex: req.query.search, $options: 'i' } },
+				{ name: { $regex: req.query.search, $options: 'i' } },
 				{ email: { $regex: req.query.search, $options: 'i' } },
 			];
 		}

@@ -143,7 +143,7 @@ const Navbar = () => {
 						</motion.div>
 
 						{/* Desktop Navigation */}
-						<div className='hidden md:flex items-center space-x-1'>
+						<div className='hidden lg:flex items-center space-x-1'>
 							<nav className='flex items-center space-x-1 mr-4'>
 								{navLinks.map((link, i) => (
 									<motion.div
@@ -225,7 +225,7 @@ const Navbar = () => {
 						</div>
 
 						{/* Mobile Menu Button */}
-						<div className='flex items-center md:hidden space-x-4'>
+						<div className='flex items-center lg:hidden space-x-4'>
 							<ThemeToggle />
 							<motion.button
 								whileTap={{ scale: 0.9 }}
@@ -245,7 +245,7 @@ const Navbar = () => {
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='md:hidden overflow-hidden bg-background border-t'>
+							className='lg:hidden overflow-hidden bg-background border-t'>
 							<div className='container mx-auto px-4 py-2'>
 								<nav className='flex flex-col space-y-2 pb-4'>
 									{navLinks.map((link) => (
@@ -265,32 +265,39 @@ const Navbar = () => {
 											<motion.div variants={mobileItemVariants} whileTap={{ scale: 0.95 }}>
 												<Link
 													to='/profile'
-													className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+													className={`block px-3 py-2 rounded-md text-base font-medium ${
+														isActive('/profile') ? 'bg-primary text-primary-foreground' : 'hover:bg-content1'
+													}`}>
 													<User className='inline-block mr-2 h-4 w-4' />
 													Profile
 												</Link>
 												<Link
 													to='/my-bookings'
-													className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+													className={`block px-3 py-2 rounded-md text-base font-medium ${
+														isActive('/my-bookings') ? 'bg-primary text-primary-foreground' : 'hover:bg-content1'
+													}`}>
 													<MdSchedule className='inline-block mr-2 h-4 w-4' />
 													Bookings
 												</Link>
 												{(isAdmin || isEmployee || isModerator) && (
 													<Link
 														to='/admin'
-														className='block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+														className={`block px-3 py-2 rounded-md text-base font-medium ${
+															isActive('/admin') ? 'bg-primary text-primary-foreground' : 'hover:bg-content1'
+														}`}>
 														<MdDashboard className='inline-block mr-2 h-4 w-4' />
 														Dashboard
 													</Link>
 												)}
 											</motion.div>
 											<motion.div variants={mobileItemVariants} whileTap={{ scale: 0.95 }}>
-												<button
+												<Button
 													onClick={handleLogout}
-													className='w-full text-left block px-3 py-2 rounded-md text-base font-medium hover:bg-content1'>
+													variant='outline'
+													className='w-full text-left block px-3 py-2 rounded-md text-base font-medium hover:bg-destructive/30 text-destructive'>
 													<LogOut className='inline-block mr-2 h-4 w-4' />
 													Log out
-												</button>
+												</Button>
 											</motion.div>
 										</>
 									) : (

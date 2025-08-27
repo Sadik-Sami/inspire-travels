@@ -129,6 +129,7 @@ export const AuthProvider = ({ children }) => {
 						// Fetch full user data in background (including role, passport, etc.)
 						const fullUserData = await fetchUserData();
 						if (fullUserData) {
+							console.log(fullUserData);
 							setUser(fullUserData); // Replace with full data
 						}
 					} else {

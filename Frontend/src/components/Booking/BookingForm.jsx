@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -40,13 +38,13 @@ const BookingForm = ({ destination, selectedDate, onClose }) => {
 	const [formData, setFormData] = useState({
 		fullName: user?.name || '',
 		email: user?.email || '',
-		phone: '',
+		phone: user?.phone || '',
 		travelDate: selectedDate || null,
 		adults: 1,
 		children: 0,
 		specialRequests: '',
 		dietaryRestrictions: [],
-		agreeToTerms: false,
+		agreeToTerms: true,
 	});
 
 	// UI state
@@ -351,23 +349,7 @@ const BookingForm = ({ destination, selectedDate, onClose }) => {
 																selected={formData.travelDate}
 																onSelect={handleDateSelect}
 																initialFocus
-																disabled={(date) => {
-																	// Disable dates that are not in availableDates
-																	if (
-																		!destination.dates?.availableDates ||
-																		destination.dates.availableDates.length === 0
-																	) {
-																		return false;
-																	}
-																	return !destination.dates.availableDates.some((availableDate) => {
-																		const dateObj = new Date(availableDate);
-																		return (
-																			date.getDate() === dateObj.getDate() &&
-																			date.getMonth() === dateObj.getMonth() &&
-																			date.getFullYear() === dateObj.getFullYear()
-																		);
-																	});
-																}}
+																disabled={(date) => date < new Date()}
 															/>
 														</PopoverContent>
 													</Popover>

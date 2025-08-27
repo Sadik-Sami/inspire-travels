@@ -13,12 +13,7 @@ const visaBookingSchema = new mongoose.Schema(
 			required: true,
 		},
 		// Basic booking information
-		firstName: {
-			type: String,
-			required: true,
-			trim: true,
-		},
-		lastName: {
+		name: {
 			type: String,
 			required: true,
 			trim: true,

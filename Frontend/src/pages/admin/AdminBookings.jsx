@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useBookingQuery } from '@/hooks/useBookingQuery';
 import { useBookingMutation } from '@/hooks/useBookingMutation';
