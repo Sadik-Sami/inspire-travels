@@ -67,7 +67,6 @@ router.post('/', verifyUser, async (req, res) => {
 router.get('/my-bookings', verifyUser, async (req, res) => {
 	try {
 		const bookings = await VisaBooking.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
-
 		res.status(200).json({ bookings });
 	} catch (error) {
 		console.error('Error fetching visa bookings:', error);

@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
+import useRole from './use-Role';
 
 export const useVisaBookingQuery = (id, params = {}) => {
+	const { isAdmin, isEmployee } = useRole();
 	const axiosSecure = useAxiosSecure();
 
 	// Get all visa bookings for the current user
@@ -20,6 +22,7 @@ export const useVisaBookingQuery = (id, params = {}) => {
 			const response = await axiosSecure.get('/api/visa-bookings', { params });
 			return response.data;
 		},
+		enabled: isAdmin || isEmployee,
 	});
 
 	// Get a specific visa booking by ID

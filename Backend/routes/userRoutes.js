@@ -248,7 +248,7 @@ router.post('/firebase-auth', verifyFirebaseToken, async (req, res) => {
 				user = await User.findOneAndUpdate({ firebaseUid: uid }, { $set: updateData }, { new: true });
 				console.log(`Updated user ${uid}:`, updateData);
 			} else {
-				console.log(`No fields to update for user ${uid}`);
+				console.log(`No fields to update for user ${user._id}`);
 			}
 		} else {
 			user = await User.create({

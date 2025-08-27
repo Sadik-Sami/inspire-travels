@@ -29,7 +29,7 @@ const useAxiosSecure = () => {
 			(error) => Promise.reject(error)
 		);
 
-		// UPDATED: Response interceptor with automatic token refresh
+		// 🔄 FIXED: Response interceptor with proper token refresh logic
 		const responseInterceptor = axiosSecureInstance.interceptors.response.use(
 			(response) => {
 				// If response is successful, just return it
@@ -58,6 +58,18 @@ const useAxiosSecure = () => {
 							return axiosSecureInstance(originalRequest);
 						}
 					} catch (refreshError) {
+						console.error('Token refresh failed:', refreshError);
+
+						// Check if it's a security breach (forceReLogin flag)
+						if (refreshError.response?.data?.forceReLogin) {
+							console.log('Security breach detected - forcing re-login');
+							localStorage.clear();
+							logout();
+							navigate('/login?reason=security');
+							return Promise.reject(refreshError);
+						}
+
+						// Regular refresh failure - logout and redirect
 						console.log('Refresh token expired - logging out');
 						logout();
 						navigate('/login');
@@ -65,9 +77,10 @@ const useAxiosSecure = () => {
 					}
 				}
 
-				// Handle other 401/403 errors or if retry already attempted
-				if (status === 401 || status === 403) {
-					console.log('Authentication failed - logging out');
+				// 🚫 REMOVED: The problematic logic that was logging out users unnecessarily
+				// Only handle 401/403 errors if token refresh failed or wasn't attempted
+				if ((status === 401 || status === 403) && originalRequest._retry) {
+					console.log('Authentication failed after retry - logging out');
 					logout();
 					navigate('/login');
 				}

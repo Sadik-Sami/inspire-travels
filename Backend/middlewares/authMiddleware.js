@@ -34,17 +34,14 @@ const verifyFirebaseToken = async (req, res, next) => {
 const verifyUser = async (req, res, next) => {
 	try {
 		const token = req?.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
-
 		if (!token) {
 			return res.status(401).json({ message: 'No token, authorization denied' });
 		}
 
 		// Verify the access token
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
 		// Find user by ID from the decoded token (exclude sensitive data)
 		const user = await User.findById(decoded.user.id).select('-firebaseUid -refreshTokens');
-
 		if (!user) {
 			return res.status(401).json({ message: 'Token is not valid' });
 		}
