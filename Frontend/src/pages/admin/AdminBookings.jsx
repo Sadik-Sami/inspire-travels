@@ -580,9 +580,7 @@ const AdminBookings = () => {
 												<TableRow key={booking._id}>
 													<TableCell className='font-medium'>{booking._id.substring(0, 8).toUpperCase()}</TableCell>
 													<TableCell>
-														<div className='font-medium'>
-															{booking.firstName} {booking.lastName}
-														</div>
+														<div className='font-medium'>{booking.name}</div>
 														<div className='text-sm text-muted-foreground'>{booking.email}</div>
 													</TableCell>
 													<TableCell>{booking.visaDetails?.title}</TableCell>
@@ -665,7 +663,7 @@ const AdminBookings = () => {
 										<h4 className='font-medium'>
 											{selectedBookingType === BookingType.DESTINATION
 												? selectedBooking.fullName
-												: `${selectedBooking.firstName} ${selectedBooking.lastName}`}
+												: `${selectedBooking.name}`}
 										</h4>
 										<div className='flex items-center gap-2 mt-1 text-sm text-muted-foreground'>
 											<Mail className='h-4 w-4' />
