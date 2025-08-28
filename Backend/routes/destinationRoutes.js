@@ -156,9 +156,6 @@ router.get('/', async (req, res) => {
 			sortOptions.createdAt = -1;
 		}
 
-		console.log('Sort field:', sort, 'direction:', direction);
-		console.log('MongoDB sort options:', sortOptions);
-
 		// Execute query with pagination
 		const destinations = await Destination.find(query)
 			.sort(sortOptions)
@@ -305,7 +302,6 @@ router.post('/', verifyUser, verifyRole('admin', 'moderator'), upload.array('ima
 		const { title, description, price, location, duration, category, transportation, accommodation, featured, status } =
 			req.body;
 		const parsedData = transformNestedFields(req.body);
-		console.log(parsedData);
 		// Create new destination
 		const destination = new Destination({
 			...parsedData,
@@ -314,7 +310,6 @@ router.post('/', verifyUser, verifyRole('admin', 'moderator'), upload.array('ima
 			createdBy: req.user._id,
 			images: [],
 		});
-		console.log(destination);
 		// Upload images to Cloudinary
 		if (req.files && req.files.length > 0) {
 			for (const file of req.files) {
@@ -343,7 +338,6 @@ router.put('/:id', verifyUser, verifyRole('admin', 'moderator'), upload.array('i
 
 		// Parse the form data using the transformNestedFields helper
 		const parsedData = transformNestedFields(req.body);
-		console.log('Parsed update data:', parsedData);
 
 		// Handle image deletion
 		if (req.body.deleteImages) {

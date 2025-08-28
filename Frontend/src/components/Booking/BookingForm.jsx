@@ -200,32 +200,19 @@ const BookingForm = ({ destination, selectedDate, onClose }) => {
 		exit: { opacity: 0, transition: { duration: 0.2 } },
 	};
 
-	const slideIn = {
-		hidden: { x: 20, opacity: 0 },
-		visible: { x: 0, opacity: 1, transition: { duration: 0.3 } },
-		exit: { x: -20, opacity: 0, transition: { duration: 0.2 } },
-	};
-
 	return (
 		<Dialog open={true} onOpenChange={onClose}>
 			<DialogContent className='sm:max-w-[600px] p-0 overflow-hidden'>
 				<div className='relative'>
 					{/* Header with destination image */}
-					<div className='relative h-32 bg-gradient-to-r from-primary/80 to-primary overflow-hidden'>
+					<div className='relative h-64 overflow-hidden'>
 						{destination.images && destination.images.length > 0 && (
 							<img
 								src={destination.images[0].url || '/placeholder.svg'}
 								alt={destination.title}
-								className='absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-50'
+								className='w-full h-full object-cover object-top'
 							/>
 						)}
-						<Button
-							variant='ghost'
-							size='icon'
-							className='absolute top-2 right-2 text-white hover:bg-white/20'
-							onClick={onClose}>
-							<X className='h-5 w-5' />
-						</Button>
 						<div className='absolute bottom-4 left-6 text-white'>
 							<h3 className='text-xl font-bold'>{destination.title}</h3>
 							<p className='text-sm opacity-90'>
@@ -329,7 +316,7 @@ const BookingForm = ({ destination, selectedDate, onClose }) => {
 											<div className='space-y-4'>
 												<div>
 													<Label htmlFor='travelDate' className='mb-1 block'>
-														Travel Date
+														Consulting Date
 													</Label>
 													<Popover>
 														<PopoverTrigger asChild>

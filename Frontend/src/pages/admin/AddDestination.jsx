@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -31,7 +29,7 @@ const AddDestination = () => {
 		summary: '',
 		description: '',
 		location: {
-			from: '',
+			from: 'Dhaka, Bangladesh',
 			to: '',
 			address: '',
 			mapLink: '',
@@ -40,7 +38,7 @@ const AddDestination = () => {
 			basePrice: '',
 			discountedPrice: '',
 			currency: 'BDT',
-			priceType: 'perPerson', // perPerson, perCouple, perGroup
+			priceType: 'perPerson',
 		},
 		duration: {
 			days: 1,
