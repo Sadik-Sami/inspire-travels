@@ -23,7 +23,7 @@ import {
 
 const initialFormData = {
 	companyName: '',
-	address: { street: '', city: '', state: '', zipCode: '', country: '' },
+	addresses: [],
 	phoneNumbers: [],
 	emailAddresses: [],
 	websiteUrl: '',
@@ -45,7 +45,7 @@ const AdminContactInfo = () => {
 			setFormData((prev) => ({
 				...initialFormData,
 				...contactInfo,
-				address: { ...initialFormData.address, ...(contactInfo.address || {}) },
+				addresses: contactInfo.addresses || [],
 				socialMediaLinks: { ...initialFormData.socialMediaLinks, ...(contactInfo.socialMediaLinks || {}) },
 				phoneNumbers: contactInfo.phoneNumbers || [],
 				emailAddresses: contactInfo.emailAddresses || [],
@@ -81,7 +81,8 @@ const AdminContactInfo = () => {
 		setFormData((prev) => {
 			const currentArray = prev[section] || [];
 			let newItem = {};
-			if (section === 'phoneNumbers') newItem = { label: '', number: '' };
+			if (section === 'addresses') newItem = { label: '', street: '', city: '', state: '', zipCode: '', country: '' };
+			else if (section === 'phoneNumbers') newItem = { label: '', number: '' };
 			else if (section === 'emailAddresses') newItem = { label: '', email: '' };
 			else if (section === 'officeHours') newItem = { days: '', hours: '' };
 			else if (section === 'termsAndConditions') newItem = { title: '', content: '' };
@@ -208,73 +209,72 @@ const AdminContactInfo = () => {
 					<TabsContent value='contact' className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
 						<Card>
 							<CardHeader>
-								<CardTitle className='font-heading text-xl text-primary-600'>Physical Address</CardTitle>
+								<CardTitle className='flex items-center font-heading text-xl text-primary-600'>
+									<MapPin className='mr-2 h-5 w-5' /> Physical Addresses
+								</CardTitle>
+								<CardDescription>Manage multiple office locations.</CardDescription>
 							</CardHeader>
 							<CardContent className='space-y-4 p-6'>
-								<div>
-									<Label htmlFor='street' className='font-semibold text-muted-foreground'>
-										Street
-									</Label>
-									<Input
-										id='street'
-										name='street'
-										value={formData.address?.street || ''}
-										onChange={(e) => handleDirectNestedChange(e, 'address')}
-										className='mt-1'
-									/>
-								</div>
-								<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-									<div>
-										<Label htmlFor='city' className='font-semibold text-muted-foreground'>
-											City
-										</Label>
-										<Input
-											id='city'
-											name='city'
-											value={formData.address?.city || ''}
-											onChange={(e) => handleDirectNestedChange(e, 'address')}
-											className='mt-1'
-										/>
+								{(formData.addresses || []).map((address, index) => (
+									<div key={index} className='rounded-md border bg-content1 p-4'>
+										<div className='mb-2 flex items-center justify-between'>
+											<h4 className='font-semibold text-muted-foreground'>Address {index + 1}</h4>
+											<Button
+												type='button'
+												variant='ghost'
+												size='icon'
+												onClick={() => removeArrayItem('addresses', index)}
+												className='text-danger-500 hover:bg-danger-50'>
+												<Trash2 className='h-4 w-4' />
+											</Button>
+										</div>
+										<div className='space-y-4'>
+											<Input
+												name='label'
+												value={address.label || ''}
+												onChange={(e) => handleInputChange(e, 'addresses', index)}
+												placeholder='Label (e.g., Head Office, Corporate Office)'
+											/>
+											<Input
+												name='street'
+												value={address.street || ''}
+												onChange={(e) => handleInputChange(e, 'addresses', index)}
+												placeholder='Street Address'
+											/>
+											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+												<Input
+													name='city'
+													value={address.city || ''}
+													onChange={(e) => handleInputChange(e, 'addresses', index)}
+													placeholder='City'
+												/>
+												<Input
+													name='state'
+													value={address.state || ''}
+													onChange={(e) => handleInputChange(e, 'addresses', index)}
+													placeholder='State/Province'
+												/>
+											</div>
+											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+												<Input
+													name='zipCode'
+													value={address.zipCode || ''}
+													onChange={(e) => handleInputChange(e, 'addresses', index)}
+													placeholder='Zip/Postal Code'
+												/>
+												<Input
+													name='country'
+													value={address.country || ''}
+													onChange={(e) => handleInputChange(e, 'addresses', index)}
+													placeholder='Country'
+												/>
+											</div>
+										</div>
 									</div>
-									<div>
-										<Label htmlFor='state' className='font-semibold text-muted-foreground'>
-											State/Province
-										</Label>
-										<Input
-											id='state'
-											name='state'
-											value={formData.address?.state || ''}
-											onChange={(e) => handleDirectNestedChange(e, 'address')}
-											className='mt-1'
-										/>
-									</div>
-								</div>
-								<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-									<div>
-										<Label htmlFor='zipCode' className='font-semibold text-muted-foreground'>
-											Zip/Postal Code
-										</Label>
-										<Input
-											id='zipCode'
-											name='zipCode'
-											value={formData.address?.zipCode || ''}
-											onChange={(e) => handleDirectNestedChange(e, 'address')}
-											className='mt-1'
-										/>
-									</div>
-									<div>
-										<Label htmlFor='country' className='font-semibold text-muted-foreground'>
-											Country
-										</Label>
-										<Input
-											id='country'
-											name='country'
-											value={formData.address?.country || ''}
-											onChange={(e) => handleDirectNestedChange(e, 'address')}
-											className='mt-1'
-										/>
-									</div>
-								</div>
+								))}
+								<Button type='button' variant='outline' onClick={() => addArrayItem('addresses')}>
+									<PlusCircle className='mr-2 h-4 w-4' /> Add Address
+								</Button>
 							</CardContent>
 						</Card>
 						<div className='space-y-6'>

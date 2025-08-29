@@ -7,13 +7,16 @@ const ContactInfoSchema = new mongoose.Schema(
 			trim: true,
 			default: 'SureTrip Travels',
 		},
-		address: {
-			street: { type: String, trim: true },
-			city: { type: String, trim: true },
-			state: { type: String, trim: true },
-			zipCode: { type: String, trim: true },
-			country: { type: String, trim: true },
-		},
+		addresses: [
+			{
+				label: { type: String, trim: true, default: 'Main Office' }, // e.g., Head Office, Corporate Office, Support Office
+				street: { type: String, trim: true },
+				city: { type: String, trim: true },
+				state: { type: String, trim: true },
+				zipCode: { type: String, trim: true },
+				country: { type: String, trim: true },
+			},
+		],
 		phoneNumbers: [
 			{
 				label: { type: String, trim: true, default: 'Main' }, // e.g., Main, Sales, Support

@@ -48,20 +48,30 @@ const Contact = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
-		// TODO: Implement actual API call to submit form data
-		console.log('Form data:', formData);
-		setTimeout(() => {
-			setIsSubmitting(false);
+
+		try {
+			await axiosPublic.post('/api/support/', formData);
 			setSubmitSuccess(true);
 			setFormData({ name: '', email: '', subject: '', message: '' });
+			toast.success("Message sent successfully! We'll get back to you soon.");
 			setTimeout(() => setSubmitSuccess(false), 5000);
-		}, 1500);
+		} catch (error) {
+			console.error('Error sending message:', error);
+			toast.error('Failed to send message. Please try again later.');
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const formatAddress = (address) => {
 		if (!address) return 'N/A';
 		const parts = [address.street, address.city, address.state, address.zipCode, address.country];
-		return parts.filter(Boolean).join(', ');
+		// return parts.filter(Boolean).join(', ');
+		return (
+			<p className='text-sm'>
+				{address.street}, {address.city}-{address.zipCode}, {address.country}
+			</p>
+		);
 	};
 
 	// Loading State
@@ -106,7 +116,7 @@ const Contact = () => {
 
 	const {
 		companyName,
-		address,
+		addresses,
 		phoneNumbers,
 		emailAddresses,
 		websiteUrl,
@@ -250,17 +260,24 @@ const Contact = () => {
 									</div>
 
 									<div className='grid md:grid-cols-2 gap-6'>
-										{/* Address */}
-										{address && (
+										{addresses && addresses.length > 0 && (
 											<div className='space-y-3'>
+												{/* Section Header */}
 												<div className='flex items-center gap-3'>
-													<div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center'>
+													<div className='rounded-full bg-primary/10 p-3 w-fit'>
 														<MapPin className='h-5 w-5 text-primary' />
 													</div>
-													<div>
-														<h4 className='font-semibold text-foreground'>Our Location</h4>
-														<p className='text-muted-foreground text-sm leading-relaxed'>{formatAddress(address)}</p>
-													</div>
+													<h4 className='font-semibold text-foreground'>Our Locations</h4>
+												</div>
+
+												{/* Address List */}
+												<div className='space-y-4 pl-14'>
+													{addresses.map((address, index) => (
+														<div key={index} className='space-y-1'>
+															<p className='font-semibold text-foreground'>{address.label}</p>
+															{formatAddress(address)}
+														</div>
+													))}
 												</div>
 											</div>
 										)}
@@ -402,14 +419,14 @@ const Contact = () => {
 			{/* Contact Form and Map Section */}
 			<section className='py-10 bg-muted/30'>
 				<div className='container mx-auto px-4'>
-					<div className='grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto'>
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-12 mx-auto'>
 						{/* Contact Form */}
 						<motion.div
 							initial={{ opacity: 0, x: -50 }}
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 							transition={{ duration: 0.6 }}>
-							<Card className='bg-card shadow-xl border border-border'>
+							<Card className='bg-card shadow-xl border border-border h-full'>
 								<CardContent className='p-8'>
 									<div className='mb-8'>
 										<h2 className='text-3xl font-heading font-bold text-foreground mb-4'>Send Us a Message</h2>

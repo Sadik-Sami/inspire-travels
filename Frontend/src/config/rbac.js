@@ -66,9 +66,7 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_ANALYTICS,
 	],
 
-	[ROLES.CUSTOMER]: [
-		
-	],
+	[ROLES.CUSTOMER]: [],
 };
 
 // Navigation items with required permissions
