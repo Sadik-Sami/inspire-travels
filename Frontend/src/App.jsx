@@ -44,6 +44,7 @@ import Profile from '@/pages/Profile';
 import ForgotPassword from '@/pages/ForgotPassword';
 import AdminStaffs from '@/pages/admin/AdminStaffs';
 import AdminCustomers from '@/pages/admin/AdminCustomers';
+import AdminMessages from './pages/admin/AdminMessages';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -59,7 +60,7 @@ const App = () => {
 			<ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
 				<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
 					<AuthProvider>
-						<Toaster richColors position='top-right' />
+						<Toaster expand closeButton richColors position='bottom-right' />
 						<Routes>
 							<Route path='/' element={<UserLayout />}>
 								<Route index element={<Home />} />
@@ -263,6 +264,14 @@ const App = () => {
 									element={
 										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_CONTACT_INFO]}>
 											<AdminContactInfo />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='messages'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_MESSAGES]}>
+											<AdminMessages />
 										</RoleBasedRoute>
 									}
 								/>

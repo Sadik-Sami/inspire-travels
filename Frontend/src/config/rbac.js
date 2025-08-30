@@ -29,6 +29,10 @@ export const PERMISSIONS = {
 	// System Settings
 	MANAGE_CONTACT_INFO: 'manage_contact_info',
 	SYSTEM_SETTINGS: 'system_settings',
+
+	// Messages Management
+	VIEW_MESSAGES: 'view_messages',
+	MANAGE_MESSAGES: 'manage_messages',
 };
 
 export const ROLE_PERMISSIONS = {
@@ -47,6 +51,8 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_ANALYTICS,
 		PERMISSIONS.MANAGE_CONTACT_INFO,
 		PERMISSIONS.SYSTEM_SETTINGS,
+		PERMISSIONS.VIEW_MESSAGES,
+		PERMISSIONS.MANAGE_MESSAGES,
 	],
 
 	[ROLES.MODERATOR]: [
@@ -55,6 +61,8 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.MANAGE_VISAS,
 		PERMISSIONS.MANAGE_BLOGS,
 		PERMISSIONS.VIEW_BOOKINGS,
+		PERMISSIONS.VIEW_MESSAGES,
+		PERMISSIONS.MANAGE_MESSAGES,
 	],
 
 	[ROLES.EMPLOYEE]: [
@@ -64,6 +72,8 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_BOOKINGS,
 		PERMISSIONS.MANAGE_INVOICES,
 		PERMISSIONS.VIEW_ANALYTICS,
+		PERMISSIONS.VIEW_MESSAGES,
+		PERMISSIONS.MANAGE_MESSAGES,
 	],
 
 	[ROLES.CUSTOMER]: [],
@@ -152,6 +162,18 @@ export const NAVIGATION_CONFIG = {
 					title: 'Analytics',
 					url: '/admin/invoices/analytics',
 					requiredPermissions: [PERMISSIONS.VIEW_ANALYTICS],
+				},
+			],
+		},
+		{
+			title: 'Communication',
+			icon: 'IoDocuments',
+			requiredPermissions: [PERMISSIONS.VIEW_MESSAGES],
+			items: [
+				{
+					title: 'Contact Messages',
+					url: '/admin/messages',
+					requiredPermissions: [PERMISSIONS.VIEW_MESSAGES],
 				},
 			],
 		},

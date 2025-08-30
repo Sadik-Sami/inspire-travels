@@ -27,9 +27,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useContactInfoQuery } from '@/hooks/useContactInfoQuery';
 import { Card, CardContent } from '@/components/ui/card';
 import HeroSection from '@/components/Sections/HeroSection';
+import { toast } from 'sonner';
+import useAxiosPublic from '@/hooks/use-AxiosPublic';
 
 const Contact = () => {
 	const { data: contactData, isLoading, isError, error: queryError } = useContactInfoQuery();
+	const axiosPublic = useAxiosPublic();
 
 	const [formData, setFormData] = useState({
 		name: '',
@@ -48,13 +51,14 @@ const Contact = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
-
 		try {
-			await axiosPublic.post('/api/support/', formData);
-			setSubmitSuccess(true);
-			setFormData({ name: '', email: '', subject: '', message: '' });
-			toast.success("Message sent successfully! We'll get back to you soon.");
-			setTimeout(() => setSubmitSuccess(false), 5000);
+			const { data } = await axiosPublic.post('/api/support/', formData);
+			if (data.success) {
+				setSubmitSuccess(true);
+				setFormData({ name: '', email: '', subject: '', message: '' });
+				return toast.success(data.message);
+			}
+			toast.error(data.message);
 		} catch (error) {
 			console.error('Error sending message:', error);
 			toast.error('Failed to send message. Please try again later.');

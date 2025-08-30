@@ -15,6 +15,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const contactInfoRoutes = require('./routes/contactInfoRoutes');
 const cronRoutes = require('./routes/cronRoutes');
 const customerRoutes = require('./routes/customerRoutes');
+const supportRoutes = require('./routes/supportRoutes');
 dotenv.config();
 
 const app = express();
@@ -74,6 +75,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/support', supportRoutes);
 app.use('/api/cron', cronRoutes);
 
 app.listen(PORT, () => {
