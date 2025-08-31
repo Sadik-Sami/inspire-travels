@@ -134,8 +134,8 @@ const FeaturedDestinations = () => {
 								<Sparkles size={16} className='text-primary' />
 							</motion.div>
 						</div>
-						<h2 className='text-3xl md:text-4xl font-heading font-bold max-w-lg mb-3 text-foreground'>
-							Discover Our <span className='text-primary'>Featured Destinations</span>
+						<h2 className='text-3xl md:text-4xl font-heading font-bold max-w-md mb-3 text-foreground'>
+							Discover Our <span className='text-primary'>Group Packages</span>
 						</h2>
 						<p className='text-muted-foreground mt-3 max-w-xl leading-relaxed'>
 							Explore our handpicked destinations that travelers love. From iconic landmarks to hidden gems, we've got
@@ -162,7 +162,7 @@ const FeaturedDestinations = () => {
 					</div>
 				) : (
 					<motion.div
-						className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8'
+						className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8'
 						variants={containerVariants}
 						initial='hidden'
 						animate='show'>
@@ -190,22 +190,6 @@ const FeaturedDestinations = () => {
 										/>
 										<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
-										{/* Favorite Button */}
-										<motion.button
-											onClick={(e) => toggleFavorite(destination?._id || index, e)}
-											className='absolute top-4 right-4 p-2.5 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all duration-300 z-10 border border-white/20'
-											whileTap={{ scale: 0.9 }}
-											whileHover={{ scale: 1.1 }}>
-											<Heart
-												size={18}
-												className={
-													favorites[destination?._id || index]
-														? 'fill-red-500 text-red-500'
-														: 'text-white hover:text-red-300'
-												}
-											/>
-										</motion.button>
-
 										{/* Trending Badge */}
 										{destination?.trending && (
 											<motion.div
@@ -231,10 +215,6 @@ const FeaturedDestinations = () => {
 														<MapPin size={14} className='mr-1.5 flex-shrink-0' />
 														<span className='text-sm'>{destination?.location?.to || 'Amazing Location'}</span>
 													</div>
-												</div>
-												<div className='flex items-center bg-white/15 backdrop-blur-md rounded-lg px-2.5 py-1.5 ml-3'>
-													<Star size={14} className='text-yellow-400' fill='currentColor' />
-													<span className='text-white text-sm ml-1.5 font-medium'>{destination?.rating || '4.5'}</span>
 												</div>
 											</div>
 										</div>

@@ -110,7 +110,7 @@ const Destinations = () => {
 	return (
 		<div className='min-h-screen bg-background text-foreground'>
 			<HeroSection
-				title='Explore Our Destinations'
+				title='Explore Our Group Packages'
 				subtitle='Discover our carefully curated selection of travel experiences around the world'
 				imageUrl='/assets/images/hero.jpg'
 				showButton={false}
@@ -191,7 +191,7 @@ const Destinations = () => {
 						</div>
 					) : (
 						// Destinations grid
-						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+						<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8'>
 							{data.destinations?.map((destination, index) => (
 								<AnimatedCard key={destination._id} delay={index * 0.05}>
 									<Card className='bg-background rounded-lg overflow-hidden shadow-md h-full flex flex-col py-0'>
@@ -201,12 +201,6 @@ const Destinations = () => {
 												alt={destination.title}
 												className='w-full h-full object-cover transition-transform duration-500 hover:scale-110'
 											/>
-											<div className='absolute top-2 right-2'>
-												<Badge variant='secondary' className='flex items-center gap-1'>
-													<Star className='h-3 w-3 fill-current' />
-													{destination.rating || 4.5}
-												</Badge>
-											</div>
 											{destination.isPopular && (
 												<div className='absolute top-2 left-2'>
 													<Badge variant='primary' className='bg-primary text-primary-foreground'>

@@ -108,7 +108,7 @@ const Navbar = () => {
 
 	const navLinks = [
 		{ name: 'Home', path: '/' },
-		{ name: 'Tour Packages', path: '/destinations' },
+		{ name: 'Group Packages', path: '/destinations' },
 		{ name: 'Visa Packages', path: '/visas' },
 		{ name: 'Blogs', path: '/blogs' },
 		{ name: 'About', path: '/about' },

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '@/hooks/use-AxiosSecure';
@@ -47,11 +45,11 @@ import {
 	YAxis,
 	CartesianGrid,
 	Legend,
-	ResponsiveContainer,
 	AreaChart,
 	Area,
 	LabelList,
 } from 'recharts';
+import { ArrowDownRight } from 'lucide-react';
 
 const AdminHome = () => {
 	const axiosSecure = useAxiosSecure();
@@ -84,6 +82,9 @@ const AdminHome = () => {
 		queryKey: ['monthlyRevenue', selectedYear],
 		queryFn: async () => {
 			const response = await axiosSecure.get(`/api/analytics/monthly-revenue?year=${selectedYear}`);
+			// console.log(response.data.data[response.data.data.length - 1]);
+			// monthlyRevenueData[monthlyRevenueData.length - 1]
+			console.log(response.data.data);
 			return response.data.data;
 		},
 	});
@@ -163,11 +164,23 @@ const AdminHome = () => {
 		}
 	};
 
-	// Calculate percentage change
-	const calculatePercentChange = (current, previous) => {
-		if (!previous) return 100;
-		return ((current - previous) / previous) * 100;
-	};
+	function calculateMonthlyChange(monthlyRevenueData) {
+		const now = new Date();
+		const currentMonth = now.getMonth() + 1; // 1–12
+
+		const currentMonthData = monthlyRevenueData?.find((m) => m.month === currentMonth);
+		const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+		const prevMonthData = monthlyRevenueData?.find((m) => m.month === prevMonth);
+
+		const currentCollected = currentMonthData?.totalRevenue || 0;
+		const prevCollected = prevMonthData?.totalRevenue || 0;
+		const diff = currentCollected - prevCollected;
+		const isIncrease = diff >= 0;
+
+		return { currentCollected, prevCollected, diff, isIncrease };
+	}
+
+	const { diff, isIncrease } = calculateMonthlyChange(monthlyRevenueData);
 
 	// Chart configurations
 	const chartConfig = {
@@ -317,16 +330,26 @@ const AdminHome = () => {
 						<DollarSign className='h-4 w-4 text-muted-foreground' />
 					</CardHeader>
 					<CardContent>
-						<div className='text-2xl font-bold'>{formatCurrency(summaryData?.invoices?.revenue?.paidAmount || 0)}</div>
+						<div className='text-2xl font-bold'>
+							{formatCurrency(
+								(summaryData?.invoices?.revenue?.paidAmount || 0) +
+									(summaryData?.bookings?.revenue?.paid || 0) +
+									(summaryData?.visaBookings?.revenue?.paid || 0)
+							)}
+						</div>
 						<p className='text-xs text-muted-foreground'>
 							{formatCurrency(summaryData?.invoices?.revenue?.totalAmount || 0)} invoiced
 						</p>
+						<p className='text-xs text-muted-foreground'>
+							{formatCurrency(
+								(summaryData?.bookings?.revenue?.paid || 0) + (summaryData?.visaBookings?.revenue?.paid || 0)
+							)}{' '}
+							booked
+						</p>
 						<div className='mt-2 flex items-center text-xs'>
 							<Badge variant='outline' className='bg-chart-1/10 text-chart-1 border-chart-1/20'>
-								<ArrowUpRight className='h-3 w-3 mr-1' />
-								{monthlyRevenueData && monthlyRevenueData.length > 0
-									? `+${monthlyRevenueData[monthlyRevenueData.length - 1].collectedAmount.toFixed(2)} this month`
-									: 'No data'}
+								{isIncrease ? <ArrowUpRight className='h-3 w-3' /> : <ArrowDownRight className='h-3 w-3' />}
+								{isIncrease ? `+${diff.toFixed(3) / 1000}k this month` : `${diff.toFixed(3) / 1000}k this month`}
 							</Badge>
 						</div>
 					</CardContent>
@@ -614,7 +637,7 @@ const AdminHome = () => {
 											axisLine={false}
 											tickFormatter={(value) => value.slice(0, 3)}
 										/>
-										<ChartTooltip content={<ChartTooltipContent hideLabel/>} />
+										<ChartTooltip content={<ChartTooltipContent hideLabel />} />
 										<Line
 											yAxisId='left'
 											type='monotone'
