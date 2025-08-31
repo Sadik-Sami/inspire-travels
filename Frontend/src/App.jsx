@@ -45,6 +45,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import AdminStaffs from '@/pages/admin/AdminStaffs';
 import AdminCustomers from '@/pages/admin/AdminCustomers';
 import AdminMessages from './pages/admin/AdminMessages';
+import AdminGallery from './pages/admin/AdminGallery';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -272,6 +273,14 @@ const App = () => {
 									element={
 										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_MESSAGES]}>
 											<AdminMessages />
+										</RoleBasedRoute>
+									}
+								/>
+								<Route
+									path='gallery'
+									element={
+										<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_GALLERY]}>
+											<AdminGallery />
 										</RoleBasedRoute>
 									}
 								/>

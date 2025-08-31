@@ -20,6 +20,7 @@ export const PERMISSIONS = {
 	MANAGE_DESTINATIONS: 'manage_destinations',
 	MANAGE_VISAS: 'manage_visas',
 	MANAGE_BLOGS: 'manage_blogs',
+	MANAGE_GALLERY: 'manage_gallery',
 
 	// Financial Management
 	VIEW_BOOKINGS: 'view_bookings',
@@ -53,6 +54,7 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.SYSTEM_SETTINGS,
 		PERMISSIONS.VIEW_MESSAGES,
 		PERMISSIONS.MANAGE_MESSAGES,
+		PERMISSIONS.MANAGE_GALLERY,
 	],
 
 	[ROLES.MODERATOR]: [
@@ -63,6 +65,7 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_BOOKINGS,
 		PERMISSIONS.VIEW_MESSAGES,
 		PERMISSIONS.MANAGE_MESSAGES,
+		PERMISSIONS.MANAGE_GALLERY,
 	],
 
 	[ROLES.EMPLOYEE]: [
@@ -132,9 +135,9 @@ export const NAVIGATION_CONFIG = {
 					requiredPermissions: [PERMISSIONS.MANAGE_BLOGS],
 				},
 				{
-					title: 'Add Blog',
-					url: '/admin/blogs/new',
-					requiredPermissions: [PERMISSIONS.MANAGE_BLOGS],
+					title: 'Gallery & Stories',
+					url: '/admin/gallery',
+					requiredPermissions: [PERMISSIONS.MANAGE_GALLERY],
 				},
 			],
 		},
