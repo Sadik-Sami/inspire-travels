@@ -5,7 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import AnimatedButton from '@/components/Animation/AnimatedButton';
 import { useFeaturedDestinations } from '@/hooks/useDestinationQuery';
-import { ArrowRight, MapPin, Star, Heart, TrendingUp, Sparkles } from 'lucide-react';
+import { ArrowRight, MapPin, TrendingUp, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 const FeaturedDestinations = () => {
 	const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -58,7 +62,7 @@ const FeaturedDestinations = () => {
 
 	// Loading skeleton component
 	const DestinationSkeleton = () => (
-		<div className='bg-card rounded-2xl shadow-sm overflow-hidden border border-border h-full'>
+		<div className='bg-card rounded-2xl shadow-sm overflow-hidden border border-border h-full min-w-0 flex-shrink-0'>
 			{/* Image skeleton */}
 			<div className='relative h-60'>
 				<Skeleton className='h-full w-full rounded-none' />
@@ -128,7 +132,7 @@ const FeaturedDestinations = () => {
 								}}
 								transition={{
 									duration: 2,
-									repeat: Infinity,
+									repeat: Number.POSITIVE_INFINITY,
 									repeatType: 'reverse',
 								}}>
 								<Sparkles size={16} className='text-primary' />
@@ -153,130 +157,169 @@ const FeaturedDestinations = () => {
 					</div>
 				</div>
 
-				{/* Destinations Grid */}
 				{isLoading ? (
-					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8'>
+					<div className='flex gap-8 overflow-hidden'>
 						{[...Array(3)].map((_, index) => (
-							<DestinationSkeleton key={index} />
+							<div key={index} className='w-full sm:w-1/2 lg:w-1/3 flex-shrink-0'>
+								<DestinationSkeleton />
+							</div>
 						))}
 					</div>
 				) : (
-					<motion.div
-						className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8'
-						variants={containerVariants}
-						initial='hidden'
-						animate='show'>
-						{destinations?.map((destination, index) => (
-							<motion.div
-								key={destination?._id || index}
-								variants={itemVariants}
-								className='relative group'
-								whileHover={{
-									y: -8,
-									transition: { duration: 0.3, ease: 'easeOut' },
-								}}
-								onMouseEnter={() => setHoveredIndex(index)}
-								onMouseLeave={() => setHoveredIndex(null)}>
-								<div className='bg-card rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border border-border transition-all duration-500 h-full flex flex-col'>
-									{/* Image Section */}
-									<div className='relative h-60 overflow-hidden'>
-										<img
-											src={
-												destination?.images?.[0]?.url ||
-												'/placeholder.svg?height=240&width=400&query=travel destination'
-											}
-											alt={destination?.name || 'Destination image'}
-											className='w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110'
-										/>
-										<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
+					<div className='relative'>
+						<Swiper
+							modules={[Navigation, Autoplay]}
+							spaceBetween={32}
+							slidesPerView={1}
+							loop={true}
+							autoplay={{
+								delay: 5000,
+								disableOnInteraction: false,
+								pauseOnMouseEnter: true,
+							}}
+							navigation={{
+								prevEl: '.swiper-button-prev-custom',
+								nextEl: '.swiper-button-next-custom',
+							}}
+							breakpoints={{
+								640: {
+									slidesPerView: 2,
+								},
+								1024: {
+									slidesPerView: 3,
+								},
+							}}>
+							{destinations?.map((destination, index) => (
+								<SwiperSlide key={destination?._id || index}>
+									<motion.div
+										variants={itemVariants}
+										initial='hidden'
+										animate='show'
+										className='relative group h-full'
+										onMouseEnter={() => setHoveredIndex(index)}
+										onMouseLeave={() => setHoveredIndex(null)}>
+										<div className='bg-card rounded-2xl overflow-hidden border border-border transition-all duration-500 h-full flex flex-col'>
+											{/* Image Section */}
+											<div className='relative h-60 overflow-hidden'>
+												<img
+													src={
+														destination?.images?.[0]?.url ||
+														'/placeholder.svg?height=240&width=400&query=travel destination' ||
+														'/placeholder.svg' ||
+														'/placeholder.svg'
+													}
+													alt={destination?.name || 'Destination image'}
+													className='w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110'
+												/>
+												<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
-										{/* Trending Badge */}
-										{destination?.trending && (
-											<motion.div
-												className='absolute top-4 left-4 z-10'
-												initial={{ x: -20, opacity: 0 }}
-												animate={{ x: 0, opacity: 1 }}
-												transition={{ delay: 0.3 }}>
-												<Badge className='bg-primary text-primary-foreground font-medium px-3 py-1.5 flex items-center gap-1.5 shadow-lg'>
-													<TrendingUp size={14} />
-													<span>Trending</span>
-												</Badge>
-											</motion.div>
-										)}
+												{/* Trending Badge */}
+												{destination?.trending && (
+													<motion.div
+														className='absolute top-4 left-4 z-10'
+														initial={{ x: -20, opacity: 0 }}
+														animate={{ x: 0, opacity: 1 }}
+														transition={{ delay: 0.3 }}>
+														<Badge className='bg-primary text-primary-foreground font-medium px-3 py-1.5 flex items-center gap-1.5 shadow-lg'>
+															<TrendingUp size={14} />
+															<span>Trending</span>
+														</Badge>
+													</motion.div>
+												)}
 
-										{/* Title Overlay */}
-										<div className='absolute bottom-0 left-0 right-0 p-5'>
-											<div className='flex items-start justify-between'>
-												<div className='flex-1'>
-													<h3 className='text-xl font-bold text-white font-heading mb-1'>
-														{destination?.name || 'Beautiful Destination'}
-													</h3>
-													<div className='flex items-center text-white/90'>
-														<MapPin size={14} className='mr-1.5 flex-shrink-0' />
-														<span className='text-sm'>{destination?.location?.to || 'Amazing Location'}</span>
+												{/* Title Overlay */}
+												<div className='absolute bottom-0 left-0 right-0 p-5'>
+													<div className='flex items-start justify-between'>
+														<div className='flex-1'>
+															<h3 className='text-xl font-bold text-white font-heading mb-1'>
+																{destination?.title || 'Beautiful Destination'}
+															</h3>
+															<div className='flex items-center text-white/90'>
+																<MapPin size={14} className='mr-1.5 flex-shrink-0' />
+																<span className='text-sm'>{destination?.location?.to || 'Amazing Location'}</span>
+															</div>
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									</div>
 
-									{/* Content Section */}
-									<div className='p-6 flex flex-col flex-grow'>
-										{/* Tags */}
-										<div className='flex flex-wrap items-center gap-2 mb-4'>
-											{destination?.tags?.slice(0, 3).map((tag, idx) => (
-												<Badge
-													key={idx}
-													variant='outline'
-													className='bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors'>
-													{tag}
-												</Badge>
-											)) || (
-												<>
-													<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
-														Beach
-													</Badge>
-													<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
-														Adventure
-													</Badge>
-													<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
-														Culture
-													</Badge>
-												</>
-											)}
-										</div>
+											{/* Content Section */}
+											<div className='p-6 flex flex-col flex-grow'>
+												{/* Tags */}
+												<div className='flex flex-wrap items-center gap-2 mb-4'>
+													{destination?.tags?.slice(0, 3).map((tag, idx) => (
+														<Badge
+															key={idx}
+															variant='outline'
+															className='bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors'>
+															{tag}
+														</Badge>
+													)) || (
+														<>
+															<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
+																Beach
+															</Badge>
+															<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
+																Adventure
+															</Badge>
+															<Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
+																Culture
+															</Badge>
+														</>
+													)}
+												</div>
 
-										{/* Description */}
-										<p className='text-muted-foreground mb-6 line-clamp-2 flex-grow leading-relaxed'>
-											{destination?.summary ||
-												'Discover this amazing destination with breathtaking views and unforgettable experiences.'}
-										</p>
+												{/* Description */}
+												<p className='text-muted-foreground mb-6 line-clamp-2 flex-grow leading-relaxed'>
+													{destination?.summary ||
+														'Discover this amazing destination with breathtaking views and unforgettable experiences.'}
+												</p>
 
-										{/* Price and CTA */}
-										<div className='flex justify-between items-center mt-auto'>
-											<div>
-												<div className='flex items-baseline gap-1'>
-													<span className='font-bold text-2xl text-foreground'>
-														{formatPrice(destination.pricing?.basePrice || 0, destination.pricing?.currency || 'BDT')}
-													</span>
-													<span className='text-sm text-muted-foreground'>
-														/ {destination?.pricing?.priceType || 'person'}
-													</span>
+												{/* Price and CTA */}
+												<div className='flex justify-between items-center mt-auto'>
+													<div>
+														<div className='flex items-baseline gap-1'>
+															<span className='font-bold text-2xl text-foreground'>
+																{formatPrice(
+																	destination.pricing?.basePrice || 0,
+																	destination.pricing?.currency || 'BDT'
+																)}
+															</span>
+															<span className='text-sm text-muted-foreground'>
+																/ {destination?.pricing?.priceType || 'person'}
+															</span>
+														</div>
+													</div>
+
+													<AnimatedButton
+														asChild
+														variant='outline'
+														className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium'>
+														<Link to={`/destinations/${destination?.id || destination?._id}`}>View Details</Link>
+													</AnimatedButton>
 												</div>
 											</div>
-
-											<AnimatedButton
-												asChild
-												variant='outline'
-												className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium'>
-												<Link to={`/destinations/${destination?.id || destination?._id}`}>View Details</Link>
-											</AnimatedButton>
 										</div>
-									</div>
-								</div>
-							</motion.div>
-						))}
-					</motion.div>
+									</motion.div>
+								</SwiperSlide>
+							))}
+						</Swiper>
+
+						{destinations?.length > 3 && (
+							<>
+								<button
+									className='swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-300 hover:scale-110 z-10 group'
+									aria-label='Previous destinations'>
+									<ChevronLeft size={20} className='text-gray-700 group-hover:text-primary transition-colors' />
+								</button>
+								<button
+									className='swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-300 hover:scale-110 z-10 group'
+									aria-label='Next destinations'>
+									<ChevronRight size={20} className='text-gray-700 group-hover:text-primary transition-colors' />
+								</button>
+							</>
+						)}
+					</div>
 				)}
 
 				{/* Empty State */}
