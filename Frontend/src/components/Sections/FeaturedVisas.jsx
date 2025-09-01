@@ -1,11 +1,25 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, FileText, Heart, TrendingUp, Sparkles, Plane } from 'lucide-react';
+import {
+	ArrowRight,
+	Clock,
+	FileText,
+	Heart,
+	TrendingUp,
+	Sparkles,
+	Plane,
+	ChevronLeft,
+	ChevronRight,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import AnimatedButton from '@/components/Animation/AnimatedButton';
 import useVisaQuery from '@/hooks/useVisaQuery';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 const FeaturedVisas = () => {
 	const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -60,33 +74,23 @@ const FeaturedVisas = () => {
 
 	const VisaSkeleton = () => (
 		<div className='bg-card rounded-2xl shadow-sm overflow-hidden border border-border h-full'>
-			{/* Image skeleton */}
 			<div className='relative h-60'>
 				<Skeleton className='h-full w-full rounded-none' />
-				{/* Overlay content skeleton */}
 				<div className='absolute bottom-0 left-0 right-0 p-5'>
 					<Skeleton className='h-6 w-3/4 mb-2 bg-white/20' />
 					<Skeleton className='h-4 w-1/2 bg-white/20' />
 				</div>
-				{/* Heart button skeleton */}
 				<div className='absolute top-4 right-4'>
 					<Skeleton className='h-10 w-10 rounded-full bg-white/20' />
 				</div>
 			</div>
-
-			{/* Content skeleton */}
 			<div className='p-6'>
-				{/* Processing time and requirements skeleton */}
 				<div className='flex gap-2 mb-3'>
 					<Skeleton className='h-6 w-20 rounded-full' />
 					<Skeleton className='h-6 w-16 rounded-full' />
 				</div>
-
-				{/* Description skeleton */}
 				<Skeleton className='h-4 w-full mb-2' />
 				<Skeleton className='h-4 w-5/6 mb-4' />
-
-				{/* Price and button skeleton */}
 				<div className='flex justify-between items-center'>
 					<div>
 						<Skeleton className='h-6 w-20 mb-1' />
@@ -114,7 +118,6 @@ const FeaturedVisas = () => {
 	return (
 		<section className='py-20 bg-background relative'>
 			<div className='container mx-auto px-4'>
-				{/* Header Section */}
 				<div className='flex flex-col md:flex-row md:justify-between md:items-end mb-12'>
 					<div className='mb-4 md:mb-0'>
 						<div className='flex items-center gap-2 mb-2'>
@@ -142,7 +145,6 @@ const FeaturedVisas = () => {
 							you traveling sooner.
 						</p>
 					</div>
-
 					<div>
 						<Link
 							to='/visas'
@@ -152,8 +154,6 @@ const FeaturedVisas = () => {
 						</Link>
 					</div>
 				</div>
-
-				{/* Visas Grid */}
 				{isLoading ? (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8'>
 						{[...Array(6)].map((_, index) => (
@@ -161,154 +161,166 @@ const FeaturedVisas = () => {
 						))}
 					</div>
 				) : (
-					<motion.div
-						className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8'
-						variants={containerVariants}
-						initial='hidden'
-						animate='show'>
-						{visas?.map((visa, index) => (
-							<motion.div
-								key={visa?._id || index}
-								variants={itemVariants}
-								className='relative group'
-								whileHover={{
-									y: -8,
-									transition: { duration: 0.3, ease: 'easeOut' },
-								}}
-								onMouseEnter={() => setHoveredIndex(index)}
-								onMouseLeave={() => setHoveredIndex(null)}>
-								<div className='bg-card rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border border-border transition-all duration-500 h-full flex flex-col'>
-									{/* Image Section */}
-									<div className='relative h-60 overflow-hidden'>
-										<img
-											src={
-												visa?.coverImage?.url || '/placeholder.svg?height=240&width=400&query=travel visa destination'
-											}
-											alt={visa?.coverImage?.alt || visa?.title || 'Visa destination image'}
-											className='w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110'
-										/>
-										<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
-
-										{/* Favorite Button */}
-										<motion.button
-											onClick={(e) => toggleFavorite(visa?._id || index, e)}
-											className='absolute top-4 right-4 p-2.5 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all duration-300 z-10 border border-white/20'
-											whileTap={{ scale: 0.9 }}
-											whileHover={{ scale: 1.1 }}>
-											<Heart
-												size={18}
-												className={
-													favorites[visa?._id || index] ? 'fill-red-500 text-red-500' : 'text-white hover:text-red-300'
-												}
-											/>
-										</motion.button>
-
-										{/* Featured Badge */}
-										{visa?.featured && (
-											<motion.div
-												className='absolute top-4 left-4 z-10'
-												initial={{ x: -20, opacity: 0 }}
-												animate={{ x: 0, opacity: 1 }}
-												transition={{ delay: 0.3 }}>
-												<Badge className='bg-primary text-primary-foreground font-medium px-3 py-1.5 flex items-center gap-1.5 shadow-lg'>
-													<TrendingUp size={14} />
-													<span>Featured</span>
-												</Badge>
-											</motion.div>
-										)}
-
-										{/* Title Overlay */}
-										<div className='absolute bottom-0 left-0 right-0 p-5'>
-											<div className='flex items-start justify-between'>
-												<div className='flex-1'>
-													<h3 className='text-xl font-bold text-white font-heading mb-1'>
-														{visa?.title || 'Visa Package'}
-													</h3>
-													<div className='flex items-center text-white/90'>
-														<Plane size={14} className='mr-1.5 flex-shrink-0' />
-														<span className='text-sm'>
-															{visa?.from} → {visa?.to}
-														</span>
+					<div className='relative'>
+						<div className='absolute top-1/2 -translate-y-1/2 -left-4 z-10'>
+							<button className='visa-carousel-prev w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 border border-gray-200'>
+								<ChevronLeft size={20} className='text-gray-600' />
+							</button>
+						</div>
+						<div className='absolute top-1/2 -translate-y-1/2 -right-4 z-10'>
+							<button className='visa-carousel-next w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 border border-gray-200'>
+								<ChevronRight size={20} className='text-gray-600' />
+							</button>
+						</div>
+						<Swiper
+							modules={[Navigation, Autoplay]}
+							spaceBetween={32}
+							slidesPerView={1}
+							navigation={{
+								prevEl: '.visa-carousel-prev',
+								nextEl: '.visa-carousel-next',
+							}}
+							autoplay={{
+								delay: 4000,
+								disableOnInteraction: false,
+								pauseOnMouseEnter: true,
+							}}
+							loop={true}
+							breakpoints={{
+								640: {
+									slidesPerView: 2,
+									spaceBetween: 24,
+								},
+								1024: {
+									slidesPerView: 3,
+									spaceBetween: 32,
+								},
+							}}
+							className='pb-4'>
+							{visas?.map((visa, index) => (
+								<SwiperSlide key={visa?._id || index}>
+									<motion.div
+										className='relative group h-full'
+										onMouseEnter={() => setHoveredIndex(index)}
+										onMouseLeave={() => setHoveredIndex(null)}>
+										<div className='bg-card rounded-2xl overflow-hidden border border-border transition-all duration-500 h-full flex flex-col'>
+											<div className='relative h-60 overflow-hidden'>
+												<img
+													src={
+														visa?.coverImage?.url ||
+														'/placeholder.svg?height=240&width=400&query=travel visa destination'
+													}
+													alt={visa?.coverImage?.alt || visa?.title || 'Visa destination image'}
+													className='w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110'
+												/>
+												<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
+												<motion.button
+													onClick={(e) => toggleFavorite(visa?._id || index, e)}
+													className='absolute top-4 right-4 p-2.5 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all duration-300 z-10 border border-white/20'
+													whileTap={{ scale: 0.9 }}
+													whileHover={{ scale: 1.1 }}>
+													<Heart
+														size={18}
+														className={
+															favorites[visa?._id || index]
+																? 'fill-red-500 text-red-500'
+																: 'text-white hover:text-red-300'
+														}
+													/>
+												</motion.button>
+												{visa?.featured && (
+													<motion.div
+														className='absolute top-4 left-4 z-10'
+														initial={{ x: -20, opacity: 0 }}
+														animate={{ x: 0, opacity: 1 }}
+														transition={{ delay: 0.3 }}>
+														<Badge className='bg-primary text-primary-foreground font-medium px-3 py-1.5 flex items-center gap-1.5 shadow-lg'>
+															<TrendingUp size={14} />
+															<span>Featured</span>
+														</Badge>
+													</motion.div>
+												)}
+												<div className='absolute bottom-0 left-0 right-0 p-5'>
+													<div className='flex items-start justify-between'>
+														<div className='flex-1'>
+															<h3 className='text-xl font-bold text-white font-heading mb-1'>
+																{visa?.title || 'Visa Package'}
+															</h3>
+															<div className='flex items-center text-white/90'>
+																<Plane size={14} className='mr-1.5 flex-shrink-0' />
+																<span className='text-sm'>
+																	{visa?.from} → {visa?.to}
+																</span>
+															</div>
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									</div>
-
-									{/* Content Section */}
-									<div className='p-6 flex flex-col flex-grow'>
-										{/* Processing Time and Requirements */}
-										<div className='flex flex-wrap items-center gap-2 mb-4'>
-											<Badge
-												variant='outline'
-												className='bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1'>
-												<Clock size={12} />
-												{visa?.processingTime || '3-5 days'}
-											</Badge>
-											<Badge
-												variant='outline'
-												className='bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1'>
-												<FileText size={12} />
-												Requirements
-											</Badge>
-										</div>
-
-										{/* Description */}
-										<p className='text-muted-foreground mb-6 line-clamp-2 flex-grow leading-relaxed'>
-											{visa?.shortDescription ||
-												visa?.description ||
-												'Professional visa processing service with expert guidance and fast turnaround time.'}
-										</p>
-
-										{/* Special Requirements */}
-										{visa?.specialRequests && (
-											<div className='mb-4'>
-												<p className='text-xs text-muted-foreground'>
-													<span className='font-medium'>Special Requirements:</span> {visa.specialRequests}
-												</p>
-											</div>
-										)}
-
-										{/* Price and CTA */}
-										<div className='flex justify-between items-center mt-auto'>
-											<div>
-												<div className='flex items-baseline gap-1'>
-													{visa?.pricing?.discountedPrice !== visa?.pricing?.basePrice ? (
-														<>
-															<span className='font-bold text-2xl text-foreground'>
-																{getCurrencySymbol(visa?.pricing?.currency)}
-																{visa?.pricing?.discountedPrice?.toLocaleString() || '0'}
-															</span>
-															<span className='text-sm text-muted-foreground line-through ml-1'>
-																{getCurrencySymbol(visa?.pricing?.currency)}
-																{visa?.pricing?.basePrice?.toLocaleString() || '0'}
-															</span>
-														</>
-													) : (
-														<span className='font-bold text-2xl text-foreground'>
-															{getCurrencySymbol(visa?.pricing?.currency)}
-															{visa?.pricing?.basePrice?.toLocaleString() || '0'}
-														</span>
-													)}
+											<div className='p-6 flex flex-col flex-grow'>
+												<div className='flex flex-wrap items-center gap-2 mb-4'>
+													<Badge
+														variant='outline'
+														className='bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1'>
+														<Clock size={12} />
+														{visa?.processingTime || '3-5 days'}
+													</Badge>
+													<Badge
+														variant='outline'
+														className='bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1'>
+														<FileText size={12} />
+														Requirements
+													</Badge>
 												</div>
-												<span className='text-sm text-muted-foreground'>Processing fee</span>
+												<p className='text-muted-foreground mb-6 line-clamp-2 flex-grow leading-relaxed'>
+													{visa?.shortDescription ||
+														visa?.description ||
+														'Professional visa processing service with expert guidance and fast turnaround time.'}
+												</p>
+												{visa?.specialRequests && (
+													<div className='mb-4'>
+														<p className='text-xs text-muted-foreground'>
+															<span className='font-medium'>Special Requirements:</span> {visa.specialRequests}
+														</p>
+													</div>
+												)}
+												<div className='flex justify-between items-center mt-auto'>
+													<div>
+														<div className='flex items-baseline gap-1'>
+															{visa?.pricing?.discountedPrice !== visa?.pricing?.basePrice ? (
+																<>
+																	<span className='font-bold text-2xl text-foreground'>
+																		{getCurrencySymbol(visa?.pricing?.currency)}
+																		{visa?.pricing?.discountedPrice?.toLocaleString() || '0'}
+																	</span>
+																	<span className='text-sm text-muted-foreground line-through ml-1'>
+																		{getCurrencySymbol(visa?.pricing?.currency)}
+																		{visa?.pricing?.basePrice?.toLocaleString() || '0'}
+																	</span>
+																</>
+															) : (
+																<span className='font-bold text-2xl text-foreground'>
+																	{getCurrencySymbol(visa?.pricing?.currency)}
+																	{visa?.pricing?.basePrice?.toLocaleString() || '0'}
+																</span>
+															)}
+														</div>
+														<span className='text-sm text-muted-foreground'>Processing fee</span>
+													</div>
+													<AnimatedButton
+														asChild
+														variant='outline'
+														className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium'>
+														<Link to={`/visas/details/${visa.slug}`}>Read More</Link>
+													</AnimatedButton>
+												</div>
 											</div>
-
-											<AnimatedButton
-												asChild
-												variant='outline'
-												className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium'>
-												<Link to={`/visas/details/${visa.slug}`}>Read More</Link>
-											</AnimatedButton>
 										</div>
-									</div>
-								</div>
-							</motion.div>
-						))}
-					</motion.div>
+									</motion.div>
+								</SwiperSlide>
+							))}
+						</Swiper>
+					</div>
 				)}
-
-				{/* Empty State */}
 				{!isLoading && visas?.length === 0 && (
 					<div className='text-center py-12'>
 						<div className='max-w-md mx-auto'>
