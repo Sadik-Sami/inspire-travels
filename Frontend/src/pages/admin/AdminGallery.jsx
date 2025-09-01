@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import {
 	Plus,
@@ -16,13 +18,47 @@ import {
 	Camera,
 	AlertTriangle,
 	X,
+	MoreVertical,
+	Loader2,
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+	DialogDescription,
+} from '@/components/ui/dialog';
 import { useGalleryQuery } from '@/hooks/useGalleryQuery';
 import { useGalleryMutation } from '@/hooks/useGalleryMutation';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AdminGallery = () => {
 	// State for filters and pagination
@@ -70,11 +106,8 @@ const AdminGallery = () => {
 		setFilters((prev) => ({ ...prev, page: newPage }));
 	};
 
-	// Handle delete
 	const handleDelete = async (id) => {
-		if (window.confirm('Are you sure you want to delete this gallery item?')) {
-			deleteGalleryItem.mutate(id);
-		}
+		deleteGalleryItem.mutate(id);
 	};
 
 	const getCategoryIcon = (category) => {
@@ -89,299 +122,350 @@ const AdminGallery = () => {
 	if (error) {
 		return (
 			<div className='min-h-screen flex items-center justify-center bg-background'>
-				<div className='text-center p-8 bg-card rounded-xl border shadow-lg max-w-md'>
-					<div className='w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4'>
-						<AlertTriangle className='w-8 h-8 text-destructive' />
-					</div>
-					<h3 className='text-xl font-heading font-semibold text-foreground mb-2'>Error Loading Gallery</h3>
-					<p className='text-muted-foreground'>{error.message}</p>
-				</div>
+				<Card className='max-w-md'>
+					<CardContent className='text-center p-8'>
+						<div className='w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4'>
+							<AlertTriangle className='w-8 h-8 text-destructive' />
+						</div>
+						<h3 className='text-xl font-heading font-semibold text-foreground mb-2'>Error Loading Gallery</h3>
+						<p className='text-muted-foreground'>{error.message}</p>
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}
 
 	return (
 		<div className='min-h-screen bg-background'>
-			<div className='bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b'>
-				<div className='container mx-auto px-4 md:px-6 py-8'>
-					<div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
-						<div className='space-y-2'>
-							<div className='flex items-center gap-3'>
-								<div className='w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center'>
-									<ImageIcon className='w-6 h-6 text-primary' />
-								</div>
-								<div>
-									<h1 className='text-3xl lg:text-4xl font-heading font-bold text-foreground'>
-										Gallery & Success Stories
-									</h1>
-									<p className='text-muted-foreground font-body'>
-										Manage your gallery images and success stories with ease
-									</p>
-								</div>
+			<div className='container mx-auto px-4 md:px-6 py-8'>
+				<div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
+					<div className='space-y-2'>
+						<div className='flex items-center gap-3'>
+							<div className='w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center'>
+								<ImageIcon className='w-6 h-6 text-primary' />
+							</div>
+							<div>
+								<h1 className='text-3xl lg:text-4xl font-heading font-bold text-foreground'>
+									Gallery & Success Stories
+								</h1>
+								<p className='text-muted-foreground font-body'>
+									Manage your gallery images and success stories with ease
+								</p>
 							</div>
 						</div>
-						<button
-							onClick={() => setShowCreateModal(true)}
-							className='cta-primary px-6 py-3 rounded-xl flex items-center gap-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover-lift'>
-							<Plus className='w-5 h-5' />
-							Add New Story
-						</button>
 					</div>
+					<Button
+						onClick={() => setShowCreateModal(true)}
+						className='shadow-lg hover:shadow-xl transition-all duration-200'
+						size='lg'>
+						<Plus className='w-5 h-5 mr-2' />
+						Add New Story
+					</Button>
 				</div>
 			</div>
 
 			<div className='container mx-auto px-4 md:px-6 py-8 space-y-8'>
 				<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
-					<div className='lg:col-span-2 bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow'>
-						<div className='flex items-center gap-4'>
-							<div className='w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center'>
-								<TrendingUp className='w-6 h-6 text-primary' />
+					<Card className='lg:col-span-2 bg-gradient-to-br from-primary/10 to-primary/5'>
+						<CardContent className='p-6'>
+							<div className='flex flex-col items-center gap-4'>
+								<div className='w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center'>
+									<TrendingUp className='w-6 h-6 text-primary' />
+								</div>
+								<div className='text-center'>
+									<p className='text-sm font-medium text-muted-foreground'>Total Stories</p>
+									<p className='text-2xl font-bold text-foreground'>{totalItems}</p>
+									<p className='text-xs text-muted-foreground'>Across all categories</p>
+								</div>
 							</div>
-							<div>
-								<p className='text-sm font-medium text-muted-foreground'>Total Stories</p>
-								<p className='text-2xl font-bold text-foreground'>{totalItems}</p>
-								<p className='text-xs text-muted-foreground'>Across all categories</p>
-							</div>
-						</div>
-					</div>
+						</CardContent>
+					</Card>
 					{categories.slice(1).map((category) => {
 						const IconComponent = category.icon;
 						return (
-							<div
+							<Card
 								key={category.value}
-								className='bg-card p-4 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 hover-lift'>
-								<div className='text-center space-y-2'>
-									<div className='w-8 h-8 mx-auto text-primary'>
-										<IconComponent className='w-full h-full' />
+								className='hover:shadow-md items-center justify-center transition-all duration-200'>
+								<CardContent className='p-4 flex flex-col items-center gap-4'>
+									<div className='text-center space-y-2'>
+										<div className='w-8 h-8 mx-auto text-primary'>
+											<IconComponent className='w-full h-full' />
+										</div>
+										<div>
+											<p className='text-lg font-semibold text-foreground'>{categoryStats[category.value] || 0}</p>
+											<p className='text-xs text-muted-foreground font-medium'>{category.label}</p>
+										</div>
 									</div>
-									<div>
-										<p className='text-lg font-semibold text-foreground'>{categoryStats[category.value] || 0}</p>
-										<p className='text-xs text-muted-foreground font-medium'>{category.label}</p>
-									</div>
-								</div>
-							</div>
+								</CardContent>
+							</Card>
 						);
 					})}
 				</div>
 
-				<div className='bg-card p-6 rounded-xl border shadow-sm'>
-					<div className='flex items-center gap-2 mb-4'>
-						<Filter className='w-5 h-5 text-primary' />
-						<h3 className='font-heading font-semibold text-foreground'>Filters & Search</h3>
-					</div>
-					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-						{/* Search */}
-						<div className='relative'>
-							<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
-							<Input
-								type='text'
-								placeholder='Search stories...'
-								value={filters.search}
-								onChange={(e) => handleFilterChange('search', e.target.value)}
-								className='w-full pl-10 pr-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent transition-all font-body'
-							/>
+				<Card>
+					<CardHeader>
+						<CardTitle className='flex items-center gap-2'>
+							<Filter className='w-5 h-5 text-primary' />
+							Filters & Search
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className='grid lg:flex lg:flex-wrap gap-4'>
+							<div className='relative lg:flex-1 w-full'>
+								<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
+								<Input
+									type='text'
+									placeholder='Search stories...'
+									value={filters.search}
+									onChange={(e) => handleFilterChange('search', e.target.value)}
+									className='pl-10'
+								/>
+							</div>
+
+							<Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
+								<SelectTrigger className='w-full lg:w-fit'>
+									<SelectValue placeholder='Select category' />
+								</SelectTrigger>
+								<SelectContent>
+									{categories.map((category) => (
+										<SelectItem key={category.value} value={category.value}>
+											<div className='flex items-center gap-2'>
+												<category.icon className='w-4 h-4' />
+												{category.label}
+											</div>
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+
+							<Select value={filters.isActive} onValueChange={(value) => handleFilterChange('isActive', value)}>
+								<SelectTrigger className='w-full lg:w-fit'>
+									<SelectValue placeholder='Select status' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='all'>All Status</SelectItem>
+									<SelectItem value='true'>Active</SelectItem>
+									<SelectItem value='false'>Inactive</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={`${filters.sortBy}-${filters.sortOrder}`}
+								onValueChange={(value) => {
+									const [sortBy, sortOrder] = value.split('-');
+									handleFilterChange('sortBy', sortBy);
+									handleFilterChange('sortOrder', sortOrder);
+								}}>
+								<SelectTrigger className='w-full lg:w-fit'>
+									<SelectValue placeholder='Sort by' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='createdAt-desc'>Newest First</SelectItem>
+									<SelectItem value='createdAt-asc'>Oldest First</SelectItem>
+									<SelectItem value='title-asc'>Title A-Z</SelectItem>
+									<SelectItem value='title-desc'>Title Z-A</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
-
-						{/* Category Filter */}
-						<Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
-							<SelectTrigger className='w-full px-4 py-3 font-body'>
-								<SelectValue placeholder='Select a category' />
-							</SelectTrigger>
-							<SelectContent>
-								{categories.map((category) => (
-									<SelectItem key={category.value} value={category.value} className='flex items-center gap-2'>
-										<category.icon className='w-4 h-4' />
-										{category.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-
-						{/* Status Filter */}
-						<Select value={filters.isActive} onValueChange={(value) => handleFilterChange('isActive', value)}>
-							<SelectTrigger className='w-full'>
-								<SelectValue placeholder='Select status' />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value='all'>All Status</SelectItem>
-								<SelectItem value='true'>Active</SelectItem>
-								<SelectItem value='false'>Inactive</SelectItem>
-							</SelectContent>
-						</Select>
-
-						{/* Sort */}
-						<Select
-							value={`${filters.sortBy}-${filters.sortOrder}`}
-							onValueChange={(value) => {
-								const [sortBy, sortOrder] = value.split('-');
-								handleFilterChange('sortBy', sortBy);
-								handleFilterChange('sortOrder', sortOrder);
-							}}>
-							<SelectTrigger className='w-full'>
-								<SelectValue placeholder='Sort by' />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value='createdAt-desc'>Newest First</SelectItem>
-								<SelectItem value='createdAt-asc'>Oldest First</SelectItem>
-								<SelectItem value='title-asc'>Title A-Z</SelectItem>
-								<SelectItem value='title-desc'>Title Z-A</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
+					</CardContent>
+				</Card>
 
 				{isLoading ? (
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
 						{[...Array(8)].map((_, i) => (
-							<div key={i} className='bg-card rounded-xl border overflow-hidden animate-pulse'>
-								<div className='w-full h-48 bg-muted'></div>
-								<div className='p-4 space-y-3'>
-									<div className='h-4 bg-muted rounded'></div>
-									<div className='h-3 bg-muted rounded'></div>
-									<div className='h-3 bg-muted rounded w-2/3'></div>
-								</div>
-							</div>
+							<Card key={i} className='overflow-hidden'>
+								<Skeleton className='w-full h-48' />
+								<CardContent className='p-4 space-y-3'>
+									<Skeleton className='h-4 w-full' />
+									<Skeleton className='h-3 w-full' />
+									<Skeleton className='h-3 w-2/3' />
+								</CardContent>
+							</Card>
 						))}
 					</div>
 				) : galleryData?.data?.items?.length === 0 ? (
-					<div className='text-center py-16'>
-						<div className='w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6'>
-							<ImageIcon className='w-12 h-12 text-muted-foreground' />
-						</div>
-						<h3 className='text-xl font-heading font-semibold text-foreground mb-2'>No gallery items found</h3>
-						<p className='text-muted-foreground mb-6 max-w-md mx-auto'>
-							Get started by adding your first success story to showcase your achievements
-						</p>
-						<button
-							onClick={() => setShowCreateModal(true)}
-							className='cta-primary px-6 py-3 rounded-xl inline-flex items-center gap-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200'>
-							<Plus className='w-5 h-5' />
-							Add First Story
-						</button>
-					</div>
+					<Card>
+						<CardContent className='text-center py-16'>
+							<div className='w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6'>
+								<ImageIcon className='w-12 h-12 text-muted-foreground' />
+							</div>
+							<h3 className='text-xl font-heading font-semibold text-foreground mb-2'>No gallery items found</h3>
+							<p className='text-muted-foreground mb-6 max-w-md mx-auto'>
+								Get started by adding your first success story to showcase your achievements
+							</p>
+							<Button onClick={() => setShowCreateModal(true)} size='lg'>
+								<Plus className='w-5 h-5 mr-2' />
+								Add First Story
+							</Button>
+						</CardContent>
+					</Card>
 				) : (
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
 						{galleryData.data.items.map((item) => {
 							const CategoryIcon = getCategoryIcon(item.category);
 							return (
-								<div
+								<Card
 									key={item._id}
-									className='bg-card rounded-xl border overflow-hidden group hover:shadow-lg transition-all duration-300 hover-lift'>
-									{/* Image */}
-									<div className='relative w-full h-48 overflow-hidden'>
+									className='overflow-hidden group hover:shadow-lg transition-all duration-300 flex flex-col py-0'>
+									{/* --- Card Header (Image + Badges + Dropdown) --- */}
+									<CardHeader className='relative w-full p-0 h-48 overflow-hidden'>
 										<img
 											src={item.image.url || '/placeholder.svg'}
 											alt={item.title}
 											className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'
 										/>
-										<div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4'>
-											<div className='flex gap-2'>
-												<button
-													onClick={() => {
-														setSelectedItem(item);
-														setShowViewModal(true);
-													}}
-													className='bg-white/90 backdrop-blur-sm text-foreground p-2 rounded-lg hover:bg-white transition-all duration-200 shadow-lg'>
-													<Eye className='w-4 h-4' />
-												</button>
-												<button
-													onClick={() => {
-														setSelectedItem(item);
-														setShowEditModal(true);
-													}}
-													className='bg-white/90 backdrop-blur-sm text-foreground p-2 rounded-lg hover:bg-white transition-all duration-200 shadow-lg'>
-													<Edit className='w-4 h-4' />
-												</button>
-												<button
-													onClick={() => handleDelete(item._id)}
-													className='bg-white/90 backdrop-blur-sm text-destructive p-2 rounded-lg hover:bg-white transition-all duration-200 shadow-lg'>
-													<Trash2 className='w-4 h-4' />
-												</button>
-											</div>
-										</div>
-										{/* Status Badge */}
-										<div className='absolute top-3 left-3'>
-											<span
-												className={`px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
-													item.isActive ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'
-												}`}>
-												{item.isActive ? 'Active' : 'Inactive'}
-											</span>
-										</div>
-										{/* Category Badge */}
-										<div className='absolute top-3 right-3'>
-											<span className='bg-white/90 backdrop-blur-sm text-foreground px-3 py-1 text-xs font-medium rounded-full flex items-center gap-1'>
-												<CategoryIcon className='w-3 h-3' />
-												{item.category}
-											</span>
-										</div>
-									</div>
 
-									{/* Content */}
-									<div className='p-5 space-y-3'>
+										{/* Actions Dropdown */}
+										<div className='absolute top-3 right-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300'>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant='secondary' size='sm' className='h-8 w-8 p-0'>
+														<MoreVertical className='h-4 w-4' />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align='end'>
+													<DropdownMenuItem
+														onClick={() => {
+															setSelectedItem(item);
+															setShowViewModal(true);
+														}}>
+														<Eye className='mr-2 h-4 w-4' />
+														View
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => {
+															setSelectedItem(item);
+															setShowEditModal(true);
+														}}>
+														<Edit className='mr-2 h-4 w-4' />
+														Edit
+													</DropdownMenuItem>
+
+													{/* Delete with AlertDialog */}
+													<AlertDialog>
+														<AlertDialogTrigger asChild>
+															<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+																<Trash2 className='mr-2 h-4 w-4' />
+																Delete
+															</DropdownMenuItem>
+														</AlertDialogTrigger>
+														<AlertDialogContent>
+															<AlertDialogHeader>
+																<AlertDialogTitle className='flex items-center gap-2'>
+																	<AlertTriangle className='h-5 w-5 text-destructive' />
+																	Delete Story
+																</AlertDialogTitle>
+																<AlertDialogDescription>
+																	Are you sure you want to delete "{item.title}"? This action cannot be undone.
+																</AlertDialogDescription>
+															</AlertDialogHeader>
+															<AlertDialogFooter>
+																<AlertDialogCancel>Cancel</AlertDialogCancel>
+																<AlertDialogAction
+																	onClick={() => handleDelete(item._id)}
+																	className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+																	disabled={deleteGalleryItem.isPending}>
+																	{deleteGalleryItem.isPending ? (
+																		<>
+																			<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+																			Deleting...
+																		</>
+																	) : (
+																		<>
+																			<Trash2 className='mr-2 h-4 w-4' />
+																			Delete Story
+																		</>
+																	)}
+																</AlertDialogAction>
+															</AlertDialogFooter>
+														</AlertDialogContent>
+													</AlertDialog>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</div>
+
+										{/* Top-left Status Badge */}
+										<div className='absolute top-3 left-3'>
+											<Badge variant={item.isActive ? 'default' : 'destructive'} className='backdrop-blur-sm'>
+												{item.isActive ? 'Active' : 'Inactive'}
+											</Badge>
+										</div>
+
+										{/* Bottom-left Category Badge */}
+										<div className='absolute bottom-3 left-3'>
+											<Badge variant='secondary'>
+												<CategoryIcon className='w-3 h-3 mr-1' />
+												{item.category}
+											</Badge>
+										</div>
+									</CardHeader>
+
+									{/* --- Card Content --- */}
+									<CardContent className='p-5 flex-1 space-y-3'>
 										<h3 className='font-heading font-semibold text-foreground line-clamp-2 text-lg leading-tight'>
 											{item.title}
 										</h3>
 										<p className='text-muted-foreground text-sm line-clamp-2 leading-relaxed'>{item.content}</p>
 
-										{/* Tags */}
 										{item.tags && item.tags.length > 0 && (
 											<div className='flex flex-wrap gap-1'>
 												{item.tags.slice(0, 2).map((tag, index) => (
-													<span
-														key={index}
-														className='bg-primary/10 text-primary text-xs px-2 py-1 rounded-md font-medium'>
+													<Badge key={index} variant='outline' className='text-xs'>
 														{tag}
-													</span>
+													</Badge>
 												))}
 												{item.tags.length > 2 && (
-													<span className='text-xs text-muted-foreground font-medium'>
+													<Badge variant='outline' className='text-xs'>
 														+{item.tags.length - 2} more
-													</span>
+													</Badge>
 												)}
 											</div>
 										)}
+									</CardContent>
 
-										{/* Footer */}
-										<div className='flex items-center justify-between text-xs text-muted-foreground pt-2 border-t'>
-											<span className='font-medium'>By {item.createdBy?.name}</span>
-											<span>{new Date(item.createdAt).toLocaleDateString()}</span>
-										</div>
-									</div>
-								</div>
+									{/* --- Card Footer (Meta Info) --- */}
+									<CardFooter className='flex items-center justify-between text-xs text-muted-foreground border-t px-5 py-3'>
+										<span className='font-medium'>By {item.createdBy?.name}</span>
+										<span>{new Date(item.createdAt).toLocaleDateString()}</span>
+									</CardFooter>
+								</Card>
 							);
 						})}
 					</div>
 				)}
 
 				{galleryData?.data?.pagination && galleryData.data.pagination.totalPages > 1 && (
-					<div className='flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-card rounded-xl border'>
-						<div className='text-sm text-muted-foreground font-medium'>
-							Showing {(galleryData.data.pagination.currentPage - 1) * galleryData.data.pagination.limit + 1} to{' '}
-							{Math.min(
-								galleryData.data.pagination.currentPage * galleryData.data.pagination.limit,
-								galleryData.data.pagination.totalCount
-							)}{' '}
-							of {galleryData.data.pagination.totalCount} results
-						</div>
-						<div className='flex items-center gap-2'>
-							<button
-								onClick={() => handlePageChange(galleryData.data.pagination.currentPage - 1)}
-								disabled={!galleryData.data.pagination.hasPrevPage}
-								className='px-4 py-2 text-sm font-medium border border-input rounded-lg hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
-								Previous
-							</button>
-							<span className='px-4 py-2 text-sm font-medium bg-primary/10 text-primary rounded-lg'>
-								Page {galleryData.data.pagination.currentPage} of {galleryData.data.pagination.totalPages}
-							</span>
-							<button
-								onClick={() => handlePageChange(galleryData.data.pagination.currentPage + 1)}
-								disabled={!galleryData.data.pagination.hasNextPage}
-								className='px-4 py-2 text-sm font-medium border border-input rounded-lg hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
-								Next
-							</button>
-						</div>
-					</div>
+					<Card>
+						<CardContent className='flex flex-col sm:flex-row items-center justify-between gap-4 p-6'>
+							<div className='text-sm text-muted-foreground font-medium'>
+								Showing {(galleryData.data.pagination.currentPage - 1) * galleryData.data.pagination.limit + 1} to{' '}
+								{Math.min(
+									galleryData.data.pagination.currentPage * galleryData.data.pagination.limit,
+									galleryData.data.pagination.totalCount
+								)}{' '}
+								of {galleryData.data.pagination.totalCount} results
+							</div>
+							<div className='flex items-center gap-2'>
+								<Button
+									variant='outline'
+									size='sm'
+									onClick={() => handlePageChange(galleryData.data.pagination.currentPage - 1)}
+									disabled={!galleryData.data.pagination.hasPrevPage}>
+									Previous
+								</Button>
+								<Badge variant='secondary' className='px-4 py-2'>
+									Page {galleryData.data.pagination.currentPage} of {galleryData.data.pagination.totalPages}
+								</Badge>
+								<Button
+									variant='outline'
+									size='sm'
+									onClick={() => handlePageChange(galleryData.data.pagination.currentPage + 1)}
+									disabled={!galleryData.data.pagination.hasNextPage}>
+									Next
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
 				)}
 			</div>
 
@@ -477,146 +561,152 @@ const CreateGalleryDialog = ({ open, onOpenChange, onSubmit }) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+			<DialogContent className='max-w-2xl'>
 				<DialogHeader>
 					<DialogTitle className='text-2xl font-heading font-bold'>Add New Success Story</DialogTitle>
+					<DialogDescription>Create a new success story to showcase your achievements</DialogDescription>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit} className='space-y-6'>
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-3'>Image *</label>
-						<div className='relative border-2 border-dashed border-input rounded-xl p-8 text-center hover:border-primary/50 transition-colors'>
-							{imagePreview ? (
-								<div className='relative'>
-									<img
-										src={imagePreview || '/placeholder.svg'}
-										alt='Preview'
-										className='max-w-full h-48 object-cover mx-auto rounded-lg shadow-md'
-									/>
-									<button
-										type='button'
-										onClick={() => {
-											setImagePreview(null);
-											setFormData((prev) => ({ ...prev, image: null }));
-										}}
-										className='absolute top-2 right-2 bg-destructive text-destructive-foreground p-2 rounded-full hover:bg-destructive/90 shadow-lg transition-colors'>
-										<Trash2 className='w-4 h-4' />
-									</button>
-								</div>
-							) : (
-								<div className='space-y-4'>
-									<div className='w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto'>
-										<ImageIcon className='w-8 h-8 text-primary' />
-									</div>
-									<div>
-										<p className='text-foreground font-medium mb-1'>Click to upload or drag and drop</p>
-										<p className='text-sm text-muted-foreground'>PNG, JPG, WEBP up to 5MB</p>
-									</div>
-								</div>
-							)}
-							<input
-								type='file'
-								accept='image/*'
-								onChange={handleImageChange}
-								className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
-							/>
-						</div>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Title *</label>
-						<input
-							type='text'
-							value={formData.title}
-							onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							placeholder='Enter story title...'
-							maxLength={100}
-							required
-						/>
-						<p className='text-xs text-muted-foreground mt-1'>{formData.title.length}/100 characters</p>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Content *</label>
-						<textarea
-							value={formData.content}
-							onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-							rows={4}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body resize-none'
-							placeholder='Tell the success story...'
-							maxLength={500}
-							required
-						/>
-						<p className='text-xs text-muted-foreground mt-1'>{formData.content.length}/500 characters</p>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Category *</label>
-						<select
-							value={formData.category}
-							onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							required>
-							{categories.map((category) => (
-								<option key={category} value={category}>
-									{category}
-								</option>
-							))}
-						</select>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Tags</label>
-						<input
-							type='text'
-							value={tagInput}
-							onChange={(e) => setTagInput(e.target.value)}
-							onKeyDown={handleAddTag}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							placeholder='Type and press Enter or comma to add tags...'
-						/>
-						{formData.tags.length > 0 && (
-							<div className='flex flex-wrap gap-2 mt-3'>
-								{formData.tags.map((tag, index) => (
-									<span
-										key={index}
-										className='bg-primary/10 text-primary text-sm px-3 py-1 rounded-lg flex items-center gap-2 font-medium'>
-										{tag}
-										<button
+				<ScrollArea className='max-h-[calc(90vh-120px)] pr-4'>
+					<form onSubmit={handleSubmit} className='space-y-6'>
+						<div>
+							<Label className='text-sm font-medium'>Image *</Label>
+							<div className='relative border-2 border-dashed border-input rounded-xl p-8 text-center hover:border-primary/50 transition-colors mt-2'>
+								{imagePreview ? (
+									<div className='relative'>
+										<img
+											src={imagePreview || '/placeholder.svg'}
+											alt='Preview'
+											className='max-w-full h-48 object-cover mx-auto rounded-lg shadow-md'
+										/>
+										<Button
 											type='button'
-											onClick={() => handleRemoveTag(tag)}
-											className='text-primary hover:text-primary/70 transition-colors'>
-											<X className='w-3 h-3' />
-										</button>
-									</span>
-								))}
+											variant='destructive'
+											size='sm'
+											onClick={() => {
+												setImagePreview(null);
+												setFormData((prev) => ({ ...prev, image: null }));
+											}}
+											className='absolute top-2 right-2'>
+											<Trash2 className='w-4 h-4' />
+										</Button>
+									</div>
+								) : (
+									<div className='space-y-4'>
+										<div className='w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto'>
+											<ImageIcon className='w-8 h-8 text-primary' />
+										</div>
+										<div>
+											<p className='text-foreground font-medium mb-1'>Click to upload or drag and drop</p>
+											<p className='text-sm text-muted-foreground'>PNG, JPG, WEBP up to 5MB</p>
+										</div>
+									</div>
+								)}
+								<Input
+									type='file'
+									accept='image/*'
+									onChange={handleImageChange}
+									className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+								/>
 							</div>
-						)}
-					</div>
+						</div>
 
-					<DialogFooter className='gap-3'>
-						<button
-							type='button'
-							onClick={() => onOpenChange(false)}
-							className='px-6 py-3 text-foreground border border-input rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors font-medium'>
-							Cancel
-						</button>
-						<button
-							type='submit'
-							disabled={isSubmitting}
-							className='cta-primary px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg'>
-							{isSubmitting ? (
-								<>
-									<div className='w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin'></div>
-									Creating...
-								</>
-							) : (
-								'Create Story'
+						<div>
+							<Label htmlFor='title'>Title *</Label>
+							<Input
+								id='title'
+								type='text'
+								value={formData.title}
+								onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+								placeholder='Enter story title...'
+								maxLength={100}
+								required
+								className='mt-2'
+							/>
+							<p className='text-xs text-muted-foreground mt-1'>{formData.title.length}/100 characters</p>
+						</div>
+
+						<div>
+							<Label htmlFor='content'>Content *</Label>
+							<Textarea
+								id='content'
+								value={formData.content}
+								onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
+								rows={4}
+								placeholder='Tell the success story...'
+								maxLength={500}
+								required
+								className='mt-2 resize-none'
+							/>
+							<p className='text-xs text-muted-foreground mt-1'>{formData.content.length}/500 characters</p>
+						</div>
+
+						<div>
+							<Label htmlFor='category'>Category *</Label>
+							<Select
+								value={formData.category}
+								onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+								required>
+								<SelectTrigger className='mt-2'>
+									<SelectValue placeholder='Select category' />
+								</SelectTrigger>
+								<SelectContent>
+									{categories.map((category) => (
+										<SelectItem key={category} value={category}>
+											{category}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div>
+							<Label htmlFor='tags'>Tags</Label>
+							<Input
+								id='tags'
+								type='text'
+								value={tagInput}
+								onChange={(e) => setTagInput(e.target.value)}
+								onKeyDown={handleAddTag}
+								placeholder='Type and press Enter or comma to add tags...'
+								className='mt-2'
+							/>
+							{formData.tags.length > 0 && (
+								<div className='flex flex-wrap gap-2 mt-3'>
+									{formData.tags.map((tag, index) => (
+										<Badge key={index} variant='secondary' className='flex items-center gap-2'>
+											{tag}
+											<Button
+												type='button'
+												variant='ghost'
+												size='sm'
+												onClick={() => handleRemoveTag(tag)}
+												className='h-auto p-0 hover:bg-transparent'>
+												<X className='w-3 h-3' />
+											</Button>
+										</Badge>
+									))}
+								</div>
 							)}
-						</button>
-					</DialogFooter>
-				</form>
+						</div>
+					</form>
+				</ScrollArea>
+
+				<DialogFooter className='gap-3'>
+					<Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+						Cancel
+					</Button>
+					<Button type='submit' disabled={isSubmitting} onClick={handleSubmit}>
+						{isSubmitting ? (
+							<>
+								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+								Creating...
+							</>
+						) : (
+							'Create Story'
+						)}
+					</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);
@@ -666,135 +756,144 @@ const EditGalleryDialog = ({ open, onOpenChange, item, onSubmit }) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+			<DialogContent className='max-w-2xl'>
 				<DialogHeader>
 					<DialogTitle className='text-2xl font-heading font-bold'>Edit Success Story</DialogTitle>
+					<DialogDescription>Update the details of your success story</DialogDescription>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit} className='space-y-6'>
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-3'>Current Image</label>
-						<div className='relative'>
-							<img
-								src={item.image.url || '/placeholder.svg'}
-								alt={item.title}
-								className='w-full h-48 object-cover rounded-lg shadow-md'
-							/>
-							<div className='absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity'>
-								<p className='text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-md'>Current Image</p>
+				<ScrollArea className='max-h-[calc(90vh-120px)] pr-4'>
+					<form onSubmit={handleSubmit} className='space-y-6'>
+						<div>
+							<Label>Current Image</Label>
+							<div className='relative mt-2'>
+								<img
+									src={item.image.url || '/placeholder.svg'}
+									alt={item.title}
+									className='w-full h-48 object-cover rounded-lg shadow-md'
+								/>
+								<div className='absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity'>
+									<Badge variant='secondary' className='bg-black/50 text-white'>
+										Current Image
+									</Badge>
+								</div>
 							</div>
+							<p className='text-xs text-muted-foreground mt-2'>
+								To change the image, please delete and create a new story
+							</p>
 						</div>
-						<p className='text-xs text-muted-foreground mt-2'>
-							To change the image, please delete and create a new story
-						</p>
-					</div>
 
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Title *</label>
-						<input
-							type='text'
-							value={formData.title}
-							onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							placeholder='Enter story title...'
-							maxLength={100}
-							required
-						/>
-						<p className='text-xs text-muted-foreground mt-1'>{formData.title.length}/100 characters</p>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Content *</label>
-						<textarea
-							value={formData.content}
-							onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-							rows={4}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body resize-none'
-							placeholder='Tell the success story...'
-							maxLength={500}
-							required
-						/>
-						<p className='text-xs text-muted-foreground mt-1'>{formData.content.length}/500 characters</p>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Category *</label>
-						<select
-							value={formData.category}
-							onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							required>
-							{categories.map((category) => (
-								<option key={category} value={category}>
-									{category}
-								</option>
-							))}
-						</select>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-foreground mb-2'>Tags</label>
-						<input
-							type='text'
-							value={tagInput}
-							onChange={(e) => setTagInput(e.target.value)}
-							onKeyDown={handleAddTag}
-							className='w-full px-4 py-3 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-body'
-							placeholder='Type and press Enter or comma to add tags...'
-						/>
-						{formData.tags.length > 0 && (
-							<div className='flex flex-wrap gap-2 mt-3'>
-								{formData.tags.map((tag, index) => (
-									<span
-										key={index}
-										className='bg-primary/10 text-primary text-sm px-3 py-1 rounded-lg flex items-center gap-2 font-medium'>
-										{tag}
-										<button
-											type='button'
-											onClick={() => handleRemoveTag(tag)}
-											className='text-primary hover:text-primary/70 transition-colors'>
-											<X className='w-3 h-3' />
-										</button>
-									</span>
-								))}
-							</div>
-						)}
-					</div>
-
-					<div className='bg-accent/50 p-4 rounded-lg'>
-						<label className='flex items-center gap-3'>
-							<input
-								type='checkbox'
-								checked={formData.isActive}
-								onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.checked }))}
-								className='w-4 h-4 text-primary border-input rounded focus:ring-ring'
+						<div>
+							<Label htmlFor='edit-title'>Title *</Label>
+							<Input
+								id='edit-title'
+								type='text'
+								value={formData.title}
+								onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+								placeholder='Enter story title...'
+								maxLength={100}
+								required
+								className='mt-2'
 							/>
-							<span className='text-sm font-medium text-foreground'>Active (visible to users)</span>
-						</label>
-					</div>
+							<p className='text-xs text-muted-foreground mt-1'>{formData.title.length}/100 characters</p>
+						</div>
 
-					<DialogFooter className='gap-3'>
-						<button
-							type='button'
-							onClick={() => onOpenChange(false)}
-							className='px-6 py-3 text-foreground border border-input rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors font-medium'>
-							Cancel
-						</button>
-						<button
-							type='submit'
-							disabled={isSubmitting}
-							className='cta-primary px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg'>
-							{isSubmitting ? (
-								<>
-									<div className='w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin'></div>
-									Updating...
-								</>
-							) : (
-								'Update Story'
+						<div>
+							<Label htmlFor='edit-content'>Content *</Label>
+							<Textarea
+								id='edit-content'
+								value={formData.content}
+								onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
+								rows={4}
+								placeholder='Tell the success story...'
+								maxLength={500}
+								required
+								className='mt-2 resize-none'
+							/>
+							<p className='text-xs text-muted-foreground mt-1'>{formData.content.length}/500 characters</p>
+						</div>
+
+						<div>
+							<Label htmlFor='edit-category'>Category *</Label>
+							<Select
+								value={formData.category}
+								onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+								required>
+								<SelectTrigger className='mt-2'>
+									<SelectValue placeholder='Select category' />
+								</SelectTrigger>
+								<SelectContent>
+									{categories.map((category) => (
+										<SelectItem key={category} value={category}>
+											{category}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div>
+							<Label htmlFor='edit-tags'>Tags</Label>
+							<Input
+								id='edit-tags'
+								type='text'
+								value={tagInput}
+								onChange={(e) => setTagInput(e.target.value)}
+								onKeyDown={handleAddTag}
+								placeholder='Type and press Enter or comma to add tags...'
+								className='mt-2'
+							/>
+							{formData.tags.length > 0 && (
+								<div className='flex flex-wrap gap-2 mt-3'>
+									{formData.tags.map((tag, index) => (
+										<Badge key={index} variant='secondary' className='flex items-center gap-2'>
+											{tag}
+											<Button
+												type='button'
+												variant='ghost'
+												size='sm'
+												onClick={() => handleRemoveTag(tag)}
+												className='h-auto p-0 hover:bg-transparent'>
+												<X className='w-3 h-3' />
+											</Button>
+										</Badge>
+									))}
+								</div>
 							)}
-						</button>
-					</DialogFooter>
-				</form>
+						</div>
+
+						<Card className='bg-accent/50'>
+							<CardContent className='p-4'>
+								<div className='flex items-center space-x-2'>
+									<Checkbox
+										id='active'
+										checked={formData.isActive}
+										onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isActive: checked }))}
+									/>
+									<Label htmlFor='active' className='text-sm font-medium'>
+										Active (visible to users)
+									</Label>
+								</div>
+							</CardContent>
+						</Card>
+					</form>
+				</ScrollArea>
+
+				<DialogFooter className='gap-3'>
+					<Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+						Cancel
+					</Button>
+					<Button type='submit' disabled={isSubmitting} onClick={handleSubmit}>
+						{isSubmitting ? (
+							<>
+								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+								Updating...
+							</>
+						) : (
+							'Update Story'
+						)}
+					</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);
@@ -816,92 +915,104 @@ const ViewGalleryDialog = ({ open, onOpenChange, item }) => {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+			<DialogContent className='max-w-4xl'>
 				<DialogHeader>
 					<DialogTitle className='text-2xl font-heading font-bold pr-4'>{item.title}</DialogTitle>
+					<DialogDescription>View the complete details of this success story</DialogDescription>
 				</DialogHeader>
 
-				<div className='space-y-6'>
-					<div>
-						<img
-							src={item.image.url || '/placeholder.svg'}
-							alt={item.title}
-							className='w-full max-h-96 object-cover rounded-xl shadow-lg'
-						/>
-					</div>
+				<ScrollArea className='max-h-[calc(90vh-120px)] pr-4'>
+					<div className='space-y-6'>
+						<div>
+							<img
+								src={item.image.url || '/placeholder.svg'}
+								alt={item.title}
+								className='w-full max-h-96 object-cover rounded-xl shadow-lg'
+							/>
+						</div>
 
-					<div className='bg-accent/30 p-4 rounded-lg'>
-						<h3 className='text-lg font-heading font-semibold text-foreground mb-3'>Story</h3>
-						<p className='text-foreground leading-relaxed font-body'>{item.content}</p>
-					</div>
+						<Card className='bg-accent/30'>
+							<CardHeader>
+								<CardTitle className='text-lg'>Story</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className='text-foreground leading-relaxed font-body'>{item.content}</p>
+							</CardContent>
+						</Card>
 
-					{/* Meta Information */}
-					<div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t'>
-						<div className='space-y-4'>
-							<h4 className='font-heading font-semibold text-foreground'>Details</h4>
-							<div className='space-y-3 text-sm'>
-								<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-									<span className='text-muted-foreground font-medium'>Category:</span>
-									<span className='font-semibold text-foreground flex items-center gap-2'>
-										<CategoryIcon className='w-4 h-4' />
-										{item.category}
-									</span>
-								</div>
-								<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-									<span className='text-muted-foreground font-medium'>Status:</span>
-									<span
-										className={`font-semibold px-2 py-1 rounded-md text-xs ${
-											item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-										}`}>
-										{item.isActive ? 'Active' : 'Inactive'}
-									</span>
-								</div>
-								<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-									<span className='text-muted-foreground font-medium'>Created:</span>
-									<span className='font-semibold text-foreground'>{new Date(item.createdAt).toLocaleDateString()}</span>
-								</div>
-								{item.updatedAt !== item.createdAt && (
+						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+							<Card>
+								<CardHeader>
+									<CardTitle className='text-base'>Details</CardTitle>
+								</CardHeader>
+								<CardContent className='space-y-3'>
 									<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-										<span className='text-muted-foreground font-medium'>Updated:</span>
+										<span className='text-muted-foreground font-medium'>Category:</span>
+										<Badge variant='secondary' className='flex items-center gap-2'>
+											<CategoryIcon className='w-4 h-4' />
+											{item.category}
+										</Badge>
+									</div>
+									<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
+										<span className='text-muted-foreground font-medium'>Status:</span>
+										<Badge variant={item.isActive ? 'default' : 'destructive'}>
+											{item.isActive ? 'Active' : 'Inactive'}
+										</Badge>
+									</div>
+									<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
+										<span className='text-muted-foreground font-medium'>Created:</span>
 										<span className='font-semibold text-foreground'>
-											{new Date(item.updatedAt).toLocaleDateString()}
+											{new Date(item.createdAt).toLocaleDateString()}
 										</span>
 									</div>
-								)}
-							</div>
-						</div>
+									{item.updatedAt !== item.createdAt && (
+										<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
+											<span className='text-muted-foreground font-medium'>Updated:</span>
+											<span className='font-semibold text-foreground'>
+												{new Date(item.updatedAt).toLocaleDateString()}
+											</span>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 
-						<div className='space-y-4'>
-							<h4 className='font-heading font-semibold text-foreground'>People</h4>
-							<div className='space-y-3 text-sm'>
-								<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-									<span className='text-muted-foreground font-medium'>Created by:</span>
-									<span className='font-semibold text-foreground'>{item.createdBy?.name}</span>
-								</div>
-								{item.updatedBy && (
+							<Card>
+								<CardHeader>
+									<CardTitle className='text-base'>People</CardTitle>
+								</CardHeader>
+								<CardContent className='space-y-3'>
 									<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
-										<span className='text-muted-foreground font-medium'>Updated by:</span>
-										<span className='font-semibold text-foreground'>{item.updatedBy?.name}</span>
+										<span className='text-muted-foreground font-medium'>Created by:</span>
+										<span className='font-semibold text-foreground'>{item.createdBy?.name}</span>
 									</div>
-								)}
-							</div>
+									{item.updatedBy && (
+										<div className='flex justify-between items-center p-2 bg-accent/20 rounded-md'>
+											<span className='text-muted-foreground font-medium'>Updated by:</span>
+											<span className='font-semibold text-foreground'>{item.updatedBy?.name}</span>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 						</div>
-					</div>
 
-					{/* Tags */}
-					{item.tags && item.tags.length > 0 && (
-						<div className='pt-4 border-t'>
-							<h4 className='font-heading font-semibold text-foreground mb-3'>Tags</h4>
-							<div className='flex flex-wrap gap-2'>
-								{item.tags.map((tag, index) => (
-									<span key={index} className='bg-primary/10 text-primary text-sm px-3 py-2 rounded-lg font-medium'>
-										{tag}
-									</span>
-								))}
-							</div>
-						</div>
-					)}
-				</div>
+						{item.tags && item.tags.length > 0 && (
+							<Card>
+								<CardHeader>
+									<CardTitle className='text-base'>Tags</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className='flex flex-wrap gap-2'>
+										{item.tags.map((tag, index) => (
+											<Badge key={index} variant='outline'>
+												{tag}
+											</Badge>
+										))}
+									</div>
+								</CardContent>
+							</Card>
+						)}
+					</div>
+				</ScrollArea>
 			</DialogContent>
 		</Dialog>
 	);
