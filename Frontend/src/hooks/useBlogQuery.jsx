@@ -48,8 +48,8 @@ export const useBlogQuery = ({
 					}
 				}
 			});
-			console.log(params.toString());
 			const response = await axiosPublic.get(`/api/blogs?${params.toString()}`);
+			console.log(response.data)
 			return response.data;
 		},
 		enabled,
