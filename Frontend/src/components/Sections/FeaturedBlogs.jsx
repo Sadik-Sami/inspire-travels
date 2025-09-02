@@ -255,7 +255,7 @@ const FeaturedBlogs = () => {
 														asChild
 														variant='outline'
 														className='border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 rounded-xl px-6 py-2.5 font-medium flex-shrink-0'>
-														<Link href={`/blogs/${blog?.slug || blog?._id}`}>
+														<Link to={`/blogs/${blog.slug}`}>
 															<BookOpen size={16} className='mr-2' />
 															Read More
 														</Link>
