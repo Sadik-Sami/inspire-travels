@@ -94,8 +94,8 @@ const Blogs = () => {
 			<HeroSection
 				title='Our Travel Blog'
 				subtitle='Discover travel tips, destination guides, and inspiring stories from around the world'
-				imageUrl='/assets/images/hero.jpg'
-			showButton={false}
+				imageUrl='https://i.ibb.co.com/Y4B6nr4G/jack-anstey-XVoy-X7l9oc-Y-unsplash.jpg'
+				showButton={false}
 			/>
 
 			{/* Filters Section */}

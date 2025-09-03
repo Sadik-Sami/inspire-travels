@@ -1,5 +1,3 @@
-'use client';
-
 import { motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +9,7 @@ const HeroSection = ({
 	imageUrl,
 	buttonText,
 	buttonLink,
-	height = 'h-[700px]',
+	height = 'h-[640px] md:h-[720px]',
 	showButton = true,
 }) => {
 	return (

@@ -112,7 +112,7 @@ const Destinations = () => {
 			<HeroSection
 				title='Explore Our Group Packages'
 				subtitle='Discover our carefully curated selection of travel experiences around the world'
-				imageUrl='/assets/images/hero.jpg'
+				imageUrl='https://i.ibb.co.com/JwDfk3BS/rebe-adelaida-zun-Qw-My5-B6-M-unsplash.jpg'
 				showButton={false}
 			/>
 

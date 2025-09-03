@@ -131,7 +131,7 @@ const VisaPackages = () => {
 			<HeroSection
 				title='Visa Services'
 				subtitle='Simplify your travel with our comprehensive visa services for destinations worldwide'
-				imageUrl='/assets/images/hero.jpg'
+				imageUrl='https://i.ibb.co.com/CKpJqpk9/mesut-kaya-e-Ocyhe5-9s-Q-unsplash.jpg'
 				showButton={false}
 			/>
 

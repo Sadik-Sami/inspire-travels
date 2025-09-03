@@ -139,7 +139,7 @@ const About = () => {
 			<HeroSection
 				title='About Inspire Travels'
 				subtitle="We're passionate about creating unforgettable travel experiences that connect people with the world's most amazing destinations."
-				imageUrl='/assets/images/hero.jpg'
+				imageUrl='https://i.ibb.co.com/q3WQtZTm/paul-pastourmatzis-km74-CLco7qs-unsplash.jpg'
 				showButton={false}
 			/>
 
