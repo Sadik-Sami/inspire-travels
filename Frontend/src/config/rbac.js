@@ -21,6 +21,7 @@ export const PERMISSIONS = {
 	MANAGE_VISAS: 'manage_visas',
 	MANAGE_BLOGS: 'manage_blogs',
 	MANAGE_GALLERY: 'manage_gallery',
+	MANAGE_ABOUT: 'manage_about',
 
 	// Financial Management
 	VIEW_BOOKINGS: 'view_bookings',
@@ -51,6 +52,7 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.MANAGE_INVOICES,
 		PERMISSIONS.VIEW_ANALYTICS,
 		PERMISSIONS.MANAGE_CONTACT_INFO,
+		PERMISSIONS.MANAGE_ABOUT,
 		PERMISSIONS.SYSTEM_SETTINGS,
 		PERMISSIONS.VIEW_MESSAGES,
 		PERMISSIONS.MANAGE_MESSAGES,
@@ -66,6 +68,7 @@ export const ROLE_PERMISSIONS = {
 		PERMISSIONS.VIEW_MESSAGES,
 		PERMISSIONS.MANAGE_MESSAGES,
 		PERMISSIONS.MANAGE_GALLERY,
+		PERMISSIONS.MANAGE_ABOUT,
 	],
 
 	[ROLES.EMPLOYEE]: [
@@ -117,7 +120,13 @@ export const NAVIGATION_CONFIG = {
 		{
 			title: 'Content Management',
 			icon: 'MdTravelExplore',
-			requiredPermissions: [PERMISSIONS.MANAGE_DESTINATIONS, PERMISSIONS.MANAGE_VISAS, PERMISSIONS.MANAGE_BLOGS],
+			requiredPermissions: [
+				PERMISSIONS.MANAGE_DESTINATIONS,
+				PERMISSIONS.MANAGE_VISAS,
+				PERMISSIONS.MANAGE_BLOGS,
+				PERMISSIONS.MANAGE_GALLERY,
+				PERMISSIONS.MANAGE_ABOUT,
+			],
 			items: [
 				{
 					title: 'Group Packages',
@@ -138,6 +147,11 @@ export const NAVIGATION_CONFIG = {
 					title: 'Gallery & Stories',
 					url: '/admin/gallery',
 					requiredPermissions: [PERMISSIONS.MANAGE_GALLERY],
+				},
+				{
+					title: 'About Page',
+					url: '/admin/about',
+					requiredPermissions: [PERMISSIONS.MANAGE_ABOUT],
 				},
 			],
 		},

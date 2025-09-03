@@ -17,6 +17,7 @@ const cronRoutes = require('./routes/cronRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const galleryRoutes = require('./routes/galleryRoutes');
 const supportRoutes = require('./routes/supportRoutes');
+const aboutRoutes = require('./routes/aboutRoutes');
 dotenv.config();
 
 const app = express();
@@ -40,13 +41,6 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(500).json({
-		message: 'Something went wrong!',
-		error: process.env.NODE_ENV === 'development' ? err.message : 'Server error',
-	});
-});
 
 // connect to MongoDB
 connectDB();
@@ -54,15 +48,6 @@ connectDB();
 // Root Route
 app.get('/', (req, res) => {
 	res.send('Welcome to Inspire API');
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-	res.json({
-		status: 'OK',
-		timestamp: new Date().toISOString(),
-		environment: process.env.NODE_ENV || 'development',
-	});
 });
 
 // Routes
@@ -78,7 +63,35 @@ app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/about', aboutRoutes);
 app.use('/api/cron', cronRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+	res.json({
+		status: 'OK',
+		timestamp: new Date().toISOString(),
+		environment: process.env.NODE_ENV || 'development',
+	});
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+	console.error(err.stack);
+	res.status(500).json({
+		success: false,
+		message: 'Something went wrong!',
+		error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+	});
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+	res.status(404).json({
+		success: false,
+		message: 'Route not found',
+	});
+});
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);

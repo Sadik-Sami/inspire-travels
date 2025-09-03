@@ -12,15 +12,22 @@ import {
 	Star,
 	MapPin,
 	Calendar,
+	Loader2,
+	AlertCircle,
 } from 'lucide-react';
 import AnimatedButton from '@/components/Animation/AnimatedButton';
 import HeroSection from '@/components/Sections/HeroSection';
 import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import person from '@/assets/person.jpg';
 import { Link } from 'react-router-dom';
 import journeyImage from '@/assets/loginPhoto.jpg';
+import { useAboutQuery } from '@/hooks/useAboutQuery';
+import { Button } from '@/components/ui/button';
 
 const About = () => {
+	const { data: aboutData, isLoading, error } = useAboutQuery();
+
 	const teamMembers = [
 		{
 			name: 'Sarah Johnson',
@@ -103,12 +110,36 @@ const About = () => {
 		},
 	];
 
-	const stats = [
-		{ number: '50K+', label: 'Happy Travelers', icon: Users },
-		{ number: '150+', label: 'Destinations', icon: MapPin },
-		{ number: '15+', label: 'Years Experience', icon: Calendar },
-		{ number: '4.9★', label: 'Average Rating', icon: Star },
-	];
+	// Dynamic stats from database or fallback to defaults
+	const stats = aboutData
+		? [
+				{
+					number: aboutData.formattedStats?.happyTravelers || `${Math.floor(aboutData.happyTravelers / 1000)}K+`,
+					label: 'Happy Travelers',
+					icon: Users,
+				},
+				{
+					number: aboutData.formattedStats?.destinations || `${aboutData.destinations}+`,
+					label: 'Destinations',
+					icon: MapPin,
+				},
+				{
+					number: aboutData.formattedStats?.yearsOfExperience || `${aboutData.yearsOfExperience}+`,
+					label: 'Years Experience',
+					icon: Calendar,
+				},
+				{
+					number: aboutData.formattedStats?.averageRating || `${aboutData.averageRating}★`,
+					label: 'Average Rating',
+					icon: Star,
+				},
+		  ]
+		: [
+				{ number: '50K+', label: 'Happy Travelers', icon: Users },
+				{ number: '150+', label: 'Destinations', icon: MapPin },
+				{ number: '15+', label: 'Years Experience', icon: Calendar },
+				{ number: '4.9★', label: 'Average Rating', icon: Star },
+		  ];
 
 	const containerVariants = {
 		hidden: { opacity: 0 },
@@ -133,9 +164,49 @@ const About = () => {
 		},
 	};
 
+	// Loading state
+	if (isLoading) {
+		return (
+			<div className='min-h-screen bg-background flex items-center justify-center'>
+				<div className='flex items-center gap-2'>
+					<Loader2 className='h-6 w-6 animate-spin' />
+					<span>Loading about page...</span>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state
+	if (error) {
+		return (
+			<div className='min-h-screen bg-background flex items-center justify-center p-4'>
+				<Alert variant='destructive' className='max-w-md'>
+					<AlertCircle className='h-4 w-4' />
+					<AlertDescription>Failed to load about page content. Please try again later.</AlertDescription>
+				</Alert>
+			</div>
+		);
+	}
+
+	// Dynamic content from database or fallback
+	const pageTitle = aboutData?.title || 'About Inspire Travels';
+	const pageSubtitle =
+		"We're passionate about creating unforgettable travel experiences that connect people with the world's most amazing destinations.";
+	const heroImage =
+		aboutData?.image?.url || 'https://i.ibb.co.com/q3WQtZTm/paul-pastourmatzis-km74-CLco7qs-unsplash.jpg';
+	const storyImage = aboutData?.image?.url || journeyImage;
+	const aboutContent =
+		aboutData?.content ||
+		`Founded in 2010, Inspire Travels began with a simple mission: to make extraordinary travel experiences accessible to everyone. What started as a small team of passionate travelers has grown into a trusted travel company serving thousands of adventurers each year.
+
+Our founder, Sarah Johnson, believed that travel should be more than just visiting popular tourist spots. It should be about creating meaningful connections with different cultures, environments, and people. This philosophy continues to guide everything we do.
+
+Over the years, we've expanded our destinations and services, but our commitment to exceptional customer service, sustainable travel practices, and authentic experiences remains unchanged.`;
+
 	return (
 		<div className='min-h-screen bg-background'>
-			{/* Original Hero Section */}
+			{/* Dynamic Hero Section */}
+
 			<HeroSection
 				title='About Inspire Travels'
 				subtitle="We're passionate about creating unforgettable travel experiences that connect people with the world's most amazing destinations."
@@ -143,7 +214,7 @@ const About = () => {
 				showButton={false}
 			/>
 
-			{/* Professional Header Section */}
+			{/* Professional Header Section with Dynamic Stats */}
 			<section className='py-12 lg:py-24 bg-background relative overflow-hidden'>
 				<div className='container mx-auto px-4'>
 					<div className='text-center max-w-4xl mx-auto'>
@@ -163,7 +234,7 @@ const About = () => {
 									}}
 									transition={{
 										duration: 2,
-										repeat: Infinity,
+										repeat: Number.POSITIVE_INFINITY,
 										repeatType: 'reverse',
 									}}>
 									<Sparkles size={16} className='text-primary' />
@@ -184,13 +255,13 @@ const About = () => {
 							</h1>
 
 							<p className='text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto'>
-								Since 2010, we've been transforming travel dreams into extraordinary experiences. Our passion for
-								exploration and commitment to excellence has made us a trusted partner for thousands of adventurers
-								worldwide.
+								Since {aboutData ? new Date().getFullYear() - aboutData.yearsOfExperience : '2010'}, we've been
+								transforming travel dreams into extraordinary experiences. Our passion for exploration and commitment to
+								excellence has made us a trusted partner for thousands of adventurers worldwide.
 							</p>
 						</motion.div>
 
-						{/* Stats */}
+						{/* Dynamic Stats */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -218,7 +289,7 @@ const About = () => {
 				</div>
 			</section>
 
-			{/* Our Story Section */}
+			{/* Our Story Section with Dynamic Content */}
 			<section className='py-20 bg-background'>
 				<div className='container mx-auto px-4'>
 					<div className='grid grid-cols-1 lg:grid-cols-2 gap-12 items-center container mx-auto'>
@@ -230,7 +301,7 @@ const About = () => {
 							className='h-full'>
 							<div className='rounded-2xl overflow-hidden shadow-xl'>
 								<motion.img
-									src={journeyImage}
+									src={storyImage}
 									alt='Our journey'
 									className='w-full h-[46rem] object-cover object-bottom'
 									whileHover={{ scale: 1.05 }}
@@ -250,30 +321,21 @@ const About = () => {
 									Our Journey Began With a Simple Dream
 								</h2>
 								<div className='space-y-4 text-muted-foreground leading-relaxed'>
-									<p>
-										Founded in 2010, Inspire Travels began with a simple mission: to make extraordinary travel
-										experiences accessible to everyone. What started as a small team of passionate travelers has grown
-										into a trusted travel company serving thousands of adventurers each year.
-									</p>
-									<p>
-										Our founder, Sarah Johnson, believed that travel should be more than just visiting popular tourist
-										spots. It should be about creating meaningful connections with different cultures, environments, and
-										people. This philosophy continues to guide everything we do.
-									</p>
-									<p>
-										Over the years, we've expanded our destinations and services, but our commitment to exceptional
-										customer service, sustainable travel practices, and authentic experiences remains unchanged.
-									</p>
+									{aboutContent.split('\n\n').map((paragraph, index) => (
+										<p key={index}>{paragraph}</p>
+									))}
 								</div>
 							</div>
 
 							<div className='grid grid-cols-2 gap-4 pt-6'>
 								<div className='text-center p-4 bg-primary/5 rounded-xl border border-primary/10'>
-									<div className='text-2xl font-bold text-primary mb-1'>15+</div>
+									<div className='text-2xl font-bold text-primary mb-1'>{aboutData?.yearsOfExperience || '15'}+</div>
 									<div className='text-sm text-muted-foreground'>Years of Excellence</div>
 								</div>
 								<div className='text-center p-4 bg-primary/5 rounded-xl border border-primary/10'>
-									<div className='text-2xl font-bold text-primary mb-1'>50K+</div>
+									<div className='text-2xl font-bold text-primary mb-1'>
+										{aboutData?.formattedStats?.satisfiedCustomers || '50K+'}
+									</div>
 									<div className='text-sm text-muted-foreground'>Satisfied Customers</div>
 								</div>
 							</div>
@@ -282,7 +344,7 @@ const About = () => {
 				</div>
 			</section>
 
-			{/* Our Values Section */}
+			{/* Our Values Section - Static */}
 			<section className='py-20 bg-muted/30'>
 				<div className='container mx-auto px-4'>
 					<motion.div
@@ -326,7 +388,7 @@ const About = () => {
 				</div>
 			</section>
 
-			{/* Team Section */}
+			{/* Team Section - Static */}
 			<section className='py-20 bg-background'>
 				<div className='container mx-auto px-4'>
 					<motion.div
@@ -353,7 +415,7 @@ const About = () => {
 								<Card className='bg-card shadow-lg border border-border overflow-hidden hover:shadow-xl transition-all duration-300 group-hover:-translate-y- py-0'>
 									<div className='relative h-64 overflow-hidden'>
 										<img
-											src={member.image}
+											src={member.image || '/placeholder.svg'}
 											alt={member.name}
 											className='w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110'
 										/>
@@ -381,7 +443,7 @@ const About = () => {
 				</div>
 			</section>
 
-			{/* Why Choose Us Section */}
+			{/* Why Choose Us Section - Static */}
 			<section className='py-20 bg-primary/5'>
 				<div className='container mx-auto px-4'>
 					<div className='max-w-4xl mx-auto text-center'>
@@ -438,8 +500,8 @@ const About = () => {
 				</div>
 			</section>
 
-			{/* CTA Section */}
-			<section className='py-20 bg-primary text-primary-foreground'>
+			{/* CTA Section - Static */}
+			<section className='py-20 bg-primary'>
 				<div className='container mx-auto px-4 text-center'>
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -453,17 +515,14 @@ const About = () => {
 						</p>
 						<div className='flex flex-col sm:flex-row gap-4 justify-center'>
 							<Link to='/destinations'>
-								<AnimatedButton size='lg' className='bg-white hover:bg-white/90 text-primary shadow-lg hover:shadow-xl'>
-									Browse Destinations
-								</AnimatedButton>
+								<Button size='lg' className='bg-chart-3 hover:bg-chart-3/60'>
+									Browse Planned Tours
+								</Button>
 							</Link>
 							<Link to='/contact'>
-								<AnimatedButton
-									size='lg'
-									variant='outline'
-									className='border-white  text-primary hover:bg-white hover:text-primary'>
+								<Button variant='outline' size='lg'>
 									Contact Our Experts
-								</AnimatedButton>
+								</Button>
 							</Link>
 						</div>
 					</motion.div>
