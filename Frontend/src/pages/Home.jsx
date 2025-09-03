@@ -5,6 +5,7 @@ import TestimonialSection from '@/components/Sections/TestimonialSection';
 import NewsletterSection from '@/components/Sections/NewsletterSection';
 import FeaturedVisas from '@/components/Sections/FeaturedVisas';
 import FeaturedBlogs from '@/components/Sections/FeaturedBlogs';
+import FeaturedStories from '@/components/Sections/FeaturedStories';
 
 const Home = () => {
 	return (
@@ -27,6 +28,9 @@ const Home = () => {
 
 			{/* Featured Blogs */}
 			<FeaturedBlogs />
+
+			{/* Featured Stories */}
+			<FeaturedStories />
 
 			{/* Why Choose Us */}
 			<ValueProposition />

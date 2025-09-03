@@ -91,6 +91,23 @@ router.get('/', async (req, res) => {
 	}
 });
 
+router.get('/active', async (req, res) => {
+	try {
+		const gallery = await Gallery.find({ isActive: true });
+		res.status(200).json({
+			success: true,
+			data: gallery,
+		});
+	} catch (error) {
+		console.error('Error fetching active gallery:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Failed to fetch active gallery',
+			error: error.message,
+		});
+	}
+});
+
 // GET /api/gallery/:id - Get single gallery item
 router.get('/:id', async (req, res) => {
 	try {

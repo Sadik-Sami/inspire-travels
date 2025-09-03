@@ -68,3 +68,18 @@ export const useGalleryCategoriesQuery = () => {
 		cacheTime: 15 * 60 * 1000, // 15 minutes
 	});
 };
+
+// Hook for getting gallery active stories
+export const useGalleryActive = () => {
+	const axiosPublic = useAxiosPublic();
+
+	return useQuery({
+		queryKey: ['gallery-active'],
+		queryFn: async () => {
+			const { data } = await axiosPublic.get('/api/gallery/active');
+			return data.data || [];
+		},
+		staleTime: 10 * 60 * 1000,
+		cacheTime: 15 * 60 * 1000,
+	});
+};
