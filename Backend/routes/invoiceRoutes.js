@@ -213,7 +213,7 @@ router.post('/:id/payment', verifyUser, verifyRole('admin', 'employee'), async (
 });
 
 // Cancel an invoice
-router.post('/:id/cancel', verifyUser, verifyRole('admin', 'employee'), async (req, res) => {
+router.post('/:id/cancel', verifyUser, verifyRole('admin'), async (req, res) => {
 	try {
 		const { notes } = req.body;
 
@@ -413,7 +413,7 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 					width: priceWidth,
 					align: 'right',
 				})
-				.text(item.discount > 0 ? `${item.discount}%` : '-', discountX, tableRow, {
+				.text(item.discount > 0 ? `${item.discount}` : '-', discountX, tableRow, {
 					width: discountWidth,
 					align: 'right',
 				})
@@ -463,11 +463,8 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 
 		// Additional discount if present
 		if (invoice.additionalDiscount > 0) {
-			const additionalDiscountAmount = (invoice.subtotal - invoice.totalDiscount) * (invoice.additionalDiscount / 100);
-			addTotalRow(
-				`Additional Discount (${invoice.additionalDiscount}%):`,
-				`${invoice.currency} ${additionalDiscountAmount.toFixed(2)}`
-			);
+			const additionalDiscountAmount = invoice.additionalDiscount;
+			addTotalRow(`Additional Discount:`, `${invoice.currency} ${additionalDiscountAmount.toFixed(2)}`);
 		}
 
 		addTotalRow('Tax:', `${invoice.currency} ${invoice.totalTax.toFixed(2)}`);
@@ -581,7 +578,9 @@ router.get('/export/csv', verifyUser, verifyRole('admin', 'employee'), async (re
 			Status: invoice.status,
 			Subtotal: invoice.subtotal,
 			'Item Discounts': invoice.totalDiscount,
-			'Additional Discount': invoice.additionalDiscount ? `${invoice.additionalDiscount}%` : '0%',
+			'Additional Discount': invoice.additionalDiscount
+				? `${invoice.currency} ${invoice.additionalDiscount}`
+				: `${invoice.currency} 0`,
 			Tax: invoice.totalTax,
 			'Total Amount': invoice.totalAmount,
 			'Paid Amount': invoice.paidAmount,
