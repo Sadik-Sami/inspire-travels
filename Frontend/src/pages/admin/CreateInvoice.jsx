@@ -108,7 +108,7 @@ const CreateInvoice = () => {
 		if (['quantity', 'unitPrice', 'discount', 'tax'].includes(field)) {
 			const item = updatedItems[index];
 			const subtotal = item.quantity * item.unitPrice;
-			const discountAmount = subtotal * (item.discount / 100);
+			const discountAmount = item.discount;
 			const afterDiscount = subtotal - discountAmount;
 			const taxAmount = afterDiscount * (item.tax / 100);
 			item.total = afterDiscount + taxAmount;
@@ -192,35 +192,66 @@ const CreateInvoice = () => {
 	};
 
 	// Calculate totals whenever items or additionalDiscount change
+	// useEffect(() => {
+	// 	const subtotal = invoiceData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+	// 	const totalDiscount = invoiceData.items.reduce((sum, item) => {
+	// 		const itemSubtotal = item.quantity * item.unitPrice;
+	// 		return sum + itemSubtotal * (item.discount / 100);
+	// 	}, 0);
+	// 	const totalTax = invoiceData.items.reduce((sum, item) => {
+	// 		const itemSubtotal = item.quantity * item.unitPrice;
+	// 		const afterDiscount = itemSubtotal - itemSubtotal * (item.discount / 100);
+	// 		return sum + afterDiscount * (item.tax / 100);
+	// 	}, 0);
+
+	// 	// Calculate additional discount amount
+	// 	const additionalDiscountAmount = invoiceData.additionalDiscount;
+
+	// 	// Calculate total amount
+	// 	const totalAmount = subtotal - totalDiscount - additionalDiscountAmount + totalTax;
+
+	// 	// Calculate due amount based on paid amount
+	// 	const dueAmount = totalAmount - invoiceData.paidAmount;
+
+	// 	setInvoiceData({
+	// 		...invoiceData,
+	// 		subtotal,
+	// 		totalDiscount,
+	// 		totalTax,
+	// 		totalAmount,
+	// 		dueAmount,
+	// 	});
+	// }, [invoiceData.items, invoiceData.additionalDiscount, invoiceData.paidAmount]);
+
 	useEffect(() => {
 		const subtotal = invoiceData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+
 		const totalDiscount = invoiceData.items.reduce((sum, item) => {
-			const itemSubtotal = item.quantity * item.unitPrice;
-			return sum + itemSubtotal * (item.discount / 100);
+			return sum + (item.discount || 0);
 		}, 0);
+
 		const totalTax = invoiceData.items.reduce((sum, item) => {
 			const itemSubtotal = item.quantity * item.unitPrice;
-			const afterDiscount = itemSubtotal - itemSubtotal * (item.discount / 100);
+			const afterDiscount = itemSubtotal - (item.discount || 0);
 			return sum + afterDiscount * (item.tax / 100);
 		}, 0);
 
-		// Calculate additional discount amount
-		const additionalDiscountAmount = (subtotal - totalDiscount) * (invoiceData.additionalDiscount / 100);
+		const additionalDiscountAmount = invoiceData.additionalDiscount || 0;
 
 		// Calculate total amount
 		const totalAmount = subtotal - totalDiscount - additionalDiscountAmount + totalTax;
 
 		// Calculate due amount based on paid amount
-		const dueAmount = totalAmount - invoiceData.paidAmount;
+		const dueAmount = totalAmount - (invoiceData.paidAmount || 0);
 
-		setInvoiceData({
-			...invoiceData,
+		setInvoiceData((prevData) => ({
+			...prevData,
 			subtotal,
 			totalDiscount,
 			totalTax,
 			totalAmount,
 			dueAmount,
-		});
+		}));
 	}, [invoiceData.items, invoiceData.additionalDiscount, invoiceData.paidAmount]);
 
 	// Handle form submission
@@ -424,15 +455,14 @@ const CreateInvoice = () => {
 											</div>
 										</div>
 										<div className='space-y-2'>
-											<Label htmlFor={`item-discount-${index}`}>Discount (%)</Label>
+											<Label htmlFor={`item-discount-${index}`}>Discount Amount</Label>
 											<div className='relative'>
-												<Percent className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+												<DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
 												<Input
 													id={`item-discount-${index}`}
 													type='number'
 													min='0'
-													max='100'
-													step='0.01'
+													step='10'
 													className='pl-9'
 													value={item.discount}
 													onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
@@ -586,15 +616,14 @@ const CreateInvoice = () => {
 								<span>{formatCurrency(invoiceData.totalDiscount)}</span>
 							</div>
 							<div className='space-y-2'>
-								<Label htmlFor='additionalDiscount'>Additional Discount (%)</Label>
+								<Label htmlFor='additionalDiscount'>Additional Discount Amount</Label>
 								<div className='relative'>
-									<Percent className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+									<DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
 									<Input
 										id='additionalDiscount'
 										type='number'
 										min='0'
-										max='100'
-										step='0.01'
+										step='10'
 										className='pl-9'
 										value={invoiceData.additionalDiscount}
 										onChange={(e) =>
@@ -609,11 +638,7 @@ const CreateInvoice = () => {
 							{invoiceData.additionalDiscount > 0 && (
 								<div className='flex justify-between'>
 									<span className='text-muted-foreground'>Additional Discount Amount:</span>
-									<span>
-										{formatCurrency(
-											(invoiceData.subtotal - invoiceData.totalDiscount) * (invoiceData.additionalDiscount / 100)
-										)}
-									</span>
+									<span>{formatCurrency(invoiceData.additionalDiscount)}</span>
 								</div>
 							)}
 							<div className='flex justify-between'>
