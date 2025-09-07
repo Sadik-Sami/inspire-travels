@@ -191,38 +191,6 @@ const CreateInvoice = () => {
 		});
 	};
 
-	// Calculate totals whenever items or additionalDiscount change
-	// useEffect(() => {
-	// 	const subtotal = invoiceData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-	// 	const totalDiscount = invoiceData.items.reduce((sum, item) => {
-	// 		const itemSubtotal = item.quantity * item.unitPrice;
-	// 		return sum + itemSubtotal * (item.discount / 100);
-	// 	}, 0);
-	// 	const totalTax = invoiceData.items.reduce((sum, item) => {
-	// 		const itemSubtotal = item.quantity * item.unitPrice;
-	// 		const afterDiscount = itemSubtotal - itemSubtotal * (item.discount / 100);
-	// 		return sum + afterDiscount * (item.tax / 100);
-	// 	}, 0);
-
-	// 	// Calculate additional discount amount
-	// 	const additionalDiscountAmount = invoiceData.additionalDiscount;
-
-	// 	// Calculate total amount
-	// 	const totalAmount = subtotal - totalDiscount - additionalDiscountAmount + totalTax;
-
-	// 	// Calculate due amount based on paid amount
-	// 	const dueAmount = totalAmount - invoiceData.paidAmount;
-
-	// 	setInvoiceData({
-	// 		...invoiceData,
-	// 		subtotal,
-	// 		totalDiscount,
-	// 		totalTax,
-	// 		totalAmount,
-	// 		dueAmount,
-	// 	});
-	// }, [invoiceData.items, invoiceData.additionalDiscount, invoiceData.paidAmount]);
-
 	useEffect(() => {
 		const subtotal = invoiceData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 

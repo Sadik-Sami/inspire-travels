@@ -117,13 +117,11 @@ router.get('/', async (req, res) => {
 			// Default sort by creation date, newest first
 			sortOptions.createdAt = -1;
 		}
-		console.log(query);
 		// Execute query with pagination
 		const blogs = await Blog.find(query).sort(sortOptions).skip(skip).limit(Number(limit)).populate('author', 'name');
 
 		// Get total count for pagination
 		const total = await Blog.countDocuments(query);
-		console.log(blogs);
 		res.json({
 			blogs,
 			pagination: {

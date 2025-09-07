@@ -49,7 +49,6 @@ export const useBlogQuery = ({
 				}
 			});
 			const response = await axiosPublic.get(`/api/blogs?${params.toString()}`);
-			console.log(response.data)
 			return response.data;
 		},
 		enabled,
@@ -127,5 +126,49 @@ export const useFeaturedBlogs = (limit = 6) => {
 			return response.data.blogs;
 		},
 		staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
+	});
+};
+
+/**
+ * Custom hook for fetching related blogs based on categories
+ *
+ * @param {Array} categories - Array of categories to match
+ * @param {string} excludeId - Blog ID to exclude from results
+ * @param {number} limit - Number of blogs to fetch
+ * @returns {Object} Query result object
+ */
+export const useRelatedBlogs = (categories = [], excludeId = null, limit = 3) => {
+	const axiosPublic = useAxiosPublic();
+	return useQuery({
+		queryKey: ['relatedBlogs', categories, excludeId, limit],
+		queryFn: async () => {
+			if (!categories || categories.length === 0) {
+				return { blogs: [] };
+			}
+
+			const params = new URLSearchParams();
+			params.append('limit', limit + 1); // Get one extra to account for exclusion
+			params.append('status', 'published');
+
+			// Add categories as filter
+			categories.forEach((category) => {
+				params.append('category', category);
+			});
+
+			const response = await axiosPublic.get(`/api/blogs?${params.toString()}`);
+
+			// Filter out the current blog if excludeId is provided
+			let blogs = response.data.blogs || [];
+			if (excludeId) {
+				blogs = blogs.filter((blog) => blog._id !== excludeId);
+			}
+
+			// Limit to the requested number
+			blogs = blogs.slice(0, limit);
+
+			return { blogs };
+		},
+		enabled: categories && categories.length > 0,
+		staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes
 	});
 };
