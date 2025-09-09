@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, User } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const GalleryDialog = ({ isOpen, onClose, galleryItem }) => {
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -40,6 +39,7 @@ const GalleryDialog = ({ isOpen, onClose, galleryItem }) => {
 					<div className='p-6'>
 						<DialogHeader className='mb-4'>
 							<DialogTitle className='text-2xl font-bold text-left'>{galleryItem.title}</DialogTitle>
+							<DialogDescription className='sr-only'>{galleryItem.title}'s description</DialogDescription>
 						</DialogHeader>
 
 						{/* Metadata */}
