@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -37,8 +35,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import AddCustomerDialog from '@/components/admin/AddCustomerDialog';
-import EditCustomerDialog from '@/components/admin/EditCustomerDialog';
+import AddCustomerDialog from '@/components/Admin/AddCustomerDialog';
+import EditCustomerDialog from '@/components/Admin/EditCustomerDialog';
 import PaginationControls from '@/components/Destination/PaginationControls';
 import { useCustomers } from '@/hooks/useCustomerQuery';
 import { useDeleteCustomer } from '@/hooks/useCustomerMutation';
