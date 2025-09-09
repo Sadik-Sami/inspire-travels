@@ -4,7 +4,7 @@ import useAxiosPublic from './use-AxiosPublic';
 
 // Hook for fetching gallery items with filters and pagination
 export const useGalleryQuery = (filters = {}) => {
-	const axiosPublic = useAxiosPublic();
+const axiosPublic = useAxiosPublic();
 
 	const {
 		page = 1,

@@ -110,6 +110,7 @@ const Navbar = () => {
 		{ name: 'Home', path: '/' },
 		{ name: 'Group Packages', path: '/destinations' },
 		{ name: 'Visa Packages', path: '/visas' },
+		{ name: 'Gallery', path: '/gallery' },
 		{ name: 'Blogs', path: '/blogs' },
 		{ name: 'About', path: '/about' },
 		{ name: 'Contact', path: '/contact' },
