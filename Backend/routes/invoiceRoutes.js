@@ -374,7 +374,7 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		const discountX = priceX + priceWidth;
 		const taxX = discountX + discountWidth;
 		const totalX = taxX + taxWidth;
-
+		const safeFixed = (val) => (val != null ? val.toFixed(2) : '0.00');
 		// Add table headers
 		doc
 			.fontSize(10)
@@ -477,10 +477,10 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		tableRow += 10;
 
 		// Total amount
-		addTotalRow('Total:', `${invoice.currency} ${invoice.totalAmount.toFixed(2)}`, true);
+		addTotalRow('Total:', `${invoice.currency} ${safeFixed(invoice.totalAmount)}`, true);
 
 		// Payment info
-		addTotalRow('Amount Paid:', `${invoice.currency} ${invoice.paidAmount.toFixed(2)}`);
+		addTotalRow('Amount Paid:', `${invoice.currency} ${safeFixed(invoice.paidAmount)}`);
 
 		// Add horizontal line for balance due
 		doc
@@ -490,7 +490,7 @@ router.get('/:id/pdf', verifyUser, verifyRole('admin', 'employee'), async (req, 
 		tableRow += 10;
 
 		// Balance due
-		addTotalRow('Balance Due:', `${invoice.currency} ${invoice.dueAmount.toFixed(2)}`, true);
+		addTotalRow('Balance Due:', `${invoice.currency} ${safeFixed(invoice.dueAmount)}`, true);
 
 		tableRow += 20;
 
