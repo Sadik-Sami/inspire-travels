@@ -49,7 +49,7 @@ const FeaturedBlogs = () => {
 
 	// Loading skeleton component
 	const BlogSkeleton = () => (
-		<Card className='h-[600px] min-w-0 flex-shrink-0 flex flex-col'>
+		<Card className='h-[512px] min-w-0 flex-shrink-0 flex flex-col'>
 			<CardHeader className='p-0 flex-shrink-0'>
 				<div className='relative h-60'>
 					<Skeleton className='h-full w-full rounded-none' />
