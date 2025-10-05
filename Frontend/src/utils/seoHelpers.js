@@ -1,257 +1,33 @@
 /**
  * SEO Helper Functions
- * Utility functions to generate SEO data for different page types
+ * Utility functions for generating SEO metadata and structured data
  */
 
-// Generate structured data for different content types
-export const generateStructuredData = {
-	// Website/Organization structured data
-	website: (data = {}) => ({
-		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-		name: data.name || 'TravelCo',
-		url: data.url || 'https://your-domain.com',
-		description: data.description || 'Your ultimate travel companion for discovering amazing destinations worldwide',
-		potentialAction: {
-			'@type': 'SearchAction',
-			target: {
-				'@type': 'EntryPoint',
-				urlTemplate: `${data.url || 'https://your-domain.com'}/search?q={search_term_string}`,
-			},
-			'query-input': 'required name=search_term_string',
-		},
-	}),
-
-	// Article/Blog post structured data
-	article: (article) => ({
-		'@context': 'https://schema.org',
-		'@type': 'Article',
-		headline: article.title,
-		description: article.summary || article.description,
-		image: article.coverImage?.url || article.image,
-		author: {
-			'@type': 'Person',
-			name: article.author?.name || 'TravelCo Team',
-		},
-		publisher: {
-			'@type': 'Organization',
-			name: 'TravelCo',
-			logo: {
-				'@type': 'ImageObject',
-				url: 'https://your-domain.com/logo.png',
-			},
-		},
-		datePublished: article.createdAt || article.publishedTime,
-		dateModified: article.updatedAt || article.modifiedTime,
-		mainEntityOfPage: {
-			'@type': 'WebPage',
-			'@id': article.url,
-		},
-	}),
-
-	// Travel destination structured data
-	destination: (destination) => ({
-		'@context': 'https://schema.org',
-		'@type': 'TouristDestination',
-		name: destination.title,
-		description: destination.summary || destination.description,
-		image: destination.images?.[0]?.url || destination.image,
-		address: {
-			'@type': 'PostalAddress',
-			addressLocality: destination.location?.to,
-			addressCountry: destination.location?.country,
-		},
-		geo: destination.coordinates
-			? {
-					'@type': 'GeoCoordinates',
-					latitude: destination.coordinates.lat,
-					longitude: destination.coordinates.lng,
-			  }
-			: undefined,
-		offers: destination.pricing
-			? {
-					'@type': 'Offer',
-					price: destination.pricing.basePrice,
-					priceCurrency: 'USD',
-					availability: 'https://schema.org/InStock',
-			  }
-			: undefined,
-	}),
-
-	// Travel package/tour structured data
-	tourPackage: (tour) => ({
-		'@context': 'https://schema.org',
-		'@type': 'TouristTrip',
-		name: tour.title,
-		description: tour.summary || tour.description,
-		image: tour.images?.[0]?.url || tour.image,
-		duration: tour.duration ? `P${tour.duration.days}D` : undefined,
-		offers: {
-			'@type': 'Offer',
-			price: tour.pricing?.basePrice,
-			priceCurrency: 'USD',
-			availability: 'https://schema.org/InStock',
-		},
-		provider: {
-			'@type': 'Organization',
-			name: 'TravelCo',
-		},
-	}),
-
-	// Organization structured data
-	organization: (org = {}) => ({
-		'@context': 'https://schema.org',
-		'@type': 'TravelAgency',
-		name: org.name || 'TravelCo',
-		url: org.url || 'https://your-domain.com',
-		logo: org.logo || 'https://your-domain.com/logo.png',
-		description: org.description || 'Your ultimate travel companion',
-		contactPoint: {
-			'@type': 'ContactPoint',
-			telephone: org.phone || '+1-234-567-8900',
-			contactType: 'customer service',
-			email: org.email || 'info@travelco.com',
-		},
-		sameAs: org.socialMedia || [
-			'https://facebook.com/travelco',
-			'https://twitter.com/travelco',
-			'https://instagram.com/travelco',
-		],
-	}),
-};
-
-// Generate SEO data for different page types
-export const generateSEOData = {
-	// Home page SEO
-	home: () => ({
-		title: 'Discover Amazing Destinations Worldwide',
-		description:
-			'Explore the world with TravelCo. Book unforgettable travel experiences, discover hidden gems, and create memories that last a lifetime. Start your adventure today!',
-		keywords: [
-			'travel',
-			'destinations',
-			'vacation',
-			'tourism',
-			'adventure',
-			'booking',
-			'experiences',
-			'worldwide travel',
-		],
-		type: 'website',
-		structuredData: generateStructuredData.website(),
-	}),
-
-	// About page SEO
-	about: () => ({
-		title: 'About TravelCo - Your Trusted Travel Partner',
-		description:
-			"Learn about TravelCo's mission to make travel accessible and memorable for everyone. Discover our story, values, and commitment to exceptional travel experiences.",
-		keywords: ['about travelco', 'travel company', 'travel agency', 'our story', 'travel experts'],
-		type: 'website',
-	}),
-
-	// Contact page SEO
-	contact: () => ({
-		title: 'Contact TravelCo - Get in Touch',
-		description:
-			'Contact TravelCo for travel inquiries, bookings, or support. Our travel experts are here to help you plan your perfect adventure.',
-		keywords: ['contact', 'travel support', 'booking help', 'travel consultation'],
-		type: 'website',
-	}),
-
-	// Blog listing page SEO
-	blogListing: () => ({
-		title: 'Travel Blog - Tips, Guides & Stories',
-		description:
-			'Discover travel tips, destination guides, and inspiring stories from around the world. Get expert advice to make your next trip unforgettable.',
-		keywords: ['travel blog', 'travel tips', 'destination guides', 'travel stories', 'travel advice'],
-		type: 'website',
-	}),
-
-	// Individual blog post SEO
-	blogPost: (blog) => ({
-		title: blog.title,
-		description: blog.summary || blog.content?.substring(0, 160),
-		keywords: [...(blog.categories || []), ...(blog.tags || [])],
-		image: blog.coverImage?.url,
-		type: 'article',
-		publishedTime: blog.createdAt,
-		modifiedTime: blog.updatedAt,
-		author: blog.author?.name,
-		category: blog.categories?.[0],
-		tags: blog.tags,
-		structuredData: generateStructuredData.article(blog),
-	}),
-
-	// Destinations listing page SEO
-	destinationsListing: () => ({
-		title: 'Travel Destinations - Explore the World',
-		description:
-			'Browse our curated collection of travel destinations worldwide. Find your next adventure with detailed guides, photos, and booking options.',
-		keywords: ['travel destinations', 'vacation spots', 'tourist attractions', 'travel packages', 'world destinations'],
-		type: 'website',
-	}),
-
-	// Individual destination SEO
-	destination: (destination) => ({
-		title: `${destination.title} - Travel Guide & Packages`,
-		description:
-			destination.summary ||
-			`Discover ${destination.title}. ${destination.location?.to} travel guide with packages, attractions, and booking options.`,
-		keywords: [
-			destination.title,
-			destination.location?.to,
-			'travel guide',
-			'vacation',
-			'tourism',
-			...(destination.categories || []),
-		],
-		image: destination.images?.[0]?.url,
-		type: 'website',
-		structuredData: generateStructuredData.destination(destination),
-	}),
-
-	// Gallery page SEO
-	gallery: () => ({
-		title: 'Success Stories & Travel Gallery',
-		description:
-			'Browse our collection of success stories and travel memories from satisfied customers. Get inspired for your next adventure with real travel experiences.',
-		keywords: ['travel gallery', 'success stories', 'travel photos', 'customer experiences', 'travel memories'],
-		type: 'website',
-	}),
-
-	// Visa services SEO
-	visaServices: () => ({
-		title: 'Visa Services - Easy Visa Processing',
-		description:
-			'Simplify your visa application process with TravelCo. Expert visa assistance for all destinations with fast processing and guaranteed approval.',
-		keywords: ['visa services', 'visa application', 'visa processing', 'travel visa', 'visa assistance'],
-		type: 'website',
-	}),
-
-	// Individual visa SEO
-	visa: (visa) => ({
-		title: `${visa.title} - Visa Requirements & Application`,
-		description:
-			visa.summary ||
-			`Get your ${visa.title} with ease. Complete visa requirements, processing time, and application assistance.`,
-		keywords: [visa.title, 'visa requirements', 'visa application', 'travel visa', ...(visa.categories || [])],
-		image: visa.images?.[0]?.url,
-		type: 'website',
-	}),
-};
-
-// Utility function to truncate text for meta descriptions
+/**
+ * Truncate text to a specific length
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated text
+ */
 export const truncateText = (text, maxLength = 160) => {
-	if (!text) return '';
-	if (text.length <= maxLength) return text;
+	if (!text || text.length <= maxLength) return text;
 	return text.substring(0, maxLength - 3) + '...';
 };
 
-// Generate dynamic keywords based on content
-export const generateDynamicKeywords = (content, baseKeywords = []) => {
-	const commonWords = [
+/**
+ * Generate keywords from content
+ * @param {string} content - Content to extract keywords from
+ * @param {number} limit - Maximum number of keywords
+ * @returns {string[]} Array of keywords
+ */
+export const generateKeywords = (content, limit = 10) => {
+	if (!content) return [];
+
+	// Remove common words and extract meaningful keywords
+	const commonWords = new Set([
 		'the',
+		'a',
+		'an',
 		'and',
 		'or',
 		'but',
@@ -263,46 +39,233 @@ export const generateDynamicKeywords = (content, baseKeywords = []) => {
 		'of',
 		'with',
 		'by',
+		'from',
 		'is',
 		'are',
 		'was',
 		'were',
 		'be',
 		'been',
-		'have',
-		'has',
-		'had',
-		'do',
-		'does',
-		'did',
-		'will',
-		'would',
-		'could',
-		'should',
-		'may',
-		'might',
-		'must',
-		'can',
-		'shall',
-	];
-
-	if (!content) return baseKeywords;
+		'being',
+	]);
 
 	const words = content
 		.toLowerCase()
-		.replace(/[^\w\s]/g, '')
+		.replace(/[^\w\s]/g, ' ')
 		.split(/\s+/)
-		.filter((word) => word.length > 3 && !commonWords.includes(word));
+		.filter((word) => word.length > 3 && !commonWords.has(word));
 
+	// Count word frequency
 	const wordCount = {};
 	words.forEach((word) => {
 		wordCount[word] = (wordCount[word] || 0) + 1;
 	});
 
-	const topWords = Object.entries(wordCount)
-		.sort(([, a], [, b]) => b - a)
-		.slice(0, 10)
+	// Sort by frequency and return top keywords
+	return Object.entries(wordCount)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, limit)
 		.map(([word]) => word);
+};
 
-	return [...baseKeywords, ...topWords];
+/**
+ * Generate structured data for different content types
+ */
+export const generateStructuredData = {
+	/**
+	 * Generate Website structured data
+	 */
+	website: (siteData) => ({
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: siteData.name || 'InspireTravels',
+		url: siteData.url || window.location.origin,
+		description: siteData.description || 'Discover amazing destinations worldwide',
+		potentialAction: {
+			'@type': 'SearchAction',
+			target: {
+				'@type': 'EntryPoint',
+				urlTemplate: `${siteData.url || window.location.origin}/search?q={search_term_string}`,
+			},
+			'query-input': 'required name=search_term_string',
+		},
+	}),
+
+	/**
+	 * Generate Article structured data
+	 */
+	article: (article) => ({
+		'@context': 'https://schema.org',
+		'@type': 'BlogPosting',
+		headline: article.title,
+		description: article.summary || article.description,
+		image: article.coverImage?.url || article.image,
+		datePublished: article.createdAt,
+		dateModified: article.updatedAt || article.createdAt,
+		author: {
+			'@type': 'Person',
+			name: article.author?.name || 'Anonymous',
+		},
+		publisher: {
+			'@type': 'Organization',
+			name: 'InspireTravels',
+			logo: {
+				'@type': 'ImageObject',
+				url: `${window.location.origin}/logo.png`,
+			},
+		},
+		mainEntityOfPage: {
+			'@type': 'WebPage',
+			'@id': window.location.href,
+		},
+	}),
+
+	/**
+	 * Generate TouristDestination structured data
+	 */
+	destination: (destination) => ({
+		'@context': 'https://schema.org',
+		'@type': 'TouristDestination',
+		name: destination.title,
+		description: destination.summary || destination.description,
+		image: destination.images?.[0]?.url || destination.image,
+		address: {
+			'@type': 'PostalAddress',
+			addressLocality: destination.location?.to,
+			addressCountry: destination.location?.country,
+		},
+		geo: destination.location?.coordinates && {
+			'@type': 'GeoCoordinates',
+			latitude: destination.location.coordinates.lat,
+			longitude: destination.location.coordinates.lng,
+		},
+	}),
+
+	/**
+	 * Generate TouristTrip structured data
+	 */
+	tour: (tour) => ({
+		'@context': 'https://schema.org',
+		'@type': 'TouristTrip',
+		name: tour.title,
+		description: tour.summary || tour.description,
+		image: tour.images?.[0]?.url || tour.image,
+		itinerary: tour.itinerary?.map((day, index) => ({
+			'@type': 'Event',
+			name: `Day ${index + 1}: ${day.title}`,
+			description: day.description,
+		})),
+		offers: {
+			'@type': 'Offer',
+			price: tour.pricing?.basePrice,
+			priceCurrency: 'USD',
+			availability: 'https://schema.org/InStock',
+		},
+	}),
+
+	/**
+	 * Generate Organization structured data
+	 */
+	organization: (org) => ({
+		'@context': 'https://schema.org',
+		'@type': 'TravelAgency',
+		name: org.name || 'InspireTravels',
+		url: org.url || window.location.origin,
+		logo: org.logo || `${window.location.origin}/logo.png`,
+		description: org.description || 'Your travel companion',
+		address: org.address && {
+			'@type': 'PostalAddress',
+			streetAddress: org.address.street,
+			addressLocality: org.address.city,
+			addressRegion: org.address.state,
+			postalCode: org.address.zip,
+			addressCountry: org.address.country,
+		},
+		contactPoint: org.contact && {
+			'@type': 'ContactPoint',
+			telephone: org.contact.phone,
+			email: org.contact.email,
+			contactType: 'customer service',
+		},
+		sameAs: org.socialMedia || [],
+	}),
+};
+
+/**
+ * Get default SEO data for different page types
+ */
+export const getPageSEO = (pageType, customData = {}) => {
+	const baseUrl = window.location.origin;
+	const defaultSEO = {
+		home: {
+			title: 'InspireTravels - Discover Amazing Destinations Worldwide',
+			description:
+				'Explore the world with InspireTravels. Discover amazing destinations, book unforgettable experiences, and create memories that last a lifetime.',
+			keywords: ['travel', 'destinations', 'vacation', 'tourism', 'adventure', 'booking', 'experiences'],
+			image: `${baseUrl}/images/og-home.jpg`,
+			type: 'website',
+		},
+		'blog-listing': {
+			title: 'Travel Blog - Tips, Guides & Stories',
+			description:
+				'Read our latest travel blog posts, destination guides, travel tips, and inspiring stories from around the world.',
+			keywords: ['travel blog', 'travel tips', 'destination guides', 'travel stories', 'travel advice'],
+			image: `${baseUrl}/images/og-blog.jpg`,
+			type: 'website',
+		},
+		'blog-post': {
+			title: customData.title || 'Blog Post',
+			description: customData.summary || customData.description || 'Read our latest travel blog post',
+			keywords: [...(customData.tags || []), ...(customData.categories || []), 'travel', 'blog', 'destination'],
+			image: customData.coverImage?.url || customData.image || `${baseUrl}/images/og-blog.jpg`,
+			type: 'article',
+			publishedTime: customData.createdAt,
+			modifiedTime: customData.updatedAt,
+			author: customData.author?.name,
+			category: customData.categories?.[0],
+			tags: customData.tags || [],
+		},
+		'destination-listing': {
+			title: 'Explore Destinations - Find Your Next Adventure',
+			description:
+				'Browse our collection of amazing travel destinations. Find detailed information, pricing, and book your next adventure.',
+			keywords: ['destinations', 'travel packages', 'tours', 'vacation packages', 'group travel'],
+			image: `${baseUrl}/images/og-destinations.jpg`,
+			type: 'website',
+		},
+		destination: {
+			title: customData.title || 'Destination',
+			description: customData.summary || customData.description || 'Explore this amazing destination',
+			keywords: [...(customData.categories || []), customData.location?.to, 'destination', 'travel', 'tour'].filter(
+				Boolean
+			),
+			image: customData.images?.[0]?.url || customData.image || `${baseUrl}/images/og-destination.jpg`,
+			type: 'website',
+		},
+		gallery: {
+			title: 'Success Stories & Gallery - Inspire Travels',
+			description:
+				'View our collection of success stories, customer experiences, and travel moments captured around the world.',
+			keywords: ['travel gallery', 'success stories', 'customer reviews', 'travel photos', 'testimonials'],
+			image: `${baseUrl}/images/og-gallery.jpg`,
+			type: 'website',
+		},
+		about: {
+			title: 'About Us - Inspire Travels',
+			description:
+				'Learn about Inspire Travels, our mission, values, and the team behind your unforgettable travel experiences.',
+			keywords: ['about us', 'travel company', 'our story', 'mission', 'team'],
+			image: `${baseUrl}/images/og-about.jpg`,
+			type: 'website',
+		},
+		contact: {
+			title: 'Contact Us - Get in Touch',
+			description: "Have questions? Get in touch with our travel experts. We're here to help plan your perfect trip.",
+			keywords: ['contact', 'customer service', 'support', 'inquiries', 'travel help'],
+			image: `${baseUrl}/images/og-contact.jpg`,
+			type: 'website',
+		},
+	};
+
+	return { ...defaultSEO[pageType], ...customData };
 };

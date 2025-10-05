@@ -49,6 +49,7 @@ import AdminGallery from '@/pages/admin/AdminGallery';
 import AdminAbout from '@/pages/admin/AdminAbout';
 import Gallery from '@/pages/Gallery';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { HelmetProvider } from 'react-helmet-async';
 
 const App = () => {
 	const queryClient = new QueryClient({
@@ -61,252 +62,254 @@ const App = () => {
 	});
 	return (
 		<>
-			<QueryClientProvider client={queryClient}>
-				<ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
-					<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-						<ScrollToTop />
-						<AuthProvider>
-							<Toaster expand closeButton richColors position='bottom-right' />
-							<Routes>
-								<Route path='/' element={<UserLayout />}>
-									<Route index element={<Home />} />
-									<Route path='about' element={<About />} />
-									<Route path='contact' element={<Contact />} />
-									<Route path='destinations' element={<Destinations />} />
-									<Route path='destinations/:id' element={<DestinationDetails />} />
-									<Route path='blogs' element={<Blogs />} />
-									<Route path='blogs/:slug' element={<BlogDetails />} />
-									<Route path='/visas' element={<VisaPackages />} />
-									<Route path='/visas/details/:slug' element={<VisaDetails />} />
-									<Route path='/visas/book/:slug' element={<VisaBooking />} />
-									<Route path='login' element={<Login />} />
-									<Route path='signup' element={<Signup />} />
-									<Route path='forgot-password' element={<ForgotPassword />} />
-									<Route path='gallery' element={<Gallery />} />
+			<HelmetProvider>
+				<QueryClientProvider client={queryClient}>
+					<ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
+						<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+							<ScrollToTop />
+							<AuthProvider>
+								<Toaster expand closeButton richColors position='bottom-right' />
+								<Routes>
+									<Route path='/' element={<UserLayout />}>
+										<Route index element={<Home />} />
+										<Route path='about' element={<About />} />
+										<Route path='contact' element={<Contact />} />
+										<Route path='destinations' element={<Destinations />} />
+										<Route path='destinations/:id' element={<DestinationDetails />} />
+										<Route path='blogs' element={<Blogs />} />
+										<Route path='blogs/:slug' element={<BlogDetails />} />
+										<Route path='/visas' element={<VisaPackages />} />
+										<Route path='/visas/details/:slug' element={<VisaDetails />} />
+										<Route path='/visas/book/:slug' element={<VisaBooking />} />
+										<Route path='login' element={<Login />} />
+										<Route path='signup' element={<Signup />} />
+										<Route path='forgot-password' element={<ForgotPassword />} />
+										<Route path='gallery' element={<Gallery />} />
+										<Route
+											path='/profile'
+											element={
+												<PrivateRoute>
+													<Profile />
+												</PrivateRoute>
+											}
+										/>
+										<Route
+											path='my-bookings'
+											element={
+												<PrivateRoute>
+													<MyBookings />
+												</PrivateRoute>
+											}
+										/>
+									</Route>
 									<Route
-										path='/profile'
+										path='/admin'
 										element={
-											<PrivateRoute>
-												<Profile />
-											</PrivateRoute>
-										}
-									/>
-									<Route
-										path='my-bookings'
-										element={
-											<PrivateRoute>
-												<MyBookings />
-											</PrivateRoute>
-										}
-									/>
-								</Route>
-								<Route
-									path='/admin'
-									element={
-										<RoleBasedRoute
-											requiredPermissions={[
-												PERMISSIONS.VIEW_ALL_USERS,
-												PERMISSIONS.MANAGE_CUSTOMERS,
-												PERMISSIONS.MANAGE_DESTINATIONS,
-												PERMISSIONS.MANAGE_INVOICES,
-											]}>
-											<AdminLayout />
-										</RoleBasedRoute>
-									}>
-									<Route index element={<AdminHome />} />
+											<RoleBasedRoute
+												requiredPermissions={[
+													PERMISSIONS.VIEW_ALL_USERS,
+													PERMISSIONS.MANAGE_CUSTOMERS,
+													PERMISSIONS.MANAGE_DESTINATIONS,
+													PERMISSIONS.MANAGE_INVOICES,
+												]}>
+												<AdminLayout />
+											</RoleBasedRoute>
+										}>
+										<Route index element={<AdminHome />} />
 
-									{/* User Management - Admin Only */}
-									<Route
-										path='users'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ALL_USERS]}>
-												<AdminUsers />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='staffs'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_STAFF]}>
-												<AdminStaffs />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* User Management - Admin Only */}
+										<Route
+											path='users'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ALL_USERS]}>
+													<AdminUsers />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='staffs'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_STAFF]}>
+													<AdminStaffs />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Customer Management - Admin & Employee */}
-									<Route
-										path='customers'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_CUSTOMERS]}>
-												<AdminCustomers />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Customer Management - Admin & Employee */}
+										<Route
+											path='customers'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_CUSTOMERS]}>
+													<AdminCustomers />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Destination Packages - Admin & Moderator */}
-									<Route
-										path='destinations'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
-												<AdminDestinations />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='destinations/new'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
-												<AddDestination />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='destinations/edit/:id'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
-												<EditDestination />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Destination Packages - Admin & Moderator */}
+										<Route
+											path='destinations'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+													<AdminDestinations />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='destinations/new'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+													<AddDestination />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='destinations/edit/:id'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_DESTINATIONS]}>
+													<EditDestination />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Visa Packages - Admin & Moderator */}
-									<Route
-										path='visas'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
-												<AdminVisas />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='visas/new'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
-												<AddVisa />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='visas/edit/:id'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
-												<EditVisa />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Visa Packages - Admin & Moderator */}
+										<Route
+											path='visas'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+													<AdminVisas />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='visas/new'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+													<AddVisa />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='visas/edit/:id'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_VISAS]}>
+													<EditVisa />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Blogs - Admin & Moderator */}
-									<Route
-										path='blogs'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
-												<AdminBlogs />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='blogs/new'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
-												<AddBlog />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='blogs/edit/:id'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
-												<EditBlog />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Blogs - Admin & Moderator */}
+										<Route
+											path='blogs'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+													<AdminBlogs />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='blogs/new'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+													<AddBlog />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='blogs/edit/:id'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_BLOGS]}>
+													<EditBlog />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Bookings - Admin, Employee, Moderator */}
-									<Route
-										path='bookings'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_BOOKINGS]}>
-												<AdminBookings />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Bookings - Admin, Employee, Moderator */}
+										<Route
+											path='bookings'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_BOOKINGS]}>
+													<AdminBookings />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Invoices - Admin & Employee */}
-									<Route
-										path='invoices'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
-												<AdminInvoices />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='invoices/new'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
-												<CreateInvoice />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='invoices/analytics'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ANALYTICS]}>
-												<InvoiceAnalytics />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='invoices/:id'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
-												<InvoiceDetailsPage />
-											</RoleBasedRoute>
-										}
-									/>
+										{/* Invoices - Admin & Employee */}
+										<Route
+											path='invoices'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+													<AdminInvoices />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='invoices/new'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+													<CreateInvoice />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='invoices/analytics'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.VIEW_ANALYTICS]}>
+													<InvoiceAnalytics />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='invoices/:id'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_INVOICES]}>
+													<InvoiceDetailsPage />
+												</RoleBasedRoute>
+											}
+										/>
 
-									{/* Contact Info - Admin Only */}
-									<Route
-										path='contact-info'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_CONTACT_INFO]}>
-												<AdminContactInfo />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='messages'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_MESSAGES]}>
-												<AdminMessages />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='gallery'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_GALLERY]}>
-												<AdminGallery />
-											</RoleBasedRoute>
-										}
-									/>
-									<Route
-										path='about'
-										element={
-											<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_ABOUT]}>
-												<AdminAbout />
-											</RoleBasedRoute>
-										}
-									/>
-								</Route>
-								{/* Error Pages */}
-								<Route path='/access-denied' element={<AccessDeniedPage />} />
-								<Route path='*' element={<NotFoundPage />} />
-							</Routes>
-						</AuthProvider>
-					</BrowserRouter>
-				</ThemeProvider>
-			</QueryClientProvider>
+										{/* Contact Info - Admin Only */}
+										<Route
+											path='contact-info'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_CONTACT_INFO]}>
+													<AdminContactInfo />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='messages'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_MESSAGES]}>
+													<AdminMessages />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='gallery'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_GALLERY]}>
+													<AdminGallery />
+												</RoleBasedRoute>
+											}
+										/>
+										<Route
+											path='about'
+											element={
+												<RoleBasedRoute requiredPermissions={[PERMISSIONS.MANAGE_ABOUT]}>
+													<AdminAbout />
+												</RoleBasedRoute>
+											}
+										/>
+									</Route>
+									{/* Error Pages */}
+									<Route path='/access-denied' element={<AccessDeniedPage />} />
+									<Route path='*' element={<NotFoundPage />} />
+								</Routes>
+							</AuthProvider>
+						</BrowserRouter>
+					</ThemeProvider>
+				</QueryClientProvider>
+			</HelmetProvider>
 		</>
 	);
 };

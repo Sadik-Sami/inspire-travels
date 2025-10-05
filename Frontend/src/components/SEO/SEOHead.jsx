@@ -8,8 +8,8 @@ const SEOHead = ({
 	image,
 	url,
 	type = 'website',
-	siteName = 'TravelCo - Your Ultimate Travel Companion',
-	twitterHandle = '@travelco',
+	siteName = 'Inspire Travels - Your Travel Companion',
+	twitterHandle = '@InspireTravels',
 	locale = 'en_US',
 	publishedTime,
 	modifiedTime,
@@ -24,11 +24,11 @@ const SEOHead = ({
 	customMeta = [],
 }) => {
 	// Default values
-	const defaultTitle = 'TravelCo - Discover Amazing Destinations Worldwide';
+	const defaultTitle = 'Inspire Travels - Discover Amazing Destinations Worldwide';
 	const defaultDescription =
-		'Explore the world with TravelCo. Discover amazing destinations, book unforgettable experiences, and create memories that last a lifetime.';
-	const defaultImage = 'https://your-domain.com/images/og-default.jpg';
-	const defaultUrl = typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com';
+		'Explore the world with Inspire Travels. Discover amazing destinations, book unforgettable experiences, and create memories that last a lifetime.';
+	const defaultImage = '/images/og-default.jpg';
+	const defaultUrl = typeof window !== 'undefined' ? window.location.href : 'https://inspire-dev.netlify.app';
 
 	// Process title
 	const pageTitle = title ? `${title} | ${siteName}` : defaultTitle;
@@ -88,7 +88,6 @@ const SEOHead = ({
 			<meta name='viewport' content='width=device-width, initial-scale=1.0' />
 			<meta httpEquiv='Content-Type' content='text/html; charset=utf-8' />
 			<meta name='language' content='English' />
-			<meta name='revisit-after' content='7 days' />
 			<meta name='author' content={author || siteName} />
 
 			{/* Alternate Language Links */}
@@ -110,7 +109,7 @@ const SEOHead = ({
 SEOHead.propTypes = {
 	title: PropTypes.string,
 	description: PropTypes.string,
-	keywords: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+	keywords: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
 	image: PropTypes.string,
 	url: PropTypes.string,
 	type: PropTypes.oneOf(['website', 'article', 'product', 'profile']),
@@ -121,13 +120,18 @@ SEOHead.propTypes = {
 	modifiedTime: PropTypes.string,
 	author: PropTypes.string,
 	category: PropTypes.string,
-	tags: PropTypes.array,
+	tags: PropTypes.arrayOf(PropTypes.string),
 	noIndex: PropTypes.bool,
 	noFollow: PropTypes.bool,
 	canonical: PropTypes.string,
-	alternateLanguages: PropTypes.array,
+	alternateLanguages: PropTypes.arrayOf(
+		PropTypes.shape({
+			code: PropTypes.string,
+			url: PropTypes.string,
+		})
+	),
 	structuredData: PropTypes.object,
-	customMeta: PropTypes.array,
+	customMeta: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default SEOHead;
