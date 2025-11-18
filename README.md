@@ -9,6 +9,10 @@ Inspire Travels (also referred to as SureTrip Travels in the code) is a full-sta
 
 The application supports roles: customer, admin, moderator, employee. Admins have full access, while customers can book and view content.
 
+## Test Account
+- **user**: inspire@admin.com
+- **password**: 123456Ab!
+
 Key features:
 - User authentication (Firebase + JWT).
 - Destination and visa management.
